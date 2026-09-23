@@ -1,0 +1,13 @@
+# macOS / Finder metadata
+.DS_Store
+._*
+__MACOSX/
+
+# Internal working inventories are not part of the public repository.
+TOOL_NOTES.txt
+*.xlsx
+
+# Local editor / temporary files
+*.swp
+*.swo
+*~
