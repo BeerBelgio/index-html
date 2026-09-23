@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "BeerBelgio Visual Lab",
+    "repository": "https://github.com/BeerBelgio/visual-lab",
+    "dataset": "pilot",
+    "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
+    "editorialSourceOfTruth": "data/tools.json",
+    "notes": "Technical controls, ranges, defaults, colors and Audio Sync exposure are intentionally not duplicated here. BG means background throughout the project."
+  },
+  "tools": [
+    {
+      "name": "Linking Nodes",
+      "slug": "linking-nodes",
+      "version": "v2.0",
+      "file": "linking-nodes/Linking_Nodes-v2.0.html",
+      "renderer": "Canvas 2D",
+      "catalogueStatus": "pilot",
+      "conceptTags": [
+        "particles",
+        "lines"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "Blobs wandering around, with live links forming between them.",
+        "description": "Generates a population of soft moving blobs/nodes that wander through the frame, create proximity links and deform into motion-driven melted forms.",
+        "behaviour": "Amount is the actual blob count (2–200); Size sets blob radius; Wandering BPM controls motion speed; Wandering changes path irregularity without changing playback speed; Spread changes the roaming envelope; Linking and Link Width control connections; Center Size shapes the blob core; Melt deforms blobs according to motion/turning; Fill Opacity controls blob fill; Blob Color and Link Color set the two visual layers."
+      },
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "Canvas UI",
+          "author": "DavidHDev",
+          "url": "https://github.com/DavidHDev/canvas-ui",
+          "sourceLicence": "MIT + Commons Clause",
+          "text": "Inspired by DavidHDev's Canvas UI Bubble component. Linking Nodes was independently rebuilt as a standalone Canvas2D tool for this project."
+        }
+      ],
+      "development": {
+        "notes": "Independent Canvas2D implementation. The current engine adds deterministic multi-force linking and motion-driven Melt while remaining a generated field rather than a refractive post-process.",
+        "limitations": "No underlying image refraction is performed; the current tool is a generated flat-blob field.",
+        "nextIdeas": [
+          "Add an optional BG color/opacity control while preserving transparent output."
+        ]
+      },
+      "mappingIdeas": [
+        {
+          "control": "Wandering BPM",
+          "key": "wandering_bpm",
+          "text": "Usually I don't map it, but go wild."
+        },
+        {
+          "control": "Spread",
+          "key": "spread",
+          "text": "Try using it in contrast to the Wandering control."
+        }
+      ],
+      "preview": null
+    },
+    {
+      "name": "Nodal Morph",
+      "slug": "nodal-morph",
+      "version": "v1.8",
+      "file": "nodal-morph/Nodal_Morph-v1.8.html",
+      "renderer": "WebGL",
+      "catalogueStatus": "pilot",
+      "conceptTags": [
+        "field",
+        "stripes"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "Chladni figures with variable morphing and warped motion.",
+        "description": "Generates Chladni-like nodal figures on the GPU, morphing between modal states and rendering through an adaptive supersampled WebGL pass.",
+        "behaviour": "Mode X and Mode Y select the modal pair; Morph blends toward the neighbouring pair; Line Width defines the visible nodal band; Warp and Rotation deform/reorient the pattern; Motion BPM controls temporal motion. BG Opacity plus Line, Accent and BG colors control the final WebGL composition."
+      },
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "Fluid",
+          "author": "enonforetsam",
+          "url": "https://github.com/enonforetsam/fluid",
+          "sourceLicence": "MIT",
+          "text": "Inspired by the Chladni / nodal field work in enonforetsam's Fluid and by standard Chladni plate mathematics. The current WebGL implementation is independently built."
+        }
+      ],
+      "development": {
+        "notes": "The renderer has moved from the earlier CPU/Canvas2D implementation to a GPU WebGL pipeline with adaptive supersampling and a render-budget cap, retaining the same Chladni mathematics and visual behaviour while reducing high-resolution CPU cost.",
+        "limitations": "The visual system is mathematically inspired by Chladni figures but is not intended as a scientific simulator.",
+        "nextIdeas": [
+          "Explore a genuinely audio-derived nodal response rather than only mapping controls onto a mathematical Chladni construction."
+        ]
+      },
+      "mappingIdeas": [
+        {
+          "control": "Mode X",
+          "key": "mode_x",
+          "text": "Map it along or in contrast with Mode Y."
+        },
+        {
+          "control": "Mode Y",
+          "key": "mode_y",
+          "text": "Map it along or in contrast with Mode X."
+        },
+        {
+          "control": "Warp",
+          "key": "warp",
+          "text": "Everywhere will be just fine."
+        },
+        {
+          "control": "Motion BPM",
+          "key": "motion_bpm",
+          "text": "Usually I don't map it, but go wild."
+        }
+      ],
+      "preview": null
+    },
+    {
+      "name": "FormShift",
+      "slug": "formshift",
+      "version": "v1.7",
+      "file": "formshift/FormShift-v1.7.html",
+      "renderer": "Canvas 2D",
+      "catalogueStatus": "pilot",
+      "conceptTags": [
+        "transition",
+        "shapes"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "Basic shapes, photography concepts and middle-school geometry: can something go wrong?",
+        "description": "Generates a basic geometric source and applies trigger-driven Flash-style cuts, slotting, wedge splits, echoes and radial copy movements. The current engine is shape-based rather than typographic.",
+        "behaviour": "FX Type selects one of six transition families; Shape selects one of six generated sources; Trigger is the direct FX envelope with no internal decay; Impact controls displacement strength; Scale sets source size; Horizontal Stretch and Vertical Stretch deform the source independently; Rotation, Split and Shutter shape the transition; Shape Color and Accent Color define the palette."
+      },
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "Typoman",
+          "author": "markdo27",
+          "url": "https://github.com/markdo27/typoman",
+          "sourceLicence": "MIT",
+          "text": "Inspired by markdo27's Typoman and its kinetic Flash-style transition grammar. FormShift is an independent shape-based implementation."
+        }
+      ],
+      "development": {
+        "notes": "The current shape-based engine keeps the external Typoman project as visual/interaction lineage only. Transition was replaced by a direct Trigger envelope, internal Decay was removed, and stretch is now independent on X/Y.",
+        "limitations": "Like FormCutter, the current implementation transforms its own generated source canvas; it does not decompose the actual lower Sketch layer without an exposed source texture/canvas.",
+        "nextIdeas": [
+          "Add optional BG color/opacity while preserving transparent output."
+        ]
+      },
+      "mappingIdeas": [
+        {
+          "control": "Trigger",
+          "key": "trigger",
+          "text": "Map it along or in contrast with Impact."
+        },
+        {
+          "control": "Impact",
+          "key": "impact",
+          "text": "Map it along or in contrast with Trigger."
+        }
+      ],
+      "preview": null
+    }
+  ]
+}
