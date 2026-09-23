@@ -1,0 +1,444 @@
+<!--
+BeerBelgio Visual Lab — HTML Tool
+Project: https://github.com/BeerBelgio/visual-lab
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Caustic Stitch v1.7</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      display: block;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Caustic Stitch v1.7",
+  params: [
+    { key: "mode",              label: "Mode",              min: 0,   max: 8,   step: 1,   default: 0   },
+    { key: "points",            label: "Points",            min: 12,  max: 240, step: 1,   default: 96  },
+    { key: "multiplier",        label: "Multiplier",        min: 1,   max: 24,  step: 0.1, default: 2.4 },
+    { key: "scale",             label: "Scale",             min: 0,   max: 100, step: 1,   default: 74  },
+    { key: "spread",            label: "Spread",            min: 0,   max: 200, step: 1,   default: 22  },
+    { key: "line_width",        label: "Line Width",        min: 1,   max: 100, step: 1,   default: 18  },
+    { key: "accent",            label: "Accent",            min: 0,   max: 100, step: 1,   default: 46  },
+    { key: "accent_width",      label: "Accent Width",      min: 0,   max: 100, step: 1,   default: 32  },
+    { key: "accent_variations", label: "Accent Variations", min: 0,   max: 100, step: 1,   default: 0   },
+    { key: "rotation",          label: "Rotation",          min: 0,   max: 360, step: 1,   default: 0   },
+    { key: "warp",              label: "Warp",              min: 0,   max: 100, step: 1,   default: 0   }
+  ],
+  colors: [
+    { key: "line_color",   label: "Line Color",   default: "#f2eee6" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" }
+  ],
+  audio: [
+      "points", "multiplier", "scale", "spread", "line_width", "accent", "accent_width",
+      "accent_variations", "rotation", "warp"
+    ]
+};
+
+const canvas = document.getElementById('sketch-canvas');
+const ctx = canvas.getContext('2d', { alpha: true });
+
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function clamp01(v){ return clamp(v, 0, 1); }
+function lerp(a,b,t){ return a + (b-a)*t; }
+function fract(v){ return v - Math.floor(v); }
+function hash(n){ return fract(Math.sin(n * 12.9898 + 78.233) * 43758.5453123); }
+const toolDefaults = Object.create(null);
+for (const item of window.SKETCH_TOOL.params.concat(window.SKETCH_TOOL.colors)) {
+  toolDefaults[item.key] = item.default;
+}
+function readVal(obj, key, fallback){
+  if (Object.prototype.hasOwnProperty.call(toolDefaults, key)) fallback = toolDefaults[key];
+  const value = (obj && Object.prototype.hasOwnProperty.call(obj, key)) ? obj[key] : undefined;
+  if (value === undefined || value === null) return fallback;
+  if (typeof fallback === 'number') {
+    if (typeof value !== 'number' && typeof value !== 'string') return fallback;
+    if (typeof value === 'string' && value.trim() === '') return fallback;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+  if (typeof fallback === 'string' && fallback.charAt(0) === '#') {
+    return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+  }
+  return value;
+}
+function hexToRgb(hex){
+  const h = typeof hex === 'string' && hex.charAt(0) === '#' ? hex.slice(1) : '';
+  if (h.length !== 6) return [255,255,255];
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function rgba(rgb,a){ return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')'; }
+// 50 deterministic force signatures, reused across all stitch lines.
+const WARP_FORCE_PROFILES = Array.from({ length: 50 }, (_, i) => {
+  const s = i + 101.37;
+  return {
+    angleA: hash(s * 1.17) * Math.PI * 2,
+    angleB: hash(s * 2.31) * Math.PI * 2,
+    strengthA: 0.55 + 0.90 * hash(s * 3.73),
+    strengthB: 0.55 + 0.90 * hash(s * 4.91),
+    driftA: 0.10 + 0.22 * hash(s * 6.11),
+    driftB: 0.08 + 0.24 * hash(s * 7.43),
+    phaseA: hash(s * 8.57) * Math.PI * 2,
+    phaseB: hash(s * 9.83) * Math.PI * 2,
+    signA: hash(s * 11.13) > 0.5 ? 1 : -1,
+    signB: hash(s * 12.47) > 0.5 ? 1 : -1
+  };
+});
+
+function warpForceProfile(i, j, mode){
+  const idx = Math.abs((i * 31 + j * 17 + i * j * 7 + mode * 13) % 50);
+  return WARP_FORCE_PROFILES[idx];
+}
+
+function drawWarpedLine(x1,y1,x2,y2,color,alpha,width,warpNorm,time,i,j,mode){
+  ctx.strokeStyle = rgba(color, alpha);
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+
+  if (warpNorm <= 0.0001) {
+    ctx.lineTo(x2,y2);
+    ctx.stroke();
+    return;
+  }
+
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const d = Math.sqrt(dx*dx + dy*dy) || 1;
+  const lineUx = dx / d;
+  const lineUy = dy / d;
+  const lineNx = -lineUy;
+  const lineNy = lineUx;
+
+  // Same 0..5 internal strength logic used by Linking Nodes' link melt.
+  const warpAmount = warpNorm * 5.0;
+  const strengthNorm = clamp01(warpAmount / 5.0);
+  const lineWarp = warpAmount * (1.0 + 0.55 * Math.pow(strengthNorm, 1.35));
+
+  const profile = warpForceProfile(i, j, mode);
+  const slowTime = time;
+  const oscA = Math.sin(slowTime * profile.driftA + profile.phaseA);
+  const oscB = Math.sin(slowTime * profile.driftB + profile.phaseB);
+
+  // Primary force: a shared slow field, projected onto each line's local normal.
+  // It gives the whole stitch system a coherent motion instead of making every
+  // segment behave as unrelated noise.
+  const globalPhase = slowTime * 0.16 + Math.sin(slowTime * 0.071) * 0.65;
+  const globalX = Math.cos(globalPhase);
+  const globalY = Math.sin(globalPhase);
+  const globalSide = globalX * lineNx + globalY * lineNy;
+
+  const primaryGain = Math.min(0.46, 0.135 * lineWarp);
+  const randomGainA = Math.min(0.70, 0.10 * lineWarp * (0.55 + 0.45 * strengthNorm));
+  const randomGainB = Math.min(0.82, 0.13 * lineWarp * (0.50 + 0.50 * strengthNorm));
+
+  const dirAX = Math.cos(profile.angleA + oscA * 0.75);
+  const dirAY = Math.sin(profile.angleA + oscA * 0.75);
+  const dirBX = Math.cos(profile.angleB - oscB * 0.85);
+  const dirBY = Math.sin(profile.angleB - oscB * 0.85);
+
+  let cp1x = x1 + dx * 0.33;
+  let cp1y = y1 + dy * 0.33;
+  let cp2x = x1 + dx * 0.67;
+  let cp2y = y1 + dy * 0.67;
+
+  cp1x += lineNx * d * primaryGain * globalSide;
+  cp1y += lineNy * d * primaryGain * globalSide;
+
+  cp1x += (dirAX * 0.52 + lineNx * profile.signA * 0.48) * d * randomGainA * profile.strengthA;
+  cp1y += (dirAY * 0.52 + lineNy * profile.signA * 0.48) * d * randomGainA * profile.strengthA;
+
+  cp2x += (dirBX * 0.58 + lineNx * profile.signB * 0.42) * d * randomGainB * profile.strengthB;
+  cp2y += (dirBY * 0.58 + lineNy * profile.signB * 0.42) * d * randomGainB * profile.strengthB;
+
+  // Opposing primary pull keeps the two controls from collapsing into one arc.
+  cp2x -= lineNx * d * primaryGain * globalSide * (0.30 + 0.35 * strengthNorm);
+  cp2y -= lineNy * d * primaryGain * globalSide * (0.30 + 0.35 * strengthNorm);
+
+  ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
+  ctx.stroke();
+}
+function rotPt(x, y, cx, cy, rot){
+  const dx = x - cx;
+  const dy = y - cy;
+  const c = Math.cos(rot);
+  const s = Math.sin(rot);
+  return [cx + dx*c - dy*s, cy + dx*s + dy*c];
+}
+function circlePoint(i, N, cx, cy, r, rot, wobble){
+  const a = (i / N) * Math.PI * 2 + rot;
+  const rr = r * (1 + wobble * Math.sin(a * 3.0 + i * 0.137));
+  return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
+}
+function ellipsePoint(i, N, cx, cy, rx, ry, rot, wobble){
+  const a = (i / N) * Math.PI * 2 + rot;
+  const k = 1 + wobble * Math.sin(a * 4.0 + i * 0.19);
+  const x = cx + Math.cos(a) * rx * k;
+  const y = cy + Math.sin(a) * ry * k;
+  return [x, y];
+}
+function rectPoint(i, N, cx, cy, r, rot){
+  const u = (i / N) * 4;
+  let x, y;
+  if (u < 1) { x = -r + u * 2*r; y = -r; }
+  else if (u < 2) { x = r; y = -r + (u-1)*2*r; }
+  else if (u < 3) { x = r - (u-2)*2*r; y = r; }
+  else { x = -r; y = r - (u-3)*2*r; }
+  return rotPt(cx + x, cy + y, cx, cy, rot);
+}
+function diamondPoint(i, N, cx, cy, r, rot){
+  return rectPoint(i, N, cx, cy, r, rot + Math.PI * 0.25);
+}
+function trianglePoint(i, N, cx, cy, r, rot){
+  const u = (i / N) * 3;
+  const verts = [
+    [0, -r],
+    [Math.sin(Math.PI / 3) * r, r * 0.5],
+    [-Math.sin(Math.PI / 3) * r, r * 0.5]
+  ];
+  const seg = Math.floor(u) % 3;
+  const t = u - Math.floor(u);
+  const a = verts[seg];
+  const b = verts[(seg + 1) % 3];
+  return rotPt(cx + lerp(a[0], b[0], t), cy + lerp(a[1], b[1], t), cx, cy, rot);
+}
+function flowerPoint(i, N, cx, cy, r, rot, petals){
+  const a = (i / N) * Math.PI * 2 + rot;
+  const rr = r * (0.74 + 0.26 * Math.cos(a * petals));
+  return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
+}
+function loomPoint(i, N, side, cx, cy, width, height, rot, curve){
+  const t = N <= 1 ? 0 : i / (N - 1);
+  const y = cy - height * 0.5 + t * height;
+  const wave = Math.sin(t * Math.PI * 2) * curve;
+  const x = cx + side * width * 0.5 + wave;
+  return rotPt(x, y, cx, cy, rot);
+}
+function fissurePoint(i, N, side, cx, cy, width, height, rot, jag){
+  const t = N <= 1 ? 0 : i / (N - 1);
+  const y = cy - height * 0.5 + t * height;
+  const kink = (hash(i*8.311 + side*19.7) - 0.5) * jag;
+  const x = cx + side * (width * 0.14 + Math.sin(t * Math.PI * 3.0) * width * 0.05) + kink;
+  return rotPt(x, y, cx, cy, rot);
+}
+function getEndpoint(mode, idx, N, side, cx, cy, r, spreadPx, rot){
+  if (mode === 0) return circlePoint(idx, N, cx, cy, r, rot, 0);
+  if (mode === 1) return rectPoint(idx, N, cx, cy, r * (0.80 + side * 0.10), rot);
+  if (mode === 2) return loomPoint(idx, N, side, cx, cy, r*1.65 + spreadPx, r*1.75, rot, spreadPx * 0.28);
+  if (mode === 3) return fissurePoint(idx, N, side, cx, cy, r*1.70 + spreadPx, r*1.92, rot, spreadPx * 0.55);
+  if (mode === 4) return circlePoint(idx, N, cx, cy, r, rot + side * 0.25, 0.04 + spreadPx / Math.max(r,1) * 0.08);
+  if (mode === 5) return ellipsePoint(idx, N, cx, cy, r * (1.12 + side * 0.12), r * 0.62, rot, 0.02);
+  if (mode === 6) return trianglePoint(idx, N, cx, cy, r * (0.92 + side * 0.08), rot + side * 0.10);
+  if (mode === 7) return diamondPoint(idx, N, cx, cy, r * (0.90 + side * 0.08), rot + side * 0.08);
+  return flowerPoint(idx, N, cx, cy, r * (0.98 + side * 0.06), rot + side * 0.08, 5);
+}
+function applySpread(pt, cx, cy, side, spreadPx){
+  if (!spreadPx) return pt;
+  const dx = pt[0] - cx;
+  const dy = pt[1] - cy;
+  const len = Math.sqrt(dx*dx + dy*dy) || 1;
+  // Separate the two endpoint families more clearly across ALL modes.
+  const shift = spreadPx * 0.55 * side;
+  return [pt[0] + (dx / len) * shift, pt[1] + (dy / len) * shift];
+}
+
+window.sketchResize = function(width, height){
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+};
+
+window.sketchDraw = function(state){
+  const w = canvas.width;
+  const h = canvas.height;
+  if (w < 2 || h < 2) return;
+  ctx.clearRect(0,0,w,h);
+
+  const mode = Math.round(clamp(readVal(state, 'mode', 0), 0, 8));
+  const N = Math.round(clamp(readVal(state, 'points', 96), 12, 240));
+  const multiplier = clamp(readVal(state, 'multiplier', 2.4), 1, 24);
+  const scaleNorm = clamp01(readVal(state, 'scale', 74) / 100);
+  const spreadNorm = clamp(readVal(state, 'spread', 22) / 200, 0, 1);
+  const lineNorm = clamp01(readVal(state, 'line_width', 18) / 100);
+  const accentNorm = clamp01(readVal(state, 'accent', 46) / 100);
+  const accentWidthNorm = clamp01(readVal(state, 'accent_width', 32) / 100);
+  const accentVariationsNorm = clamp01(readVal(state, 'accent_variations', 0) / 100);
+  const rotation = readVal(state, 'rotation', 0) * Math.PI / 180;
+  const warpNorm = clamp01(readVal(state, 'warp', 0) / 100);
+
+  const minSide = Math.min(w,h);
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+  const baseR = minSide * lerp(0.08, 0.48, scaleNorm);
+  const spreadPx = minSide * lerp(0.00, 0.36, spreadNorm);
+  const lineWidth = lerp(0.35, minSide * 0.010, lineNorm);
+  const accentWidth = lerp(Math.max(0.4, lineWidth), minSide * 0.032, accentWidthNorm);
+  const lineRgb = hexToRgb(readVal(state, 'line_color', '#f2eee6'));
+  const accentRgb = hexToRgb(readVal(state, 'accent_color', '#d9f56a'));
+
+  const variationStep = Math.round(accentVariationsNorm * 100);
+
+  // Accent now spans the full line set:
+  // 0 = none, 100 = every line.
+  const accentCount = Math.round(accentNorm * N);
+
+  // Accent Variations is a deterministic shuffle seed.
+  // With a fixed value the selection is stable; changing it reshuffles
+  // the line order without introducing time-based flicker.
+  const accentOrder = Array.from({ length: N }, (_, i) => i);
+  if (accentCount > 0 && accentCount < N) {
+    const variationSeed = variationStep * 97.331 + mode * 31.71 + N * 0.137;
+    accentOrder.sort((a, b) => {
+      const scoreA = hash(a * 47.17 + variationSeed);
+      const scoreB = hash(b * 47.17 + variationSeed);
+      return scoreA - scoreB;
+    });
+  }
+
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  if (mode <= 1 || mode === 4 || mode === 5 || mode === 6 || mode === 7 || mode === 8) {
+    const rimAlpha = 0.05 + 0.18 * clamp01(accentNorm * 0.8);
+    ctx.strokeStyle = rgba(accentRgb, rimAlpha);
+    ctx.lineWidth = Math.max(0.4, lineWidth * 0.75);
+    ctx.beginPath();
+    if (mode === 1) {
+      const p0 = rectPoint(0, N, cx, cy, baseR, rotation);
+      ctx.moveTo(p0[0], p0[1]);
+      for (let i=1; i<=N; i++) {
+        const p = rectPoint(i % N, N, cx, cy, baseR, rotation);
+        ctx.lineTo(p[0], p[1]);
+      }
+    } else if (mode === 5) {
+      const p0 = trianglePoint(0, N, cx, cy, baseR, rotation);
+      ctx.moveTo(p0[0], p0[1]);
+      for (let i=1; i<=N; i++) {
+        const p = trianglePoint(i % N, N, cx, cy, baseR, rotation);
+        ctx.lineTo(p[0], p[1]);
+      }
+    } else if (mode === 7) {
+      const p0 = diamondPoint(0, N, cx, cy, baseR, rotation);
+      ctx.moveTo(p0[0], p0[1]);
+      for (let i=1; i<=N; i++) {
+        const p = diamondPoint(i % N, N, cx, cy, baseR, rotation);
+        ctx.lineTo(p[0], p[1]);
+      }
+    } else if (mode === 8) {
+      const p0 = flowerPoint(0, N, cx, cy, baseR, rotation, 5);
+      ctx.moveTo(p0[0], p0[1]);
+      for (let i=1; i<=N; i++) {
+        const p = flowerPoint(i % N, N, cx, cy, baseR, rotation, 5);
+        ctx.lineTo(p[0], p[1]);
+      }
+    } else if (mode === 6) {
+      const p0 = ellipsePoint(0, N, cx, cy, baseR * 1.12, baseR * 0.62, rotation, 0);
+      ctx.moveTo(p0[0], p0[1]);
+      for (let i=1; i<=N; i++) {
+        const p = ellipsePoint(i % N, N, cx, cy, baseR * 1.12, baseR * 0.62, rotation, 0);
+        ctx.lineTo(p[0], p[1]);
+      }
+    } else {
+      ctx.arc(cx, cy, baseR, 0, Math.PI * 2);
+    }
+    ctx.stroke();
+  }
+
+  for (let i = 0; i < N; i++) {
+    let j;
+    if (mode === 2 || mode === 3) {
+      j = Math.floor((N - 1) - ((i * multiplier) % N));
+    } else {
+      j = Math.floor((i * multiplier) % N);
+    }
+
+    let p1 = getEndpoint(mode, i, N, -1, cx, cy, baseR, spreadPx, rotation);
+    let p2 = getEndpoint(mode, j, N,  1, cx, cy, baseR, spreadPx, rotation);
+    p1 = applySpread(p1, cx, cy, -1, spreadPx);
+    p2 = applySpread(p2, cx, cy,  1, spreadPx);
+    drawWarpedLine(p1[0], p1[1], p2[0], p2[1], lineRgb, 0.11 + 0.18 * accentNorm, lineWidth, warpNorm, readVal(state, 'time', 0), i, j, mode);
+  }
+
+  if (accentCount > 0) {
+    for (let k = 0; k < accentCount; k++) {
+      const i = accentOrder[k];
+
+      let j;
+      if (mode === 2 || mode === 3) {
+        j = Math.floor((N - 1) - ((i * multiplier) % N));
+      } else {
+        j = Math.floor((i * multiplier) % N);
+      }
+
+      let p1 = getEndpoint(mode, i, N, -1, cx, cy, baseR, spreadPx, rotation);
+      let p2 = getEndpoint(mode, j, N,  1, cx, cy, baseR, spreadPx, rotation);
+      p1 = applySpread(p1, cx, cy, -1, spreadPx);
+      p2 = applySpread(p2, cx, cy,  1, spreadPx);
+      drawWarpedLine(
+        p1[0], p1[1], p2[0], p2[1],
+        accentRgb, 1.0, accentWidth,
+        warpNorm, readVal(state, 'time', 0), i, j, mode
+      );
+    }
+  }
+};
+</script>
+<script>
+(function localPreview(){
+  if (window.parent !== window) return;
+  const manifest = window.SKETCH_TOOL;
+  const state = { time: 0 };
+  for (const p of manifest.params) state[p.key] = p.default;
+  for (const c of manifest.colors) state[c.key] = c.default;
+
+  function fit() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    window.sketchResize(
+      Math.max(1, Math.floor(width * dpr)),
+      Math.max(1, Math.floor(height * dpr))
+    );
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  let last = performance.now();
+  function tick(now){
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    state.time += dt;
+    try { window.sketchDraw(state); } catch(e) { console.error('[sketch] draw threw:', e); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

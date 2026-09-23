@@ -1,0 +1,519 @@
+<!--
+BeerBelgio Visual Lab — HTML Tool
+Project: https://github.com/BeerBelgio/visual-lab
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Linking Nodes v2.0</title>
+  <style>
+    html, body { margin: 0; background: #111; overflow: hidden; height: 100%; }
+    body { display: flex; align-items: center; justify-content: center; }
+    canvas { display: block; background: transparent; }
+  </style>
+</head>
+<body>
+  <canvas id="sketch-canvas"></canvas>
+
+  <script>
+    window.SKETCH_TOOL = {
+      schemaVersion: 1,
+      name: "Linking Nodes v2.0",
+      params: [
+        { key: "amount",          label: "Amount",          min: 2, max: 200, step: 2, default: 62 },
+        { key: "size",            label: "Size",            min: 0, max: 100, step: 1, default: 25 },
+        { key: "wandering_bpm",   label: "Wandering BPM",             min: 30, max: 240, step: 1, default: 120 },
+        { key: "wandering",       label: "Wandering",       min: 0, max: 200, step: 1, default: 96 },
+        { key: "spread",          label: "Spread",          min: 0, max: 200, step: 1, default: 110 },
+        { key: "linking",         label: "Linking",         min: 0, max: 200, step: 1, default: 70 },
+        { key: "link_width",      label: "Link Width",      min: 0, max: 200, step: 1, default: 80 },
+        { key: "center_size",     label: "Center Size",     min: 0, max: 100, step: 1, default: 18 },
+        { key: "melt",            label: "Melt",            min: 0, max: 500, step: 1, default: 0 },
+        { key: "fill_opacity",    label: "Fill Opacity",    min: 0, max: 100, step: 1, default: 16 }
+      ],
+      colors: [
+        { key: "blob_color",  label: "Blob Color",  default: "#EC6B2D" },
+        { key: "link_color",   label: "Link Color",   default: "#E8DDC8" }
+      ],
+      audio: [
+      "amount", "size", "wandering_bpm", "wandering", "spread", "linking", "link_width",
+      "center_size", "melt", "fill_opacity"
+    ]
+    };
+
+    const canvas = document.getElementById("sketch-canvas");
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+const toolDefaults = Object.create(null);
+for (const item of window.SKETCH_TOOL.params.concat(window.SKETCH_TOOL.colors)) {
+  toolDefaults[item.key] = item.default;
+}
+function readVal(obj, key, fallback){
+  if (Object.prototype.hasOwnProperty.call(toolDefaults, key)) fallback = toolDefaults[key];
+  const value = (obj && Object.prototype.hasOwnProperty.call(obj, key)) ? obj[key] : undefined;
+  if (value === undefined || value === null) return fallback;
+  if (typeof fallback === 'number') {
+    if (typeof value !== 'number' && typeof value !== 'string') return fallback;
+    if (typeof value === 'string' && value.trim() === '') return fallback;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+  if (typeof fallback === 'string' && fallback.charAt(0) === '#') {
+    return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+  }
+  return value;
+}
+
+    function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function fract(v) { return v - Math.floor(v); }
+    function hash(n) { return fract(Math.sin(n * 12.9898 + 78.233) * 43758.5453); }
+
+    function smoothNoise1D(x, seed) {
+      const i = Math.floor(x);
+      const f = x - i;
+      const u = f * f * (3 - 2 * f);
+      const a = hash(seed + i * 17.17);
+      const b = hash(seed + (i + 1) * 17.17);
+      return lerp(a, b, u) * 2 - 1;
+    }
+    function hexToRgb(hex) {
+      const h = typeof hex === "string" && hex.charAt(0) === "#" ? hex.slice(1) : "";
+      if (h.length !== 6) return [255, 255, 255];
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+    function rgba(rgb, a) { return "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + a + ")"; }
+
+
+    // 50 deterministic force signatures reused across links.
+    // This keeps per-link behaviour varied without allocating/generating new force fields every frame.
+    const LINK_FORCE_PROFILES = Array.from({ length: 50 }, (_, i) => {
+      const s = i + 101.37;
+      return {
+        angleA: hash(s * 1.17) * Math.PI * 2,
+        angleB: hash(s * 2.31) * Math.PI * 2,
+        strengthA: 0.55 + 0.90 * hash(s * 3.73),
+        strengthB: 0.55 + 0.90 * hash(s * 4.91),
+        driftA: 0.10 + 0.22 * hash(s * 6.11),
+        driftB: 0.08 + 0.24 * hash(s * 7.43),
+        phaseA: hash(s * 8.57) * Math.PI * 2,
+        phaseB: hash(s * 9.83) * Math.PI * 2,
+        signA: hash(s * 11.13) > 0.5 ? 1 : -1,
+        signB: hash(s * 12.47) > 0.5 ? 1 : -1
+      };
+    });
+
+    function linkForceProfile(i, j) {
+      // Stable pairing: the same two blob indices always reuse the same one of 50 profiles.
+      const idx = Math.abs((i * 31 + j * 17 + i * j * 7) % 50);
+      return LINK_FORCE_PROFILES[idx];
+    }
+
+    window.sketchResize = function (width, height) {
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+    };
+
+    function blobAt(i, t, w, h, minSide, sizeAmount, bpm, wanderingAmount, spreadAmount) {
+      const seed = i + 31.7;
+      const beats = t * (bpm / 60);
+      const orbit = hash(seed * 3.91) * Math.PI * 2;
+      const speedMult = 0.72 + 0.56 * hash(seed * 5.13);
+
+      const rx = w * (0.14 + 0.40 * spreadAmount);
+      const ry = h * (0.15 + 0.34 * spreadAmount);
+      const cx = w * 0.5;
+      const cy = h * 0.52;
+
+      // BPM is the only temporal speed control.
+      // Wandering changes only the shape / unpredictability of the path.
+      const chaos = clamp01(wanderingAmount);
+      const phase = beats * speedMult;
+
+      // Smooth low-Wandering movement: preserve the soft orbital feel.
+      const regularX =
+        0.80 * Math.sin(phase * 0.42 + orbit) +
+        0.20 * Math.sin(phase * 0.18 + orbit * 0.43);
+
+      const regularY =
+        0.80 * Math.cos(phase * 0.38 + orbit * 1.17) +
+        0.20 * Math.cos(phase * 0.20 - orbit * 0.37);
+
+      // Irregular motion uses fixed, low temporal frequencies.
+      // Higher Wandering increases path complexity/amplitude, never playback speed.
+      const n1x = smoothNoise1D(phase * 0.28 + seed * 0.11, seed * 13.1);
+      const n1y = smoothNoise1D(phase * 0.26 + seed * 0.17, seed * 31.3);
+      const n2x = smoothNoise1D(phase * 0.43 + seed * 0.23, seed * 21.7);
+      const n2y = smoothNoise1D(phase * 0.39 + seed * 0.29, seed * 47.9);
+      const n3x = smoothNoise1D(phase * 0.57 + seed * 0.37, seed * 67.1);
+      const n3y = smoothNoise1D(phase * 0.53 + seed * 0.41, seed * 79.3);
+
+      const chaosCurve = Math.pow(chaos, 1.15);
+      const secondary = Math.max(0, (chaos - 0.30) / 0.70);
+      const tertiary = Math.max(0, (chaos - 0.68) / 0.32);
+
+      let randomX = n1x;
+      let randomY = n1y;
+
+      randomX = lerp(randomX, 0.72 * n1x + 0.28 * n2x, secondary);
+      randomY = lerp(randomY, 0.72 * n1y + 0.28 * n2y, secondary);
+
+      randomX = lerp(randomX, 0.58 * n1x + 0.27 * n2x + 0.15 * n3x, tertiary);
+      randomY = lerp(randomY, 0.58 * n1y + 0.27 * n2y + 0.15 * n3y, tertiary);
+
+      // Crossfade from regular orbit to smooth random roaming.
+      // No high-frequency jitter is introduced at the top of the control.
+      let pathX = lerp(regularX, randomX, chaosCurve);
+      let pathY = lerp(regularY, randomY, chaosCurve);
+
+      // At high Wandering, enlarge the directional excursions rather than speeding them up.
+      const irregularReach = 1.0 + 0.28 * tertiary;
+      pathX *= irregularReach;
+      pathY *= irregularReach;
+
+      // Soft normalization keeps the field bounded without clipping direction changes.
+      const mag = Math.sqrt(pathX * pathX + pathY * pathY);
+      if (mag > 1.18) {
+        const s = 1.18 / mag;
+        pathX *= s;
+        pathY *= s;
+      }
+
+      const x = cx + pathX * rx;
+      const y = cy + pathY * ry;
+
+      const radiusBase = minSide * (0.014 + 0.120 * sizeAmount) * (0.55 + 0.85 * hash(seed * 7.77));
+      const pulse = 0.90 + 0.10 * Math.sin(beats * (0.8 + speedMult * 1.4) + seed * 2.1);
+
+      return { x: x, y: y, r: radiusBase * pulse, seed: seed };
+    }
+
+
+    function motionStateForBlob(i, t, sampleDt, w, h, minSide, sizeAmount, bpm, wanderingAmount, spreadAmount) {
+      const now = blobAt(i, t, w, h, minSide, sizeAmount, bpm, wanderingAmount, spreadAmount);
+      const prev = blobAt(i, Math.max(0, t - sampleDt), w, h, minSide, sizeAmount, bpm, wanderingAmount, spreadAmount);
+      const prev2 = blobAt(i, Math.max(0, t - sampleDt * 2), w, h, minSide, sizeAmount, bpm, wanderingAmount, spreadAmount);
+
+      const vx = (now.x - prev.x) / sampleDt;
+      const vy = (now.y - prev.y) / sampleDt;
+      const speed = Math.sqrt(vx * vx + vy * vy);
+
+      let ux = 0;
+      let uy = 1;
+      if (speed > 0.0001) {
+        ux = vx / speed;
+        uy = vy / speed;
+      }
+
+      const pvx = (prev.x - prev2.x) / sampleDt;
+      const pvy = (prev.y - prev2.y) / sampleDt;
+      const prevSpeed = Math.sqrt(pvx * pvx + pvy * pvy);
+
+      let turn = 0;
+      if (speed > 0.0001 && prevSpeed > 0.0001) {
+        const pux = pvx / prevSpeed;
+        const puy = pvy / prevSpeed;
+        const alignment = Math.max(-1, Math.min(1, ux * pux + uy * puy));
+        turn = Math.sqrt(Math.max(0, (1 - alignment) * 0.5));
+      }
+
+      // Motion-driven melt:
+      // speed creates the main stretch, rapid direction changes liquefy it further.
+      const speedNorm = clamp01(speed / (minSide * 0.72));
+      const melt = clamp01(Math.pow(speedNorm, 0.92) * 0.78 + turn * 0.52);
+
+      return {
+        x: now.x,
+        y: now.y,
+        r: now.r,
+        seed: now.seed,
+        vx: vx,
+        vy: vy,
+        ux: ux,
+        uy: uy,
+        speed: speed,
+        turn: turn,
+        melt: melt
+      };
+    }
+
+    function appendMeltedBlobPath(targetCtx, b, t, strengthScale) {
+      const segments = 24;
+      const melt = Math.max(0, Math.min(5, b.melt * strengthScale));
+      const dirX = b.ux;
+      const dirY = b.uy;
+      const perpX = -dirY;
+      const perpY = dirX;
+
+      const points = [];
+      for (let i = 0; i < segments; i++) {
+        const a = (i / segments) * Math.PI * 2;
+        const nx = Math.cos(a);
+        const ny = Math.sin(a);
+
+        const along = nx * dirX + ny * dirY;
+        const side = nx * perpX + ny * perpY;
+        const trailing = Math.max(0, -along);
+        const leading = Math.max(0, along);
+
+        // Leading edge compresses slightly; trailing edge stretches and sags.
+        let radial = 1.0
+          + melt * (0.22 * trailing * trailing - 0.08 * leading);
+
+        // Low-frequency organic wobble: no fast jitter.
+        const wobblePhase = a * 3.0 + t * 0.65 + b.seed * 0.37;
+        const wobble = Math.sin(wobblePhase) * 0.055 * melt * (0.35 + 0.65 * b.turn);
+        radial += wobble * (0.35 + 0.65 * Math.abs(side));
+
+        let px = b.x + nx * b.r * radial;
+        let py = b.y + ny * b.r * radial;
+
+        // Inertial tail opposite the direction of travel.
+        const tail = b.r * melt * 0.72 * trailing * trailing;
+        px -= dirX * tail;
+        py -= dirY * tail;
+
+        // Small gravity-like sag evokes wax without taking control away from motion.
+        const downWeight = Math.max(0, ny);
+        py += b.r * melt * 0.16 * downWeight * downWeight;
+
+        // Direction-change shear: when trajectory turns, the blob slips sideways.
+        const shear = b.r * b.turn * melt * 0.18 * trailing * side;
+        px += perpX * shear;
+        py += perpY * shear;
+
+        points.push([px, py]);
+      }
+
+      // Smooth closed curve through the points.
+      const last = points[points.length - 1];
+      const first = points[0];
+      targetCtx.moveTo((last[0] + first[0]) * 0.5, (last[1] + first[1]) * 0.5);
+
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i];
+        const n = points[(i + 1) % points.length];
+        const mx = (p[0] + n[0]) * 0.5;
+        const my = (p[1] + n[1]) * 0.5;
+        targetCtx.quadraticCurveTo(p[0], p[1], mx, my);
+      }
+
+      targetCtx.closePath();
+    }
+
+    window.sketchDraw = function (state) {
+      const w = canvas.width;
+      const h = canvas.height;
+      if (w < 1 || h < 1) return;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const t = readVal(state, 'time', 0);
+      const minSide = Math.min(w, h);
+
+      const count = Math.max(2, Math.min(200, Math.round(readVal(state, 'amount') / 2) * 2));
+
+      const sizeAmount = readVal(state, 'size') / 100;
+      const bpm = Math.max(30, readVal(state, 'wandering_bpm'));
+      const wanderingAmount = clamp01(readVal(state, 'wandering') / 200);
+      const spreadAmount = readVal(state, 'spread') / 100;
+      const linking = readVal(state, 'linking') / 200;
+      const linkWidth = readVal(state, 'link_width') / 200;
+      const centerSize = readVal(state, 'center_size') / 100;
+      const meltAmount = Math.max(0, Math.min(5, readVal(state, 'melt') / 100));
+      const fillOpacity = readVal(state, 'fill_opacity') / 100;
+
+      const blobRgb = hexToRgb(readVal(state, 'blob_color'));
+      const linkRgb = hexToRgb(readVal(state, 'link_color'));
+
+      const blobs = [];
+      const motionSampleDt = 1 / 60;
+      for (let i = 0; i < count; i++) {
+        blobs.push(
+          motionStateForBlob(
+            i, t, motionSampleDt, w, h, minSide,
+            sizeAmount, bpm, wanderingAmount, spreadAmount
+          )
+        );
+      }
+
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      if (linking > 0.001) {
+        const baseReach = minSide * (0.035 + 0.28 * linking);
+        for (let i = 0; i < blobs.length; i++) {
+          const a = blobs[i];
+          for (let j = i + 1; j < blobs.length; j++) {
+            const b = blobs[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            const maxD = baseReach + Math.min(a.r, b.r) * (0.20 + 0.60 * linking);
+            if (d <= 1 || d > maxD) continue;
+            const k = 1 - d / maxD;
+            const alpha = clamp01((0.08 + 1.35 * linking) * (0.28 + 1.15 * linkWidth) * (0.20 + 0.80 * k));
+            const width = Math.max(1, minSide * (0.0006 + 0.0105 * linkWidth * (0.20 + 0.80 * linking)) + Math.min(a.r, b.r) * (0.02 + 0.18 * k));
+            ctx.strokeStyle = rgba(linkRgb, alpha);
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+
+            const motionMelt = (a.melt + b.melt) * 0.5;
+            const meltNorm = clamp01(meltAmount / 5.0);
+
+            // Link melt has two independent force systems:
+            // 1) shared motion-driven force from the connected blobs;
+            // 2) a deterministic per-link force signature selected from 50 reusable profiles.
+            const linkMelt = meltAmount
+              * (0.24 + 0.76 * motionMelt)
+              * (1.0 + 0.55 * Math.pow(meltNorm, 1.35));
+
+            const lineUx = dx / d;
+            const lineUy = dy / d;
+            const lineNx = -lineUy;
+            const lineNy =  lineUx;
+
+            const avgUx = (a.ux + b.ux) * 0.5;
+            const avgUy = (a.uy + b.uy) * 0.5;
+            const avgLen = Math.sqrt(avgUx * avgUx + avgUy * avgUy) || 1;
+            const motionNx = -avgUy / avgLen;
+            const motionNy =  avgUx / avgLen;
+
+            const profile = linkForceProfile(i, j);
+            const slowTime = t * (bpm / 60);
+            const oscA = Math.sin(slowTime * profile.driftA + profile.phaseA);
+            const oscB = Math.sin(slowTime * profile.driftB + profile.phaseB);
+
+            // First control point: still recognisably follows the system's motion,
+            // then gets an extra seeded pull.
+            const primaryGain = Math.min(0.58, 0.17 * linkMelt);
+            const randomGainA = Math.min(0.70, 0.10 * linkMelt * (0.55 + 0.45 * meltNorm));
+            const dirAX = Math.cos(profile.angleA + oscA * 0.75);
+            const dirAY = Math.sin(profile.angleA + oscA * 0.75);
+
+            // Second control point: deliberately less correlated with the first.
+            // This is what breaks the single-arc look and allows S / asymmetric pulls.
+            const randomGainB = Math.min(0.82, 0.13 * linkMelt * (0.50 + 0.50 * meltNorm));
+            const dirBX = Math.cos(profile.angleB - oscB * 0.85);
+            const dirBY = Math.sin(profile.angleB - oscB * 0.85);
+
+            // Anchor the two controls at 1/3 and 2/3 of the original straight link.
+            let cp1x = a.x + dx * 0.33;
+            let cp1y = a.y + dy * 0.33;
+            let cp2x = a.x + dx * 0.67;
+            let cp2y = a.y + dy * 0.67;
+
+            cp1x += motionNx * d * primaryGain;
+            cp1y += motionNy * d * primaryGain;
+
+            // Seeded forces combine world-space direction and local link normal.
+            // The normal component keeps the deformation visually tied to the wire.
+            cp1x += (dirAX * 0.52 + lineNx * profile.signA * 0.48) * d * randomGainA * profile.strengthA;
+            cp1y += (dirAY * 0.52 + lineNy * profile.signA * 0.48) * d * randomGainA * profile.strengthA;
+
+            cp2x += (dirBX * 0.58 + lineNx * profile.signB * 0.42) * d * randomGainB * profile.strengthB;
+            cp2y += (dirBY * 0.58 + lineNy * profile.signB * 0.42) * d * randomGainB * profile.strengthB;
+
+            // A small opposing motion term prevents both control points drifting together
+            // and preserves an elastic, liquid feel rather than a translated arc.
+            cp2x -= motionNx * d * primaryGain * (0.30 + 0.35 * meltNorm);
+            cp2y -= motionNy * d * primaryGain * (0.30 + 0.35 * meltNorm);
+
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      for (let i = 0; i < blobs.length; i++) {
+        const b = blobs[i];
+        const beats = t * (bpm / 60);
+        const life = 0.88 + 0.12 * Math.sin(beats * (0.8 + hash(b.seed * 8.1)) + b.seed);
+
+        if (fillOpacity > 0.001) {
+          ctx.fillStyle = rgba(blobRgb, clamp01(fillOpacity * life));
+          ctx.beginPath();
+          if (meltAmount <= 0.0001) {
+            // Exact pre-melt geometry at Melt = 0.
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          } else {
+            // Melt = 100 reproduces the v1.8 EXP intensity; 500 reaches 5x.
+            appendMeltedBlobPath(ctx, b, t, meltAmount);
+          }
+          ctx.fill();
+        }
+
+        if (centerSize > 0.001) {
+          const centerRadius = b.r * Math.pow(centerSize, 1.05) * 0.60;
+          if (centerRadius > 0.05) {
+            const centerAlpha = clamp01((0.18 + 0.82 * Math.max(linking, 0.25)) * life);
+            ctx.fillStyle = rgba(linkRgb, centerAlpha);
+            ctx.beginPath();
+
+            if (meltAmount <= 0.0001) {
+              ctx.arc(b.x, b.y, centerRadius, 0, Math.PI * 2);
+            } else {
+              const centerBlob = {
+                x: b.x,
+                y: b.y,
+                r: centerRadius,
+                seed: b.seed + 101.7,
+                ux: b.ux,
+                uy: b.uy,
+                turn: b.turn,
+                melt: b.melt * 0.58
+              };
+              appendMeltedBlobPath(ctx, centerBlob, t, 0.75 * meltAmount);
+            }
+            ctx.fill();
+          }
+        }
+      }
+
+
+    };
+  </script>
+
+  <script>
+    (function localPreview() {
+      if (window.parent !== window) return;
+
+      const manifest = window.SKETCH_TOOL;
+      const state = { time: 0 };
+      for (const p of manifest.params) state[p.key] = p.default;
+      for (const c of manifest.colors) state[c.key] = c.default;
+
+      function fit() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const width = Math.max(1, window.innerWidth);
+        const height = Math.max(1, window.innerHeight);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        window.sketchResize(
+          Math.max(1, Math.floor(width * dpr)),
+          Math.max(1, Math.floor(height * dpr))
+        );
+      }
+      fit();
+      window.addEventListener("resize", fit);
+
+      let last = performance.now();
+      function tick(now) {
+        state.time += Math.min(0.05, (now - last) / 1000);
+        last = now;
+        try { window.sketchDraw(state); } catch (err) { console.error("[sketch] draw threw:", err); }
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!--
+BeerBelgio Visual Lab — HTML Tool
+Project: https://github.com/BeerBelgio/visual-lab
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Topographic v1.3</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      display: block;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Topographic v1.3",
+  params: [
+    { key: "mode",           label: "Terrain Mode",   min: 0,   max: 5,   step: 1, default: 0  },
+    { key: "seed",           label: "Seed",           min: 0,   max: 100, step: 1, default: 13 },
+    { key: "levels",         label: "Levels",         min: 2,   max: 40,  step: 1, default: 18 },
+    { key: "scale",          label: "Scale",          min: 0,   max: 100, step: 1, default: 42 },
+    { key: "ruggedness",     label: "Roughness",      min: 0,   max: 100, step: 1, default: 34 },
+    { key: "height_shift",   label: "Height Shift",   min: 0,   max: 100, step: 1, default: 0  },
+    { key: "drift",          label: "Drift",          min: 0,   max: 100, step: 1, default: 0  },
+    { key: "line_width",     label: "Line Width",     min: 1,   max: 100, step: 1, default: 18 },
+    { key: "accent",         label: "Accent",         min: 0,   max: 10,  step: 0.1, default: 5  },
+    { key: "rotation",       label: "Rotation",       min: 0,   max: 360, step: 1, default: 0  }
+  ],
+  colors: [
+    { key: "line_color",   label: "Line Color",   default: "#E8DDC8" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" },
+  ],
+  audio: [
+      "mode", "seed", "levels", "scale", "ruggedness", "height_shift", "drift", "line_width",
+      "accent", "rotation"
+    ]
+};
+
+const canvas = document.getElementById('sketch-canvas');
+const ctx = canvas.getContext('2d', { alpha: true });
+
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function clamp01(v){ return clamp(v, 0, 1); }
+function lerp(a,b,t){ return a + (b-a)*t; }
+function fract(v){ return v - Math.floor(v); }
+const toolDefaults = Object.create(null);
+for (const item of window.SKETCH_TOOL.params.concat(window.SKETCH_TOOL.colors)) {
+  toolDefaults[item.key] = item.default;
+}
+function readVal(obj, key, fallback){
+  if (Object.prototype.hasOwnProperty.call(toolDefaults, key)) fallback = toolDefaults[key];
+  const value = (obj && Object.prototype.hasOwnProperty.call(obj, key)) ? obj[key] : undefined;
+  if (value === undefined || value === null) return fallback;
+  if (typeof fallback === 'number') {
+    if (typeof value !== 'number' && typeof value !== 'string') return fallback;
+    if (typeof value === 'string' && value.trim() === '') return fallback;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+  if (typeof fallback === 'string' && fallback.charAt(0) === '#') {
+    return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+  }
+  return value;
+}
+function hash(n){ return fract(Math.sin(n * 127.1 + 311.7) * 43758.5453123); }
+function hexToRgb(hex){
+  const h = typeof hex === 'string' && hex.charAt(0) === '#' ? hex.slice(1) : '';
+  if (h.length !== 6) return [255,255,255];
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function rgba(rgb,a){ return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')'; }
+function mixRgb(a,b,t){
+  t = clamp01(t);
+  return [
+    Math.round(lerp(a[0], b[0], t)),
+    Math.round(lerp(a[1], b[1], t)),
+    Math.round(lerp(a[2], b[2], t))
+  ];
+}
+
+function fieldValue(nx, ny, mode, seed, scale, rough, driftTime) {
+  let x = (nx - 0.5) * scale;
+  let y = (ny - 0.5) * scale;
+  const s = seed * 0.173;
+  const tt = driftTime;
+
+  let v = 0;
+
+  if (mode === 0) {
+    // Soft terrain / hills.
+    v = 0.52 * Math.sin(x * 1.65 + s + tt * 0.37)
+      + 0.42 * Math.cos(y * 1.92 - s * 0.7 + tt * 0.29)
+      + 0.30 * Math.sin((x + y) * 1.13 + s * 1.4 - tt * 0.21);
+  } else if (mode === 1) {
+    // Central ridge / fissure terrain.
+    const ridge = Math.abs((nx - 0.5) * 3.4 + 0.32 * Math.sin(y * 1.6 + s));
+    v = 0.88 * (1.0 - ridge)
+      + 0.32 * Math.sin(y * 2.4 + s + tt * 0.24)
+      - 0.24 * Math.cos(x * 2.2 - s);
+  } else if (mode === 2) {
+    // Basin rings.
+    const r = Math.sqrt(x*x + y*y);
+    v = 0.72 * Math.sin(r * 3.25 - s + tt * 0.46)
+      + 0.25 * Math.sin(x * 2.1 + s * 0.5)
+      + 0.21 * Math.cos(y * 2.3 - s * 0.4);
+  } else if (mode === 3) {
+    // Strata / folded layers.
+    v = 0.78 * Math.sin((y + 0.28 * Math.sin(x * 1.35 + s)) * 2.85 + tt * 0.32)
+      + 0.28 * Math.sin((x - y) * 1.6 - s);
+  } else if (mode === 4) {
+    // Peak field from deterministic hills.
+    v = -0.35;
+    for (let k = 0; k < 5; k++) {
+      const hx = (hash(seed + k * 19.17) - 0.5) * scale * 0.82;
+      const hy = (hash(seed + k * 31.31) - 0.5) * scale * 0.82;
+      const amp = lerp(0.45, 1.05, hash(seed + k * 47.73));
+      const wide = lerp(0.45, 1.35, hash(seed + k * 59.11));
+      const dx = x - hx + Math.sin(tt * 0.15 + k) * 0.12;
+      const dy = y - hy + Math.cos(tt * 0.13 + k) * 0.12;
+      v += amp * Math.exp(-(dx*dx + dy*dy) / wide);
+    }
+    v -= 0.28 * Math.sin(x * 0.9 + y * 0.7 + s);
+  } else {
+    // Folded topo / warped digital terrain.
+    v = 0.55 * Math.sin(x * 1.72 + Math.sin(y * 2.8 + s) * 1.15 + tt * 0.27)
+      + 0.48 * Math.sin(y * 1.86 + Math.sin(x * 2.4 - s) * 1.05 - tt * 0.19)
+      + 0.22 * Math.cos((x + y) * 2.5 + s);
+  }
+
+  const hi = Math.sin(x * 6.2 + s * 1.9 + tt * 0.31) * Math.cos(y * 5.8 - s * 1.2)
+           + 0.55 * Math.sin((x - y) * 7.4 + s * 2.6 - tt * 0.22);
+  v += rough * 0.32 * hi;
+
+  return Math.tanh(v * 0.92);
+}
+
+function edgePoint(edge, x0, y0, x1, y1, v0, v1, v2, v3, level) {
+  let ax, ay, bx, by, va, vb;
+  if (edge === 0) { ax = x0; ay = y0; bx = x1; by = y0; va = v0; vb = v1; }
+  else if (edge === 1) { ax = x1; ay = y0; bx = x1; by = y1; va = v1; vb = v2; }
+  else if (edge === 2) { ax = x0; ay = y1; bx = x1; by = y1; va = v3; vb = v2; }
+  else { ax = x0; ay = y0; bx = x0; by = y1; va = v0; vb = v3; }
+  const den = vb - va;
+  const t = Math.abs(den) < 1e-8 ? 0.5 : clamp01((level - va) / den);
+  return [lerp(ax, bx, t), lerp(ay, by, t)];
+}
+
+const cases = [
+  [], [[3,0]], [[0,1]], [[3,1]], [[1,2]], [[3,2],[0,1]], [[0,2]], [[3,2]],
+  [[2,3]], [[0,2]], [[0,3],[1,2]], [[1,2]], [[1,3]], [[0,1]], [[3,0]], []
+];
+
+window.sketchResize = function(width, height){
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+};
+
+// Continuous Drift phase. Using absolute time * current Drift makes the terrain
+// jump whenever Drift changes (especially under audio mapping). Accumulating
+// phase from frame-to-frame changes velocity without changing position.
+let driftPhase = 0;
+let lastDriftStateTime = null;
+let smoothedDrift = 0;
+
+function updateDriftPhase(stateTime, driftTarget){
+  const t = Number.isFinite(stateTime) ? stateTime : 0;
+  if (lastDriftStateTime === null || t < lastDriftStateTime) {
+    lastDriftStateTime = t;
+    smoothedDrift = driftTarget;
+    return driftPhase;
+  }
+
+  let dt = t - lastDriftStateTime;
+  lastDriftStateTime = t;
+  if (!Number.isFinite(dt) || dt <= 0) return driftPhase;
+  dt = Math.min(dt, 0.10);
+
+  // Short easing removes velocity steps while keeping Drift responsive.
+  const follow = 1 - Math.exp(-dt * 10.0);
+  smoothedDrift = lerp(smoothedDrift, driftTarget, follow);
+  driftPhase += dt * smoothedDrift * 2.4;
+  return driftPhase;
+}
+
+window.sketchDraw = function(state){
+  const w = canvas.width;
+  const h = canvas.height;
+  if (w < 2 || h < 2) return;
+  ctx.clearRect(0,0,w,h);
+
+  const mode = Math.round(clamp(readVal(state, 'mode', 0), 0, 5));
+  const seed = readVal(state, 'seed', 13);
+  const levels = Math.round(clamp(readVal(state, 'levels', 18), 2, 40));
+  const scaleNorm = clamp01(readVal(state, 'scale', 42) / 100);
+  const rough = clamp01(readVal(state, 'ruggedness', 34) / 100);
+  const heightShift = clamp01(readVal(state, 'height_shift', 0) / 100);
+  const drift = clamp01(readVal(state, 'drift', 0) / 100);
+  const lineNorm = clamp01(readVal(state, 'line_width', 18) / 100);
+  const accent = clamp(readVal(state, 'accent', 5), 0, 10);
+  const accentNorm = accent / 10;
+  const rotation = readVal(state, 'rotation', 0) * Math.PI / 180;
+
+  const lineRgb = hexToRgb(readVal(state, 'line_color'));
+  const accentRgb = hexToRgb(readVal(state, 'accent_color'));
+
+  const minSide = Math.min(w,h);
+  const aspect = w / Math.max(h, 1);
+  const target = Math.round(lerp(58, 148, scaleNorm * 0.25 + rough * 0.45 + levels / 80));
+  const cols = Math.max(48, Math.min(176, Math.floor(target * Math.sqrt(aspect))));
+  const rows = Math.max(48, Math.min(176, Math.floor(target / Math.sqrt(aspect))));
+  const dx = w / cols;
+  const dy = h / rows;
+  const fscale = lerp(1.1, 8.2, scaleNorm);
+  const stateTime = readVal(state, 'time', 0) || 0;
+  const driftTime = updateDriftPhase(stateTime, drift);
+
+  const cosR = Math.cos(rotation);
+  const sinR = Math.sin(rotation);
+  const vals = new Float32Array((cols + 1) * (rows + 1));
+
+  for (let y = 0; y <= rows; y++) {
+    const ny0 = y / rows;
+    for (let x = 0; x <= cols; x++) {
+      const nx0 = x / cols;
+      const px = nx0 - 0.5;
+      const py = ny0 - 0.5;
+      const rx = px * cosR - py * sinR + 0.5;
+      const ry = px * sinR + py * cosR + 0.5;
+      vals[y * (cols + 1) + x] = fieldValue(rx, ry, mode, seed, fscale, rough, driftTime);
+    }
+  }
+
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  for (let li = 0; li < levels; li++) {
+    const u = fract((li / levels) + heightShift);
+    const level = lerp(-0.96, 0.96, u);
+    // Accent controls only how many contour lines are highlighted.
+    // Highlighted lines always use the full accent color/opacity/width.
+    // 0 = none; 10 = all, with intermediate counts distributed evenly.
+    const accentCount = Math.round(levels * accentNorm);
+    const prevBucket = Math.floor((li * accentCount) / levels);
+    const nextBucket = Math.floor(((li + 1) * accentCount) / levels);
+    const isAccent = accentCount > 0 && nextBucket > prevBucket;
+
+    const rgb = isAccent ? accentRgb : lineRgb;
+    const alpha = isAccent ? 0.82 : 0.52;
+    const width = (isAccent ? 1.95 : 1.0) * lerp(0.35, minSide * 0.0065, lineNorm);
+
+    ctx.strokeStyle = rgba(rgb, alpha);
+    ctx.lineWidth = width;
+    ctx.beginPath();
+
+    for (let y = 0; y < rows; y++) {
+      const y0 = y * dy;
+      const y1 = (y + 1) * dy;
+      for (let x = 0; x < cols; x++) {
+        const x0 = x * dx;
+        const x1 = (x + 1) * dx;
+        const idx = y * (cols + 1) + x;
+        const v0 = vals[idx];
+        const v1 = vals[idx + 1];
+        const v3 = vals[idx + cols + 1];
+        const v2 = vals[idx + cols + 2];
+        let c = 0;
+        if (v0 > level) c |= 1;
+        if (v1 > level) c |= 2;
+        if (v2 > level) c |= 4;
+        if (v3 > level) c |= 8;
+        const segs = cases[c];
+        if (!segs.length) continue;
+        for (let s = 0; s < segs.length; s++) {
+          const p1 = edgePoint(segs[s][0], x0, y0, x1, y1, v0, v1, v2, v3, level);
+          const p2 = edgePoint(segs[s][1], x0, y0, x1, y1, v0, v1, v2, v3, level);
+          ctx.moveTo(p1[0], p1[1]);
+          ctx.lineTo(p2[0], p2[1]);
+        }
+      }
+    }
+    ctx.stroke();
+  }
+};
+</script>
+<script>
+(function localPreview(){
+  if (window.parent !== window) return;
+  const manifest = window.SKETCH_TOOL;
+  const state = { time: 0 };
+  for (const p of manifest.params) state[p.key] = p.default;
+  for (const c of manifest.colors) state[c.key] = c.default;
+
+  function fit() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    window.sketchResize(
+      Math.max(1, Math.floor(width * dpr)),
+      Math.max(1, Math.floor(height * dpr))
+    );
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  let last = performance.now();
+  function tick(now){
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    state.time += dt;
+    state.height_shift = (state.height_shift + dt * 2.2) % 100;
+    state.drift = 18;
+    try { window.sketchDraw(state); } catch(e) { console.error('[sketch] draw threw:', e); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

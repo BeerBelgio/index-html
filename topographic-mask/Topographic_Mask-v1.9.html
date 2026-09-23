@@ -1,0 +1,400 @@
+<!--
+BeerBelgio Visual Lab — HTML Tool
+Project: https://github.com/BeerBelgio/visual-lab
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Topographic Mask v1.9</title>
+  <style>
+    html, body { margin: 0; background: #111; overflow: hidden; height: 100%; }
+    body { display: flex; align-items: center; justify-content: center; }
+    canvas { display: block; background: transparent; }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Topographic Mask v1.9",
+  params: [
+    { key: "mode",         label: "Mode",         min: 0,   max: 5,   step: 1, default: 0  },
+    { key: "seed",         label: "Seed",         min: 0,   max: 100, step: 1, default: 13 },
+    { key: "levels",       label: "Levels",       min: 2,   max: 40,  step: 1, default: 18 },
+    { key: "scale",        label: "Scale",        min: 0,   max: 100, step: 1, default: 42 },
+    { key: "ruggedness",   label: "Warp",         min: 0,   max: 100, step: 1, default: 34 },
+    { key: "height_shift", label: "Band Shift",   min: 0,   max: 100, step: 1, default: 0  },
+    { key: "drift",        label: "Drift",        min: 0,   max: 100, step: 1, default: 18 },
+    { key: "mask_fill",    label: "Mask Fill",    min: 0,   max: 100, step: 1, default: 34 },
+    { key: "bg_opacity",  label: "BG Opacity",  min: 0,   max: 100, step: 1, default: 100 }
+  ],
+  colors: [
+    { key: "fill_color", label: "Fill Color", default: "#EC6B2D" },
+    { key: "bg_color",   label: "BG Color",   default: "#1C1713" }
+  ],
+  audio: ["mode", "seed", "levels", "scale", "ruggedness", "height_shift", "drift", "mask_fill"]
+};
+
+const canvas = document.getElementById('sketch-canvas');
+const ctx = canvas.getContext('2d', { alpha: true });
+
+
+let driftPhase = 0;
+let lastStateTime = null;
+let smoothedDrift = 0;
+
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function clamp01(v){ return clamp(v,0,1); }
+function lerp(a,b,t){ return a + (b-a) * t; }
+function fract(v){ return v - Math.floor(v); }
+const toolDefaults = Object.create(null);
+for (const item of window.SKETCH_TOOL.params.concat(window.SKETCH_TOOL.colors)) {
+  toolDefaults[item.key] = item.default;
+}
+function readVal(obj, key, fallback){
+  if (Object.prototype.hasOwnProperty.call(toolDefaults, key)) fallback = toolDefaults[key];
+  const value = (obj && Object.prototype.hasOwnProperty.call(obj, key)) ? obj[key] : undefined;
+  if (value === undefined || value === null) return fallback;
+  if (typeof fallback === 'number') {
+    if (typeof value !== 'number' && typeof value !== 'string') return fallback;
+    if (typeof value === 'string' && value.trim() === '') return fallback;
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  }
+  if (typeof fallback === 'string' && fallback.charAt(0) === '#') {
+    return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+  }
+  return value;
+}
+function hexToRgb(hex){
+  const h = typeof hex === 'string' && hex.charAt(0) === '#' ? hex.slice(1) : '';
+  if (h.length !== 6) return [255,255,255];
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function rgba(rgb,a){ return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')'; }
+function hash01(n) { return fract(Math.sin(n * 12.9898 + 78.233) * 43758.5453123); }
+
+
+function advanceDriftPhase(stateTime, targetDrift) {
+  const t = Number.isFinite(stateTime) ? stateTime : 0;
+  if (lastStateTime === null || t < lastStateTime || t - lastStateTime > 0.5) {
+    lastStateTime = t;
+    smoothedDrift = targetDrift;
+    return driftPhase;
+  }
+
+  const dt = clamp(t - lastStateTime, 0, 0.1);
+  lastStateTime = t;
+
+  // Drift changes speed, never absolute phase: no jumps when mapped/modulated.
+  const smoothing = 1 - Math.exp(-dt * 10.0);
+  smoothedDrift = lerp(smoothedDrift, targetDrift, smoothing);
+  driftPhase += dt * smoothedDrift * 2.4;
+  return driftPhase;
+}
+
+function fieldValue(nx, ny, mode, seed, scale, rough, driftTime) {
+  let x = (nx - 0.5) * scale;
+  let y = (ny - 0.5) * scale;
+  const s = seed * 0.173;
+  const tt = driftTime;
+  let v = 0;
+
+  if (mode === 0) {
+    v = 0.52 * Math.sin(x * 1.65 + s + tt * 0.37)
+      + 0.42 * Math.cos(y * 1.92 - s * 0.7 + tt * 0.29)
+      + 0.30 * Math.sin((x + y) * 1.13 + s * 1.4 - tt * 0.21);
+  } else if (mode === 1) {
+    const ridge = Math.abs((nx - 0.5) * 3.4 + 0.32 * Math.sin(y * 1.6 + s));
+    v = 0.88 * (1.0 - ridge)
+      + 0.32 * Math.sin(y * 2.4 + s + tt * 0.24)
+      - 0.24 * Math.cos(x * 2.2 - s);
+  } else if (mode === 2) {
+    const r = Math.sqrt(x*x + y*y);
+    v = 0.72 * Math.sin(r * 3.25 - s + tt * 0.46)
+      + 0.25 * Math.sin(x * 2.1 + s * 0.5)
+      + 0.21 * Math.cos(y * 2.3 - s * 0.4);
+  } else if (mode === 3) {
+    v = 0.78 * Math.sin((y + 0.28 * Math.sin(x * 1.35 + s)) * 2.85 + tt * 0.32)
+      + 0.28 * Math.sin((x - y) * 1.6 - s);
+  } else if (mode === 4) {
+    const px = x + 0.65 * Math.sin(y * 1.3 + s + tt * 0.18);
+    const py = y + 0.55 * Math.cos(x * 1.1 - s * 0.4 - tt * 0.23);
+    v = 0.58 * Math.sin(px * 1.55)
+      + 0.48 * Math.cos(py * 1.66)
+      + 0.25 * Math.sin((px * 0.7 + py * 1.1) * 2.0 + s);
+  } else {
+    const r = Math.sqrt(x*x + y*y);
+    const a = Math.atan2(y, x);
+    v = 0.55 * Math.sin(r * 2.2 + tt * 0.38)
+      + 0.36 * Math.cos(a * 5.0 - s)
+      + 0.25 * Math.sin((x - y) * 1.75 + s * 0.8);
+  }
+
+  const detail = rough * (
+    0.22 * Math.sin(x * 3.7 - y * 2.2 + s * 1.4 + tt * 0.51)
+    + 0.18 * Math.cos(y * 4.1 + x * 1.7 - s * 0.9 - tt * 0.34)
+    + 0.12 * Math.sin((x + y) * 5.0 + s * 1.9)
+  );
+  return clamp(v + detail, -1.2, 1.2);
+}
+
+function interp(p1, p2, v1, v2, level) {
+  const t = Math.abs(v2 - v1) < 1e-6 ? 0.5 : (level - v1) / (v2 - v1);
+  return [p1[0] + (p2[0] - p1[0]) * t, p1[1] + (p2[1] - p1[1]) * t];
+}
+
+function bandRanks(levels, seed) {
+  const items = [];
+  for (let i = 0; i < levels; i++) items.push({ i, k: hash01(seed * 17.13 + (i + 1) * 9.27) });
+  items.sort((a, b) => a.k - b.k);
+  const rank = new Array(levels);
+  for (let r = 0; r < items.length; r++) rank[items[r].i] = r;
+  return rank;
+}
+
+function clipPoly(poly, threshold, keepAbove) {
+  if (!poly.length) return [];
+  const out = [];
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    const ain = keepAbove ? a.v >= threshold : a.v <= threshold;
+    const bin = keepAbove ? b.v >= threshold : b.v <= threshold;
+
+    if (ain && bin) {
+      out.push(b);
+    } else if (ain && !bin) {
+      const t = (threshold - a.v) / ((b.v - a.v) || 1e-6);
+      out.push({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), v: threshold });
+    } else if (!ain && bin) {
+      const t = (threshold - a.v) / ((b.v - a.v) || 1e-6);
+      out.push({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t), v: threshold });
+      out.push(b);
+    }
+  }
+  return out;
+}
+
+function fillPoly(targetCtx, poly) {
+  if (poly.length < 3) return;
+  targetCtx.beginPath();
+  targetCtx.moveTo(poly[0].x, poly[0].y);
+  for (let i = 1; i < poly.length; i++) targetCtx.lineTo(poly[i].x, poly[i].y);
+  targetCtx.closePath();
+  targetCtx.fill();
+}
+
+
+function appendExpandedPoly(targetCtx, poly, overlapPx) {
+  if (poly.length < 3) return false;
+
+  let cx = 0;
+  let cy = 0;
+  for (let i = 0; i < poly.length; i++) {
+    cx += poly[i].x;
+    cy += poly[i].y;
+  }
+  cx /= poly.length;
+  cy /= poly.length;
+
+  function expandedPoint(p) {
+    const vx = p.x - cx;
+    const vy = p.y - cy;
+    const len = Math.sqrt(vx * vx + vy * vy);
+    if (len < 1e-6) return [p.x, p.y];
+    const k = overlapPx / len;
+    return [p.x + vx * k, p.y + vy * k];
+  }
+
+  let ep = expandedPoint(poly[0]);
+  targetCtx.moveTo(ep[0], ep[1]);
+  for (let i = 1; i < poly.length; i++) {
+    ep = expandedPoint(poly[i]);
+    targetCtx.lineTo(ep[0], ep[1]);
+  }
+  targetCtx.closePath();
+  return true;
+}
+
+window.sketchResize = function(width, height){
+  if (canvas.width !== width || canvas.height !== height) {
+    canvas.width = width;
+    canvas.height = height;
+  }
+};
+
+window.sketchDraw = function(state){
+  const w = canvas.width;
+  const h = canvas.height;
+  if (w < 2 || h < 2) return;
+  ctx.clearRect(0,0,w,h);
+
+  const mode = Math.round(clamp(readVal(state, 'mode', 0), 0, 5));
+  const seed = readVal(state, 'seed', 13);
+  const levels = Math.round(clamp(readVal(state, 'levels', 18), 2, 40));
+  const scaleNorm = clamp01(readVal(state, 'scale', 42) / 100);
+  const rough = clamp01(readVal(state, 'ruggedness', 34) / 100);
+  const heightShift = clamp01(readVal(state, 'height_shift', 0) / 100);
+  const drift = clamp01(readVal(state, 'drift', 18) / 100);
+  const maskFill = clamp01(readVal(state, 'mask_fill', 34) / 100);
+  const fillRgb = hexToRgb(readVal(state, 'fill_color', '#EC6B2D'));
+  const bgRgb = hexToRgb(readVal(state, 'bg_color', '#1C1713'));
+  const bgOpacity = clamp01(readVal(state, 'bg_opacity', 100) / 100);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  if (bgOpacity > 0) {
+    ctx.fillStyle = rgba(bgRgb, bgOpacity);
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  const minSide = Math.min(w,h);
+  const aspect = w / Math.max(h, 1);
+  const densityBias = scaleNorm * 0.28 + rough * 0.38 + levels / 70;
+
+  // Native-resolution adaptive grid.
+  // Small Sketch previews were massively oversampled before (128+ cells even at 350 px).
+  // Keep enough geometry for smooth bands, but do not calculate detail the preview cannot show.
+  const qualityTarget = lerp(120, 285, densityBias);
+  const pixelTarget = Math.max(72, minSide * 0.42);
+  const target = Math.round(Math.min(qualityTarget, pixelTarget));
+  const cols = Math.max(64, Math.min(360, Math.floor(target * Math.sqrt(aspect))));
+  const rows = Math.max(64, Math.min(360, Math.floor(target / Math.sqrt(aspect))));
+  const dx = w / cols;
+  const dy = h / rows;
+  const fscale = lerp(1.1, 8.2, scaleNorm);
+  const driftTime = advanceDriftPhase(readVal(state, 'time', 0) || 0, drift);
+
+  let vals = new Float32Array((cols + 1) * (rows + 1));
+  for (let y = 0; y <= rows; y++) {
+    const ny = y / rows;
+    for (let x = 0; x <= cols; x++) {
+      const nx = x / cols;
+      const i = y * (cols + 1) + x;
+      vals[i] = fieldValue(nx, ny, mode, seed, fscale, rough, driftTime);
+    }
+  }
+
+  const shifted = new Float32Array((cols + 1) * (rows + 1));
+  for (let i = 0; i < vals.length; i++) {
+    // fieldValue is already bounded to [-1.2, 1.2].
+    // Use the complete range instead of clipping at +/-0.96:
+    // premature saturation created flat plateaus that could appear as square bands.
+    shifted[i] = clamp01((vals[i] + 1.2) / 2.4) + heightShift;
+  }
+
+  const activeBands = Math.floor(maskFill * levels + 0.00001);
+  if (activeBands > 0) {
+    const ranks = bandRanks(levels, seed);
+
+    ctx.fillStyle = rgba(fillRgb, 1);
+
+    // A sub-pixel geometric overlap closes AA seams between independently clipped cells.
+    // No stroke pass: less work and no dark/light hairlines from separate edge rasterization.
+    const overlapPx = 0.78;
+
+    // Bounded batches prevent giant paths while keeping draw-call count low.
+    const MAX_BATCH_POLYS = 192;
+    let batchPolys = 0;
+
+    function flushBatch() {
+      if (batchPolys === 0) return;
+      ctx.fill();
+      ctx.beginPath();
+      batchPolys = 0;
+    }
+
+    ctx.beginPath();
+
+    for (let y = 0; y < rows; y++) {
+      const y0 = y * dy;
+      const y1 = (y + 1) * dy;
+      for (let x = 0; x < cols; x++) {
+        const x0 = x * dx;
+        const x1 = (x + 1) * dx;
+        const idx = y * (cols + 1) + x;
+        const sv0 = shifted[idx];
+        const sv1 = shifted[idx + 1];
+        const sv2 = shifted[idx + cols + 2];
+        const sv3 = shifted[idx + cols + 1];
+        const minV = Math.min(sv0, sv1, sv2, sv3);
+        const maxV = Math.max(sv0, sv1, sv2, sv3);
+
+        const basePoly = [
+          { x: x0, y: y0, v: sv0 },
+          { x: x1, y: y0, v: sv1 },
+          { x: x1, y: y1, v: sv2 },
+          { x: x0, y: y1, v: sv3 }
+        ];
+
+        const q0 = Math.floor(minV * levels) - 1;
+        const q1 = Math.floor(maxV * levels) + 1;
+
+        for (let q = q0; q <= q1; q++) {
+          const b = ((q % levels) + levels) % levels;
+          if (ranks[b] >= activeBands) continue;
+
+          const low = q / levels;
+          const high = (q + 1) / levels;
+          if (high < minV || low > maxV) continue;
+
+          let poly = clipPoly(basePoly, low, true);
+          poly = clipPoly(poly, high, false);
+          if (poly.length < 3) continue;
+
+          if (appendExpandedPoly(ctx, poly, overlapPx)) {
+            batchPolys++;
+            if (batchPolys >= MAX_BATCH_POLYS) flushBatch();
+          }
+        }
+      }
+    }
+
+    flushBatch();
+  }
+
+};
+</script>
+<script>
+(function localPreview(){
+  if (window.parent !== window) return;
+  const manifest = window.SKETCH_TOOL;
+  const state = { time: 0 };
+  for (const p of manifest.params) state[p.key] = p.default;
+  for (const c of manifest.colors) state[c.key] = c.default;
+
+  function fit() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    window.sketchResize(
+      Math.max(1, Math.floor(width * dpr)),
+      Math.max(1, Math.floor(height * dpr))
+    );
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  let last = performance.now();
+  function tick(now){
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    state.time += dt;
+    state.height_shift = (state.height_shift + dt * 4.0) % 100;
+    try { window.sketchDraw(state); } catch(e) { console.error('[sketch] draw threw:', e); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

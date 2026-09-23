@@ -1,0 +1,484 @@
+<!--
+BeerBelgio Visual Lab — HTML Tool
+Project: https://github.com/BeerBelgio/visual-lab
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cellular Field v1.4</title>
+  <style>
+    html, body { margin: 0; background: #111; overflow: hidden; height: 100%; }
+    body { display: flex; align-items: center; justify-content: center; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <canvas id="sketch-canvas"></canvas>
+
+  <script>
+    window.SKETCH_TOOL = {
+      schemaVersion: 1,
+      name: "Cellular Field v1.4",
+      params: [
+        { key: "drift_bpm",    label: "Drift BPM",         min: 20,   max: 240, step: 1,    default: 120 },
+        { key: "cell_count",   label: "Cell Count",  min: 0,    max: 50,  step: 0.1,  default: 10 },
+        { key: "core",         label: "Core Size",   min: 0,    max: 3,   step: 0.01, default: 1 },
+        { key: "inner_gap",    label: "Inner Gap",   min: 0,    max: 100, step: 0.1,  default: 8 },
+        { key: "membrane",     label: "Membrane",    min: 0,    max: 200, step: 0.1,  default: 10 },
+        { key: "warp",         label: "Warp",        min: 0,    max: 100, step: 1,    default: 15 },
+        { key: "warp_scale",   label: "Warp Scale",  min: 0,    max: 100, step: 1,    default: 35 },
+        { key: "warp_drift",   label: "Warp Drift",  min: 0,    max: 100, step: 1,    default: 30 },
+        { key: "warp_complexity", label: "Warp Complexity", min: 0, max: 100, step: 1, default: 35 },
+      ],
+      colors: [
+        { key: "core_color", label: "Core",       default: "#88b774" },
+        { key: "edge",       label: "Membrane",   default: "#ec6b2d" }
+      ],
+      audio: [
+      "cell_count", "core", "inner_gap", "membrane", "warp", "warp_scale", "warp_drift",
+      "warp_complexity", "core_color", "edge"
+    ]
+    };
+
+    const canvas = document.getElementById("sketch-canvas");
+    const gl = canvas.getContext("webgl", {
+      alpha: true,
+      antialias: false,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: false,
+      powerPreference: "high-performance"
+    });
+
+
+    const toolDefaults = Object.create(null);
+    for (const item of window.SKETCH_TOOL.params.concat(window.SKETCH_TOOL.colors)) {
+      toolDefaults[item.key] = item.default;
+    }
+    function readVal(obj, key, fallback){
+      if (Object.prototype.hasOwnProperty.call(toolDefaults, key)) fallback = toolDefaults[key];
+      const value = (obj && Object.prototype.hasOwnProperty.call(obj, key)) ? obj[key] : undefined;
+      if (value === undefined || value === null) return fallback;
+      if (typeof fallback === 'number') {
+        if (typeof value !== 'number' && typeof value !== 'string') return fallback;
+        if (typeof value === 'string' && value.trim() === '') return fallback;
+        const number = Number(value);
+        return Number.isFinite(number) ? number : fallback;
+      }
+      if (typeof fallback === 'string' && fallback.charAt(0) === '#') {
+        return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+      }
+      return value;
+    }
+
+    function hexToRgb01(hex) {
+      const h = typeof hex === "string" && hex.charAt(0) === "#" ? hex.slice(1) : "";
+      if (h.length !== 6) return [1, 1, 1];
+      return [
+        parseInt(h.slice(0, 2), 16) / 255,
+        parseInt(h.slice(2, 4), 16) / 255,
+        parseInt(h.slice(4, 6), 16) / 255
+      ];
+    }
+
+    function compileShader(type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const log = gl.getShaderInfoLog(shader) || "unknown shader error";
+        gl.deleteShader(shader);
+        throw new Error(log);
+      }
+      return shader;
+    }
+
+    function createProgram(vsSource, fsSource) {
+      const program = gl.createProgram();
+      const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+      const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        const log = gl.getProgramInfoLog(program) || "unknown program error";
+        gl.deleteProgram(program);
+        throw new Error(log);
+      }
+      return program;
+    }
+
+    const VERT = `
+      attribute vec2 a_pos;
+      void main() {
+        gl_Position = vec4(a_pos, 0.0, 1.0);
+      }
+    `;
+
+    const FRAG = `
+      precision highp float;
+
+      uniform vec2 u_res;
+      uniform float u_time;
+      uniform float u_bpm;
+      uniform float u_density;
+      uniform float u_core;
+      uniform float u_inner_gap;
+      uniform float u_membrane;
+      uniform float u_warp;
+      uniform float u_warp_scale;
+      uniform float u_warp_drift;
+      uniform float u_warp_complexity;
+      uniform float u_drift_phase;
+      uniform vec3 u_core_color;
+      uniform vec3 u_edge;
+
+      const float TAU = 6.283185307179586;
+
+      float hash21(vec2 p) {
+        p = fract(p * vec2(123.34, 456.21));
+        p += dot(p, p + 45.32);
+        return fract(p.x * p.y);
+      }
+
+      vec2 hash22(vec2 p) {
+        float n = hash21(p);
+        float m = hash21(p + 19.19);
+        return vec2(n, m);
+      }
+
+      float softstep(float edge0, float edge1, float x) {
+        float t = clamp((x - edge0) / max(0.00001, edge1 - edge0), 0.0, 1.0);
+        return t * t * (3.0 - 2.0 * t);
+      }
+
+      mat2 rot(float a) {
+        float s = sin(a);
+        float c = cos(a);
+        return mat2(c, -s, s, c);
+      }
+
+      vec2 cellular(vec2 p, float phase, float cell_motion) {
+        vec2 ip = floor(p);
+        vec2 fp = fract(p);
+        float f1 = 9.0;
+        float f2 = 9.0;
+
+        for (int y = -1; y <= 1; y++) {
+          for (int x = -1; x <= 1; x++) {
+            vec2 g = vec2(float(x), float(y));
+            vec2 rnd = hash22(ip + g);
+            vec2 orbit = 0.5 + 0.5 * sin(phase * (0.16 + 0.12 * rnd.x) + TAU * rnd + vec2(0.0, 1.7));
+            vec2 feature = mix(rnd, orbit, cell_motion);
+            vec2 d = g + feature - fp;
+            float dist2 = dot(d, d);
+            if (dist2 < f1) {
+              f2 = f1;
+              f1 = dist2;
+            } else if (dist2 < f2) {
+              f2 = dist2;
+            }
+          }
+        }
+        return sqrt(vec2(f1, f2));
+      }
+
+      void main() {
+        vec2 frag = gl_FragCoord.xy;
+        vec2 uv = (frag - 0.5 * u_res) / min(u_res.x, u_res.y);
+        float aspect = u_res.x / u_res.y;
+        float px = 1.0 / min(u_res.x, u_res.y);
+
+        float bpm = max(1.0, u_bpm);
+        float beat_time = u_time * bpm / 60.0;
+        float phase = beat_time * TAU;
+
+        float density = mix(2.0, 22.0, clamp(u_density / 50.0, 0.0, 1.0));
+        float core_size = clamp(u_core / 3.0, 0.0, 1.0);
+        float inner_gap_px = clamp(u_inner_gap, 0.0, 100.0);
+        float membrane_px = clamp(u_membrane, 0.0, 200.0);
+        float warp = clamp(u_warp / 100.0, 0.0, 1.0);
+        float warp_scale = clamp(u_warp_scale / 100.0, 0.0, 1.0);
+        float warp_drift = clamp(u_warp_drift / 100.0, 0.0, 1.0);
+        float warp_complexity = clamp(u_warp_complexity / 100.0, 0.0, 1.0);
+
+        vec2 p = uv;
+
+        // Warp-only movement system.
+        // Warp controls amount; Warp Scale controls size/frequency of deformation;
+        // Warp Drift controls temporal movement; Warp Complexity adds smaller secondary folds.
+        float warp_freq = mix(0.65, 5.80, warp_scale);
+        // Drift phase is accumulated on the JS side so changing Warp Drift
+        // changes velocity without jumping the field to a new absolute phase.
+        float warp_time = u_drift_phase * 0.22;
+
+        vec2 wp = p * warp_freq;
+
+        vec2 warp_a = vec2(
+          sin(wp.y * 1.35 + warp_time + sin(wp.x * 0.90 - warp_time * 0.70)),
+          cos(wp.x * 1.25 - warp_time * 0.82 + cos(wp.y * 0.95 + warp_time * 0.45))
+        );
+
+        vec2 warp_b = vec2(
+          sin(dot(wp, vec2(1.75, -1.15)) + warp_time * 1.35),
+          cos(dot(wp, vec2(-1.05, 1.85)) - warp_time * 1.18)
+        );
+
+        vec2 warp_c = vec2(
+          sin(wp.x * 3.10 + sin(wp.y * 2.15 + warp_time * 1.60) - warp_time * 2.10),
+          cos(wp.y * 2.85 + cos(wp.x * 1.95 - warp_time * 1.40) + warp_time * 1.75)
+        );
+
+        float mid_complexity = smoothstep(0.12, 0.62, warp_complexity);
+        float high_complexity = smoothstep(0.52, 1.00, warp_complexity);
+
+        vec2 warp_field =
+          warp_a * 0.23 +
+          warp_b * (0.17 * mid_complexity) +
+          warp_c * (0.08 * high_complexity);
+
+        p += warp_field * warp;
+        p = rot(0.045 * sin(warp_time * 0.37 + dot(p, vec2(0.7, -0.4))) * warp * (0.30 + 0.70 * warp_complexity)) * p;
+
+        vec2 cell_space = p * density;
+        // Warp Drift is speed only. The amount of cellular motion is governed
+        // by Warp + Complexity; temporal phase comes from the continuous drift clock.
+        float cell_motion = warp * mix(0.10, 0.68, warp_complexity);
+        vec2 d = cellular(cell_space, u_drift_phase, cell_motion);
+
+        float nearest = d.x / density;
+        float gap = (d.y - d.x) / density;
+
+        // Membrane as a crisp opaque line with anti-aliasing only at the edges.
+        float membrane_mask = 0.0;
+        if (membrane_px > 0.0) {
+          float base_width = membrane_px * px;
+          float variation = 0.5 + 0.5 * sin(cell_space.x * 9.0 + sin(cell_space.y * 7.3) + u_drift_phase * 0.14);
+          float local_width = base_width * mix(1.0, 0.35 + 1.75 * variation, warp * 0.65);
+          float aa = max(px * 1.5, 0.0015);
+          membrane_mask = 1.0 - softstep(local_width - aa, local_width + aa, gap);
+        }
+
+        // Core starts as a circular dot. As it grows, it progressively loses
+        // circularity and adapts to the cell interior. This transition is non-linear:
+        // larger cores lose circularity faster, and thicker membranes accelerate that loss.
+        float core_mask = 0.0;
+        if (core_size > 0.0001) {
+          float aa = max(px * 1.5, 0.0018);
+          float circle_radius = mix(0.0, 0.24, core_size);
+          float circle_mask = 1.0 - softstep(circle_radius - aa, circle_radius + aa, nearest);
+
+          float membrane_norm = clamp(membrane_px / 200.0, 0.0, 1.0);
+          float morph_driver = clamp(pow(core_size, 0.78) + 0.35 * membrane_norm, 0.0, 1.35);
+          float morph = smoothstep(0.14, 0.95, morph_driver);
+
+          // Minimal patch: preserve the original organic core behavior,
+          // but make the BG clearance controllable instead of membrane-driven.
+          float inner_clearance = inner_gap_px * px + px * 1.5;
+          float required_gap = inner_clearance + circle_radius * morph * 0.90;
+          float interior_mask = softstep(required_gap - aa, required_gap + aa, gap);
+
+          core_mask = clamp(circle_mask * interior_mask, 0.0, 1.0);
+        }
+
+        float grain = hash21(frag + floor(phase * 8.0));
+
+        // Premultiplied-alpha composition over transparent output.
+        // Membrane and core contribute alpha independently.
+        float edge_a = clamp(membrane_mask, 0.0, 1.0);
+        float core_a = clamp(core_mask, 0.0, 1.0);
+
+        vec3 premul = vec3(0.0);
+        float out_a = 0.0;
+
+        premul = u_edge * edge_a + premul * (1.0 - edge_a);
+        out_a = edge_a + out_a * (1.0 - edge_a);
+
+        premul = u_core_color * core_a + premul * (1.0 - core_a);
+        out_a = core_a + out_a * (1.0 - core_a);
+
+        float vignette = smoothstep(1.25, 0.20, length(uv / vec2(max(0.65, aspect), 1.0)));
+        premul *= mix(0.70, 1.02, vignette);
+        premul += (grain - 0.5) * 0.02 * (0.20 + warp) * out_a;
+        premul = clamp(premul, vec3(0.0), vec3(out_a));
+
+        gl_FragColor = vec4(premul, out_a);
+      }
+    `;
+
+    let program = null;
+    let locations = null;
+    let buffer = null;
+    let webgl_ready = false;
+
+    if (gl) {
+      program = createProgram(VERT, FRAG);
+      gl.useProgram(program);
+
+      buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1
+      ]), gl.STATIC_DRAW);
+
+      const a_pos = gl.getAttribLocation(program, "a_pos");
+      gl.enableVertexAttribArray(a_pos);
+      gl.vertexAttribPointer(a_pos, 2, gl.FLOAT, false, 0, 0);
+
+      locations = {
+        res: gl.getUniformLocation(program, "u_res"),
+        time: gl.getUniformLocation(program, "u_time"),
+        bpm: gl.getUniformLocation(program, "u_bpm"),
+        density: gl.getUniformLocation(program, "u_density"),
+        core: gl.getUniformLocation(program, "u_core"),
+        inner_gap: gl.getUniformLocation(program, "u_inner_gap"),
+        membrane: gl.getUniformLocation(program, "u_membrane"),
+        warp: gl.getUniformLocation(program, "u_warp"),
+        warp_scale: gl.getUniformLocation(program, "u_warp_scale"),
+        warp_drift: gl.getUniformLocation(program, "u_warp_drift"),
+        warp_complexity: gl.getUniformLocation(program, "u_warp_complexity"),
+        drift_phase: gl.getUniformLocation(program, "u_drift_phase"),
+        core_color: gl.getUniformLocation(program, "u_core_color"),
+        edge: gl.getUniformLocation(program, "u_edge")
+      };
+
+      webgl_ready = true;
+      gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    }
+
+    // Continuous phase accumulator for Warp Drift. Multiplying absolute time by
+    // a live speed parameter causes phase jumps whenever the value changes.
+    // Integrating speed over frame time keeps position continuous; a light
+    // smoothing of the speed avoids abrupt acceleration when audio-mapped.
+    let drift_phase = 0.0;
+    let drift_last_time = null;
+    let drift_speed_smoothed = null;
+
+    function updateDriftPhase(time, bpm, driftValue) {
+      const t = Number.isFinite(time) ? time : 0;
+      const target = Math.max(0, Math.min(1, (Number.isFinite(driftValue) ? driftValue : 30) / 100));
+      const safeBpm = Math.max(1, Number.isFinite(bpm) ? bpm : 120);
+
+      if (drift_last_time === null) {
+        drift_last_time = t;
+        drift_speed_smoothed = target;
+        return drift_phase;
+      }
+
+      let dt = t - drift_last_time;
+      drift_last_time = t;
+
+      // Ignore seek/tab-resume jumps instead of teleporting the field.
+      if (!Number.isFinite(dt) || dt < 0 || dt > 0.25) dt = 0;
+
+      const response = 1.0 - Math.exp(-dt * 14.0);
+      drift_speed_smoothed += (target - drift_speed_smoothed) * response;
+      drift_phase += dt * (safeBpm / 60.0) * (Math.PI * 2.0) * drift_speed_smoothed;
+
+      if (drift_phase > Math.PI * 2.0 * 4096.0) {
+        drift_phase %= Math.PI * 2.0 * 4096.0;
+      }
+      return drift_phase;
+    }
+
+    window.sketchResize = function (width, height) {
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      if (webgl_ready) {
+        gl.viewport(0, 0, width, height);
+      }
+    };
+
+    window.sketchDraw = function (state) {
+      const w = canvas.width;
+      const h = canvas.height;
+      if (w < 1 || h < 1) return;
+
+      if (!webgl_ready) {
+        const ctx = canvas.getContext("2d", { alpha: true });
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = readVal(state, 'core_color');
+        ctx.font = Math.round(Math.min(w, h) * 0.06) + "px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("WebGL unavailable", w / 2, h / 2);
+        return;
+      }
+
+      const drift_phase_now = updateDriftPhase(readVal(state, 'time', 0), readVal(state, 'drift_bpm'), readVal(state, 'warp_drift'));
+      const core_color = hexToRgb01(readVal(state, 'core_color'));
+      const edge = hexToRgb01(readVal(state, 'edge'));
+
+      gl.useProgram(program);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform2f(locations.res, w, h);
+      gl.uniform1f(locations.time, readVal(state, 'time', 0));
+      gl.uniform1f(locations.bpm, readVal(state, 'drift_bpm'));
+      gl.uniform1f(locations.density, readVal(state, 'cell_count'));
+      gl.uniform1f(locations.core, readVal(state, 'core'));
+      gl.uniform1f(locations.inner_gap, readVal(state, 'inner_gap'));
+      gl.uniform1f(locations.membrane, readVal(state, 'membrane'));
+      gl.uniform1f(locations.warp, readVal(state, 'warp'));
+      gl.uniform1f(locations.warp_scale, readVal(state, 'warp_scale'));
+      gl.uniform1f(locations.warp_drift, readVal(state, 'warp_drift'));
+      gl.uniform1f(locations.warp_complexity, readVal(state, 'warp_complexity'));
+      gl.uniform1f(locations.drift_phase, drift_phase_now);
+      gl.uniform3f(locations.core_color, core_color[0], core_color[1], core_color[2]);
+      gl.uniform3f(locations.edge, edge[0], edge[1], edge[2]);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    };
+  </script>
+
+  <script>
+    (function localPreview() {
+      if (window.parent !== window) return;
+
+      const manifest = window.SKETCH_TOOL;
+      const state = { time: 0 };
+      for (const p of manifest.params) state[p.key] = p.default;
+      for (const c of manifest.colors) state[c.key] = c.default;
+
+      function fit() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const width = Math.max(1, window.innerWidth);
+        const height = Math.max(1, window.innerHeight);
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        window.sketchResize(
+          Math.max(1, Math.floor(width * dpr)),
+          Math.max(1, Math.floor(height * dpr))
+        );
+      }
+      fit();
+      window.addEventListener("resize", fit);
+
+      let last = performance.now();
+      function tick(now) {
+        state.time += Math.min(0.05, (now - last) / 1000);
+        last = now;
+        try {
+          window.sketchDraw(state);
+        } catch (err) {
+          console.error("[sketch] draw threw:", err);
+        }
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>
