@@ -12,13 +12,15 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.5**  
+**Current staging UI build → V0.6**  
 
 **Live staging site → [beerbelgio.github.io/visual-lab/](https://beerbelgio.github.io/visual-lab/)**  
 
 **Visual Lab is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
 The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
+
+The staging homepage now lazy-loads each real tool for its catalogue preview: previews stay frozen by default and animate only while hovered on pointer devices. The catalogue can be filtered by tool name or concept tag.
 
 During staging, the Pages UI temporarily imports **M PLUS Rounded 1c** from the existing BeerBelgio hub so the typography can be tested consistently. Before public release, the same font assets will be self-hosted inside this repository.
 
@@ -28,7 +30,7 @@ Visual Lab is a collection of visual generators, masks, transitions and procedur
 
 - standalone and inspectable;
 - usable directly in a modern browser;
-- compatible with Sketch Design Tools through its exposed manifest;
+- compatible with [Sketch Design Tools](https://tools.sketchdesign.club/) through its exposed manifest;
 - built without a project-wide build system or external runtime dependency;
 - documented with its own controls, lineage and licence notes.
 
@@ -48,9 +50,14 @@ visual-lab/
 ├── about.html
 ├── tool.html
 ├── assets/
+│   ├── branding/
+│   │   ├── favicon.svg
+│   │   ├── wordmark.svg
+│   │   └── wordmark-claim.svg
 │   ├── css/
 │   │   ├── home-page.css
 │   │   └── tool-page.css
+│   ├── fonts/
 │   └── js/
 │       ├── home-page.js
 │       └── tool-page.js

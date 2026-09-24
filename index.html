@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="visual-lab-build" content="v0.5" />
+  <meta name="visual-lab-build" content="v0.6" />
   <title>VISUAL LAB</title>
-  <link rel="icon" href="assets/favicon-vl.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/home-page.css" />
 </head>
 <body>
   <header class="home-header shell">
-    <a class="home-wordmark" href="./" aria-label="Visual Lab home">VISUAL LAB</a>
+    <a class="home-wordmark" href="./" aria-label="Visual Lab home"><img src="assets/branding/wordmark.svg" alt="Visual Lab" /></a>
     <nav class="home-nav" aria-label="Main navigation">
       <a href="#tools">TOOLS</a>
       <a href="about.html">ABOUT</a>
@@ -42,10 +42,17 @@
     </section>
 
     <section id="tools" class="home-section">
-      <div class="section-heading">
+      <div class="section-heading catalogue-heading">
         <h2>TOOLS</h2>
-        <p>Rendered from the actual tool code. Frozen by default; live while you hover.</p>
+        <div class="catalogue-filters" aria-label="Filter tools">
+          <label class="tool-search-wrap" for="tool-search">
+            <span>FILTER</span>
+            <input id="tool-search" type="search" autocomplete="off" placeholder="Name or concept tag" />
+          </label>
+          <div id="tool-tag-filters" class="tool-tag-filters" aria-label="Concept tags"></div>
+        </div>
       </div>
+      <p id="tool-filter-empty" class="tool-filter-empty" hidden>No tools match this filter.</p>
       <div id="tool-grid" class="tool-grid" aria-live="polite"></div>
     </section>
   </main>
@@ -53,7 +60,7 @@
   <footer class="home-footer shell">
     <div class="footer-signature">© 2026 BeerBelgio <span aria-hidden="true">·</span> FUN IS A SERIOUS THING</div>
     <nav class="footer-links" aria-label="Visual Lab links">
-      <a class="privacy-link" href="about.html#privacy">PRIVACY: NO ANALYTICS · NO TRACKING COOKIES</a>
+      <a class="privacy-link" href="about.html#privacy">PRIVACY</a>
       <a href="https://github.com/BeerBelgio/visual-lab" target="_blank" rel="noopener">GITHUB<span class="arrow-icon" aria-hidden="true"></span></a>
       <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>HUB</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
     </nav>

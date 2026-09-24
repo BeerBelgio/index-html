@@ -295,6 +295,11 @@
 
       els.lineage.appendChild(div);
     }
+
+    const licence = document.createElement('p');
+    licence.className = 'lineage-license';
+    licence.innerHTML = 'Reuse: non-commercial only under <a href="https://github.com/BeerBelgio/visual-lab/blob/main/LICENSE.md" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a> — keep the BeerBelgio copyright notice and any listed third-party credits; commercial use requires a separate agreement.';
+    els.lineage.appendChild(licence);
   }
 
   function renderDevelopment(development) {

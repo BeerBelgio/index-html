@@ -3,8 +3,18 @@
 
   const grid = document.getElementById('tool-grid');
   const errorBox = document.getElementById('home-error');
+  const searchInput = document.getElementById('tool-search');
+  const tagFilters = document.getElementById('tool-tag-filters');
+  const emptyState = document.getElementById('tool-filter-empty');
   const previewObservers = [];
   const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false;
+
+  const catalogue = {
+    tools: [],
+    cards: [],
+    query: '',
+    tag: 'all'
+  };
 
   const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -21,6 +31,44 @@
     for (const item of manifest.params || []) state[item.key] = item.default;
     for (const item of manifest.colors || []) state[item.key] = item.default;
     return state;
+  }
+
+  function applyCatalogueMotion(slug, state, dt) {
+    switch (slug) {
+      case 'form-cutter': {
+        const beat = (state.time * 2) % 1;
+        state.trigger = beat < 0.065 ? 100 * (1 - beat / 0.065) : 0;
+        break;
+      }
+      case 'formshift': {
+        const beat = (state.time * 2) % 1;
+        state.trigger = beat < 0.08 ? 100 * (1 - beat / 0.08) : 0;
+        break;
+      }
+      case 'nodal-morph':
+        state.morph = 28 + 22 * Math.sin(state.time * 0.53);
+        state.rotation = (state.time * 12) % 360;
+        break;
+      case 'scatter-front':
+        state.progress = 50 + 50 * Math.sin(state.time * 0.22);
+        break;
+      case 'topographic':
+        state.height_shift = ((Number(state.height_shift) || 0) + dt * 2.2) % 100;
+        state.drift = 18;
+        break;
+      case 'topographic-mask':
+        state.height_shift = ((Number(state.height_shift) || 0) + dt * 4.0) % 100;
+        break;
+      case 'caustic-stitch':
+        state.warp = Math.max(Number(state.warp) || 0, 22);
+        state.rotation = ((Number(state.rotation) || 0) + dt * 7.5) % 360;
+        break;
+      case 'fractured-mask':
+        state.fragment_fill = 66 + 30 * Math.sin(state.time * 0.58);
+        break;
+      default:
+        break;
+    }
   }
 
   function resizeAndDraw(preview, stage) {
@@ -79,6 +127,7 @@
       const dt = Math.min(0.05, Math.max(0, (now - preview.lastTime) / 1000));
       preview.lastTime = now;
       preview.state.time += dt;
+      applyCatalogueMotion(preview.slug, preview.state, dt);
       resizeAndDraw(preview, stage);
       preview.raf = requestAnimationFrame(tick);
     };
@@ -97,6 +146,7 @@
 
     const preview = {
       iframe,
+      slug: tool.slug,
       state: null,
       ready: false,
       hovered: false,
@@ -146,6 +196,8 @@
     const a = document.createElement('a');
     a.className = 'tool-card';
     a.href = `tool.html?tool=${encodeURIComponent(tool.slug)}`;
+    a.dataset.toolName = String(tool.name || '').toLowerCase();
+    a.dataset.toolTags = (tool.conceptTags || []).map((tag) => String(tag).toLowerCase()).join(' ');
 
     const tags = (tool.conceptTags || [])
       .map((tag) => `<span class="tool-card-tag">${escapeHtml(tag)}</span>`)
@@ -180,6 +232,50 @@
     return a;
   }
 
+  function buildTagFilters(tools) {
+    if (!tagFilters) return;
+    const tags = [...new Set(tools.flatMap((tool) => tool.conceptTags || []))]
+      .map(String)
+      .sort((a, b) => a.localeCompare(b));
+
+    const makeButton = (label, value) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'tool-tag-filter';
+      button.dataset.tag = value;
+      button.textContent = label;
+      button.addEventListener('click', () => {
+        catalogue.tag = value;
+        tagFilters.querySelectorAll('.tool-tag-filter').forEach((item) => {
+          item.classList.toggle('is-active', item.dataset.tag === value);
+        });
+        applyFilters();
+      });
+      return button;
+    };
+
+    const all = makeButton('ALL', 'all');
+    all.classList.add('is-active');
+    tagFilters.appendChild(all);
+    for (const tag of tags) tagFilters.appendChild(makeButton(tag, tag.toLowerCase()));
+  }
+
+  function applyFilters() {
+    const query = catalogue.query.trim().toLowerCase();
+    let visible = 0;
+
+    for (const card of catalogue.cards) {
+      const haystack = `${card.dataset.toolName} ${card.dataset.toolTags}`;
+      const queryMatch = !query || haystack.includes(query);
+      const tagMatch = catalogue.tag === 'all' || card.dataset.toolTags.split(/\s+/).includes(catalogue.tag);
+      const show = queryMatch && tagMatch;
+      card.hidden = !show;
+      if (show) visible += 1;
+    }
+
+    if (emptyState) emptyState.hidden = visible !== 0;
+  }
+
   async function boot() {
     if (!grid) return;
     try {
@@ -189,9 +285,21 @@
       const tools = Array.isArray(data.tools) ? data.tools : [];
       if (!tools.length) throw new Error('No tools are defined.');
 
+      catalogue.tools = tools;
+      buildTagFilters(tools);
+
       const frag = document.createDocumentFragment();
-      for (const tool of tools) frag.appendChild(toolCard(tool));
+      for (const tool of tools) {
+        const card = toolCard(tool);
+        catalogue.cards.push(card);
+        frag.appendChild(card);
+      }
       grid.replaceChildren(frag);
+
+      searchInput?.addEventListener('input', () => {
+        catalogue.query = searchInput.value;
+        applyFilters();
+      });
     } catch (error) {
       showError(`Visual Lab catalogue could not start: ${error.message}`);
     }

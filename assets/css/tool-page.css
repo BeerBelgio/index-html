@@ -455,6 +455,16 @@ input[type="color"] {
 }
 .lineage-source a { text-underline-offset: 3px; }
 
+.lineage-license {
+  margin: 26px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--soft-line);
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: .68;
+}
+.lineage-license a { text-underline-offset: 3px; }
+
 .development-block + .development-block { margin-top: 20px; }
 .development-block h3 { margin: 0 0 7px; font-size: 15px; }
 .development-block p,
@@ -514,7 +524,7 @@ body.is-standalone #standalone-page { display: block !important; }
 @media (max-width: 700px) {
   :root { --page: 88vw; }
   .site-header { min-height: 78px; gap: 16px; }
-  .visual-lab-wordmark { font-size: 27px; }
+  .visual-lab-wordmark img { width: 205px; }
   .tool-switcher-label { font-size: 11px; }
   .tool-picker-button { min-width: 168px; max-width: 192px; min-height: 36px; font-size: 12px; }
   .tool-picker-menu { width: 210px; }
