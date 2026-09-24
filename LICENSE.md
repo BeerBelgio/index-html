@@ -1,12 +1,12 @@
-# Visual Lab — Licensing
+# INDEX HTML — Licensing
 
 Copyright © 2026 Matteo Belgiovine / BeerBelgio.
 
-**Visual Lab** is a source-available project by Matteo Belgiovine / BeerBelgio. It intentionally allows non-commercial reuse under the terms below; it is not presented as an open-source licence grant.
+**INDEX HTML** is a source-available project by Matteo Belgiovine / BeerBelgio. It intentionally allows non-commercial reuse under the terms below; it is not presented as an open-source licence grant.
 
 ## 1. Original code — PolyForm Noncommercial 1.0.0
 
-Original HTML, CSS and JavaScript code authored for Visual Lab is licensed under the **PolyForm Noncommercial License 1.0.0**.
+Original HTML, CSS and JavaScript code authored for INDEX HTML is licensed under the **PolyForm Noncommercial License 1.0.0**.
 
 Canonical terms:
 
@@ -44,7 +44,7 @@ matteo.sonodgtl@gmail.com
 
 The licences above apply only to material for which Matteo Belgiovine / BeerBelgio owns the applicable rights.
 
-The current Visual Lab tool set has been audited against its documented lineage sources. No distributed tool is currently identified as retaining meaningful third-party implementation code or structure (`adapted-from` = 0).
+The current INDEX HTML tool set has been audited against its documented lineage sources. No distributed tool is currently identified as retaining meaningful third-party implementation code or structure (`adapted-from` = 0).
 
 Several tools were nevertheless created after studying public creative-coding projects. Those relationships are documented as **inspired-by** creative/conceptual lineage in `THIRD_PARTY_NOTICES.md` and in the individual tool READMEs.
 

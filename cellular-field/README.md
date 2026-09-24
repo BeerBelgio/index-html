@@ -1,5 +1,5 @@
 # Cellular Field
-Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Cellular_Field-v1.4.html`  
 **Version:** v1.4  

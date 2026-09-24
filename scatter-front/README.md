@@ -1,5 +1,5 @@
 # Scatter Front
-Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Scatter_Front-v1.5.html`  
 **Version:** v1.5  

@@ -1,5 +1,5 @@
 # Fractured Mask
-Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Fractured_Mask-v1.4.html`  
 **Version:** v1.4  

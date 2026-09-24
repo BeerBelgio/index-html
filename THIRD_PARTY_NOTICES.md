@@ -1,6 +1,6 @@
-# Visual Lab — Third-Party Notices and Inspirations
+# INDEX HTML — Third-Party Notices and Inspirations
 
-Visual Lab contains original HTML visual tools by BeerBelgio / Matteo Belgiovine. **Sketch Design Tools is a current compatibility target, not the identity or owner of the project.**
+INDEX HTML contains original HTML visual tools by BeerBelgio / Matteo Belgiovine. **Sketch Design Tools is a current compatibility target, not the identity or owner of the project.**
 
 The current tool set has been audited against the sources listed below. No distributed tool is currently identified as retaining meaningful third-party implementation code or structure. The relationships below are therefore creative/conceptual references unless explicitly described as internal derivation.
 
@@ -17,7 +17,7 @@ Conceptual / visual reference for:
 - Nodal Morph — Chladni / nodal field concept
 - Topographic — procedural topo / contour-field concept
 
-Topographic Mask is derived internally from Visual Lab's Topographic tool and inherits the Fluid conceptual lineage indirectly.
+Topographic Mask is derived internally from INDEX HTML's Topographic tool and inherits the Fluid conceptual lineage indirectly.
 
 ## Canvas UI — DavidHDev/canvas-ui
 
@@ -29,7 +29,7 @@ Conceptual / visual reference for:
 - Linking Nodes — Canvas UI Bubble / droplet language
 - Scatter Front — Canvas UI ParticleReveal concept
 
-The distributed Visual Lab tools are standalone implementations and do not load Canvas UI as a runtime dependency.
+The distributed INDEX HTML tools are standalone implementations and do not load Canvas UI as a runtime dependency.
 
 ## Typoman — markdo27/typoman
 
@@ -41,7 +41,7 @@ Visual / interaction reference for:
 - FormShift — kinetic Flash-style transition grammar
 - FormCutter — part of the wider Flash / cutter research round
 
-The distributed Visual Lab tools generate their own shapes and implement their own host-facing behavior rather than bundling Typoman as a dependency.
+The distributed INDEX HTML tools generate their own shapes and implement their own host-facing behavior rather than bundling Typoman as a dependency.
 
 ## Additional markdo27 research references
 
@@ -51,7 +51,7 @@ The following projects were reviewed during the wider FormCutter exploration:
 - grad_text — https://github.com/markdo27/grad_text — MIT, as recorded during the source audit
 - animtypo — https://github.com/markdo27/animtypo — no repository-wide software licence was identified during the audit
 
-These are documented as research / visual references. No current Visual Lab tool is identified as retaining their implementation code.
+These are documented as research / visual references. No current INDEX HTML tool is identified as retaining their implementation code.
 
 ## Internal lineage
 

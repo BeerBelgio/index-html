@@ -1,14 +1,14 @@
 {
   "schemaVersion": 2,
   "project": {
-    "name": "Visual Lab",
+    "name": "INDEX HTML",
     "creator": "BeerBelgio / Matteo Belgiovine",
-    "repository": "https://github.com/BeerBelgio/visual-lab",
+    "repository": "https://github.com/BeerBelgio/index-html",
     "dataset": "staging",
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
-    "editorialSourceOfTruth": "visual-lab_content-inventory_v8.3.xlsx",
+    "editorialSourceOfTruth": "index-html_content-inventory_v8.3.xlsx",
     "notes": "Technical controls, ranges, defaults, colors and Sketch Audio Sync exposure are intentionally not duplicated here. Parameter copy is keyed to the manifest control key.",
-    "stagingBuild": "v0.3"
+    "stagingBuild": "v0.7"
   },
   "tools": [
     {
@@ -1225,7 +1225,7 @@
           "sourceLicence": "Internal — PolyForm Noncommercial 1.0.0",
           "publicText": "Derived internally from Topographic, reworking the same procedural field into a filled-mask system.",
           "authorUrl": "https://github.com/BeerBelgio",
-          "projectUrl": "https://github.com/BeerBelgio/visual-lab",
+          "projectUrl": "https://github.com/BeerBelgio/index-html",
           "specificReference": "Topographic",
           "specificReferenceUrl": null
         },

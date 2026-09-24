@@ -1,5 +1,5 @@
 # FormShift
-Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `FormShift-v1.7.html`  
 **Version:** v1.7  

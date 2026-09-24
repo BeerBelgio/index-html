@@ -6,7 +6,6 @@
   const searchInput = document.getElementById('tool-search');
   const tagFilters = document.getElementById('tool-tag-filters');
   const emptyState = document.getElementById('tool-filter-empty');
-  const previewObservers = [];
   const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false;
 
   const catalogue = {
@@ -16,9 +15,20 @@
     tag: 'all'
   };
 
+  // Catalogue previews are loaded by our own queue. Avoid native iframe lazy-loading:
+  // IntersectionObserver decides when a card is close enough, then at most two tools
+  // initialise in parallel. This keeps the catalogue robust as the tool count grows.
+  const previewQueue = [];
+  const livePreviews = new Set();
+  const MAX_CONCURRENT_PREVIEW_LOADS = 2;
+  let activePreviewLoads = 0;
+
   const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
+  const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   function showError(message) {
     if (!errorBox) return;
@@ -33,8 +43,19 @@
     return state;
   }
 
+  // Staging-only catalogue motion recipes. They affect card previews only and do
+  // not alter a tool's manifest defaults or the downloadable HTML file.
   function applyCatalogueMotion(slug, state, dt) {
     switch (slug) {
+      case 'cassini-flow':
+        state.drift = Math.max(Number(state.drift) || 0, 72);
+        break;
+      case 'caustic-stitch':
+        state.accent_variations = Math.floor(state.time * 2.6) % 101;
+        break;
+      case 'cellular-field':
+        state.warp = 38 + 28 * Math.sin(state.time * 0.58);
+        break;
       case 'form-cutter': {
         const beat = (state.time * 2) % 1;
         state.trigger = beat < 0.065 ? 100 * (1 - beat / 0.065) : 0;
@@ -45,6 +66,10 @@
         state.trigger = beat < 0.08 ? 100 * (1 - beat / 0.08) : 0;
         break;
       }
+      case 'fractured-mask':
+        state.seed = Math.floor(state.time * 1.15) % 101;
+        state.coverage_distribution = 54 + 34 * Math.sin(state.time * 0.68);
+        break;
       case 'nodal-morph':
         state.morph = 28 + 22 * Math.sin(state.time * 0.53);
         state.rotation = (state.time * 12) % 360;
@@ -59,24 +84,61 @@
       case 'topographic-mask':
         state.height_shift = ((Number(state.height_shift) || 0) + dt * 4.0) % 100;
         break;
-      case 'caustic-stitch':
-        state.warp = Math.max(Number(state.warp) || 0, 22);
-        state.rotation = ((Number(state.rotation) || 0) + dt * 7.5) % 360;
-        break;
-      case 'fractured-mask':
-        state.fragment_fill = 66 + 30 * Math.sin(state.time * 0.58);
-        break;
       default:
         break;
     }
   }
 
+  function runtimeReady(iframe) {
+    try {
+      const win = iframe.contentWindow;
+      return !!(
+        win &&
+        win.SKETCH_TOOL &&
+        typeof win.sketchResize === 'function' &&
+        typeof win.sketchDraw === 'function'
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  async function waitForRuntime(iframe, timeoutMs = 3200) {
+    const started = performance.now();
+    while (performance.now() - started < timeoutMs) {
+      if (runtimeReady(iframe)) return true;
+      await delay(40);
+    }
+    return runtimeReady(iframe);
+  }
+
+  function waitForIframeLoad(iframe, timeoutMs = 7000) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (fn, value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        iframe.removeEventListener('load', onLoad);
+        iframe.removeEventListener('error', onError);
+        fn(value);
+      };
+      const onLoad = () => finish(resolve);
+      const onError = () => finish(reject, new Error('iframe load error'));
+      const timer = setTimeout(() => finish(reject, new Error('iframe load timeout')), timeoutMs);
+      iframe.addEventListener('load', onLoad, { once: true });
+      iframe.addEventListener('error', onError, { once: true });
+    });
+  }
+
   function resizeAndDraw(preview, stage) {
     const { iframe, state } = preview;
-    const win = iframe.contentWindow;
-    if (!win || !win.SKETCH_TOOL || typeof win.sketchResize !== 'function' || typeof win.sketchDraw !== 'function') return false;
+    if (!runtimeReady(iframe) || !state) return false;
 
     const rect = stage.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) return false;
+
+    const win = iframe.contentWindow;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
     const cssWidth = Math.max(1, Math.floor(rect.width));
     const cssHeight = Math.max(1, Math.floor(rect.height));
@@ -84,7 +146,7 @@
     const height = Math.max(1, Math.floor(cssHeight * dpr));
 
     try {
-      const canvas = iframe.contentDocument && iframe.contentDocument.getElementById('sketch-canvas');
+      const canvas = iframe.contentDocument?.getElementById('sketch-canvas');
       if (canvas) {
         canvas.style.width = `${cssWidth}px`;
         canvas.style.height = `${cssHeight}px`;
@@ -98,9 +160,7 @@
       if (placeholder) placeholder.remove();
       return true;
     } catch (error) {
-      const placeholder = stage.querySelector('.preview-placeholder');
-      if (placeholder) placeholder.textContent = 'PREVIEW UNAVAILABLE';
-      console.warn('[Visual Lab] catalogue preview failed:', error);
+      console.warn('[INDEX HTML] catalogue draw failed:', preview.slug, error);
       return false;
     }
   }
@@ -134,62 +194,117 @@
     preview.raf = requestAnimationFrame(tick);
   }
 
-  function activatePreview(stage, tool, card) {
-    if (stage.dataset.loaded === 'true') return;
-    stage.dataset.loaded = 'true';
+  function bindPreviewInteraction(preview) {
+    if (!canHover) return;
+    preview.card.addEventListener('pointerenter', () => {
+      preview.wantsAnimation = true;
+      if (preview.ready) startPreview(preview, preview.stage);
+    });
+    preview.card.addEventListener('pointerleave', () => {
+      preview.wantsAnimation = false;
+      stopPreview(preview);
+    });
+  }
 
+  async function createAndInitialiseIframe(preview, attempt) {
     const iframe = document.createElement('iframe');
-    iframe.title = `${tool.name} catalogue preview`;
-    iframe.loading = 'lazy';
+    iframe.title = `${preview.tool.name} catalogue preview`;
     iframe.setAttribute('aria-hidden', 'true');
-    iframe.src = tool.file;
+    preview.iframe = iframe;
+
+    // Attach the load/error listeners before navigation starts. Cached local tool
+    // files can otherwise finish fast enough to race a listener registered later.
+    const loadPromise = waitForIframeLoad(iframe);
+    iframe.src = `${preview.tool.file}?catalogue=1&attempt=${attempt}`;
+    preview.stage.appendChild(iframe);
+
+    await loadPromise;
+    const ready = await waitForRuntime(iframe);
+    if (!ready) throw new Error('tool runtime did not become ready');
+
+    preview.state = stateFromManifest(iframe.contentWindow.SKETCH_TOOL);
+    await nextFrame();
+    await nextFrame();
+
+    if (!resizeAndDraw(preview, preview.stage)) {
+      // A filtered/temporarily zero-sized card is not a runtime failure.
+      // ResizeObserver will draw it as soon as it has usable dimensions.
+      const rect = preview.stage.getBoundingClientRect();
+      if (rect.width >= 2 && rect.height >= 2) throw new Error('initial draw failed');
+    }
+
+    preview.resizeObserver = new ResizeObserver(() => {
+      if (preview.ready && !preview.hovered) resizeAndDraw(preview, preview.stage);
+    });
+    preview.resizeObserver.observe(preview.stage);
+    livePreviews.add(preview);
+  }
+
+  async function initialisePreview(preview) {
+    const placeholder = preview.stage.querySelector('.preview-placeholder');
+
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      try {
+        if (preview.iframe) preview.iframe.remove();
+        await createAndInitialiseIframe(preview, attempt);
+        preview.ready = true;
+        preview.stage.dataset.previewState = 'ready';
+        resizeAndDraw(preview, preview.stage);
+        if (preview.wantsAnimation) startPreview(preview, preview.stage);
+        return;
+      } catch (error) {
+        console.warn(`[INDEX HTML] preview init attempt ${attempt} failed:`, preview.slug, error);
+        preview.ready = false;
+        preview.resizeObserver?.disconnect();
+        preview.resizeObserver = null;
+        preview.iframe?.remove();
+        preview.iframe = null;
+        if (attempt < 2) await delay(140);
+      }
+    }
+
+    preview.stage.dataset.previewState = 'error';
+    if (placeholder) placeholder.textContent = 'PREVIEW UNAVAILABLE';
+  }
+
+  function processPreviewQueue() {
+    while (activePreviewLoads < MAX_CONCURRENT_PREVIEW_LOADS && previewQueue.length) {
+      const preview = previewQueue.shift();
+      if (!preview || preview.started) continue;
+      preview.started = true;
+      activePreviewLoads += 1;
+      initialisePreview(preview)
+        .finally(() => {
+          activePreviewLoads -= 1;
+          processPreviewQueue();
+        });
+    }
+  }
+
+  function queuePreview(stage, tool, card) {
+    if (stage.dataset.previewQueued === 'true') return;
+    stage.dataset.previewQueued = 'true';
 
     const preview = {
-      iframe,
+      tool,
+      card,
+      stage,
       slug: tool.slug,
+      iframe: null,
       state: null,
       ready: false,
+      started: false,
       hovered: false,
       wantsAnimation: false,
       raf: 0,
       lastTime: 0,
       resizeObserver: null
     };
-    stage._visualLabPreview = preview;
 
-    if (canHover) {
-      card.addEventListener('pointerenter', () => {
-        preview.wantsAnimation = true;
-        if (preview.ready) startPreview(preview, stage);
-      });
-      card.addEventListener('pointerleave', () => {
-        preview.wantsAnimation = false;
-        stopPreview(preview);
-      });
-    }
-
-    iframe.addEventListener('load', () => {
-      const win = iframe.contentWindow;
-      if (!win || !win.SKETCH_TOOL || typeof win.sketchResize !== 'function' || typeof win.sketchDraw !== 'function') {
-        const placeholder = stage.querySelector('.preview-placeholder');
-        if (placeholder) placeholder.textContent = 'PREVIEW UNAVAILABLE';
-        return;
-      }
-
-      preview.state = stateFromManifest(win.SKETCH_TOOL);
-      preview.ready = true;
-      resizeAndDraw(preview, stage);
-
-      preview.resizeObserver = new ResizeObserver(() => {
-        if (preview.ready && !preview.hovered) resizeAndDraw(preview, stage);
-      });
-      preview.resizeObserver.observe(stage);
-      previewObservers.push(preview.resizeObserver);
-
-      if (preview.wantsAnimation) startPreview(preview, stage);
-    });
-
-    stage.appendChild(iframe);
+    stage._indexHtmlPreview = preview;
+    bindPreviewInteraction(preview);
+    previewQueue.push(preview);
+    processPreviewQueue();
   }
 
   function toolCard(tool) {
@@ -222,13 +337,12 @@
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
         observer.disconnect();
-        activatePreview(stage, tool, a);
+        queuePreview(stage, tool, a);
         break;
       }
-    }, { rootMargin: '240px 0px' });
+    }, { rootMargin: '300px 0px' });
 
     io.observe(stage);
-    previewObservers.push(io);
     return a;
   }
 
@@ -301,18 +415,15 @@
         applyFilters();
       });
     } catch (error) {
-      showError(`Visual Lab catalogue could not start: ${error.message}`);
+      showError(`INDEX HTML catalogue could not start: ${error.message}`);
     }
   }
 
   window.addEventListener('beforeunload', () => {
-    document.querySelectorAll('[data-preview-stage]').forEach((stage) => {
-      const preview = stage._visualLabPreview;
-      if (!preview) return;
+    for (const preview of livePreviews) {
       stopPreview(preview);
       preview.resizeObserver?.disconnect();
-    });
-    for (const observer of previewObservers) observer.disconnect?.();
+    }
   });
 
   boot();

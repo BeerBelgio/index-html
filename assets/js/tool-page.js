@@ -163,7 +163,7 @@
   }
 
   function renderEditorial(tool) {
-    document.title = `VISUAL LAB - ${tool.name}`;
+    document.title = `INDEX HTML - ${tool.name}`;
     els.name.textContent = tool.name;
     els.version.textContent = tool.version || '';
     els.shortCopy.textContent = tool.copy?.short || '';
@@ -298,7 +298,7 @@
 
     const licence = document.createElement('p');
     licence.className = 'lineage-license';
-    licence.innerHTML = 'Reuse: non-commercial only under <a href="https://github.com/BeerBelgio/visual-lab/blob/main/LICENSE.md" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a> — keep the BeerBelgio copyright notice and any listed third-party credits; commercial use requires a separate agreement.';
+    licence.innerHTML = 'Reuse: non-commercial only under <a href="https://github.com/BeerBelgio/index-html/blob/main/LICENSE.md" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a> — keep the BeerBelgio copyright notice and any listed third-party credits; commercial use requires a separate agreement.';
     els.lineage.appendChild(licence);
   }
 
@@ -598,7 +598,7 @@
       els.colors.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
       renderEditorial(tool);
     } else {
-      document.title = `VISUAL LAB - ${tool.name}`;
+      document.title = `INDEX HTML - ${tool.name}`;
     }
 
     mountFrameForMode();
@@ -644,7 +644,7 @@
 
       loadTool(selected);
     } catch (error) {
-      setFatal(`Visual Lab could not start: ${error.message}`);
+      setFatal(`INDEX HTML could not start: ${error.message}`);
     }
   }
 

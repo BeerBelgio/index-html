@@ -1,5 +1,5 @@
 # Nodal Morph
-Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Nodal_Morph-v1.8.html`  
 **Version:** v1.8  

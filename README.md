@@ -1,10 +1,12 @@
-# Visual Lab
+# INDEX HTML
+
+**Creative code for visual systems.**
 
 A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio / Matteo Belgiovine**.
 
 The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **[Sketch Design Tools](https://tools.sketchdesign.club/)**, while remaining self-contained browser files designed to evolve beyond a single host.
 
-**Project → Visual Lab**  
+**Project → INDEX HTML**  
 **Current host compatibility → [Sketch Design Tools](https://tools.sketchdesign.club/) + standalone browser**  
 **Creative lineage → credited per tool and in `THIRD_PARTY_NOTICES.md`**
 
@@ -12,21 +14,21 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.6**  
+**Current staging UI build → V0.7**  
 
-**Live staging site → [beerbelgio.github.io/visual-lab/](https://beerbelgio.github.io/visual-lab/)**  
+**Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
-**Visual Lab is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
+**INDEX HTML is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
 The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
 
-The staging homepage now lazy-loads each real tool for its catalogue preview: previews stay frozen by default and animate only while hovered on pointer devices. The catalogue can be filtered by tool name or concept tag.
+The staging homepage queues real tool previews as they approach the viewport, initialises at most two in parallel, retries a failed runtime once, then keeps previews frozen by default and animates them only while hovered on pointer devices. The catalogue can be filtered by tool name or concept tag.
 
-During staging, the Pages UI temporarily imports **M PLUS Rounded 1c** from the existing BeerBelgio hub so the typography can be tested consistently. Before public release, the same font assets will be self-hosted inside this repository.
+**M PLUS Rounded 1c** is self-hosted inside this repository under `assets/fonts/`; the Pages UI no longer depends on the BeerBelgio hub for its typeface.
 
 ## What lives here
 
-Visual Lab is a collection of visual generators, masks, transitions and procedural systems. Each distributed HTML file is:
+INDEX HTML is a collection of visual generators, masks, transitions and procedural systems. Each distributed HTML file is:
 
 - standalone and inspectable;
 - usable directly in a modern browser;
@@ -39,7 +41,7 @@ Sketch is a supported host, not the identity of the project. The longer-term arc
 ## Repository structure
 
 ```text
-visual-lab/
+index-html/
 ├── .gitignore
 ├── .gitattributes
 ├── .nojekyll
@@ -95,7 +97,7 @@ Open the same HTML file directly. Its local preview follows the browser viewport
 
 - **original** — no meaningful third-party implementation code or structure is retained in the current tool. A tool may still have explicit creative lineage.
 - **inspired-by** — another public project influenced the concept, visual language or interaction, while the current implementation was independently built.
-- **derived-from** — meaningful implementation is inherited from another Visual Lab tool.
+- **derived-from** — meaningful implementation is inherited from another INDEX HTML tool.
 - **adapted-from** — reserved for a future case where meaningful third-party implementation code or structure is retained and its licence obligations must be carried through.
 
 The current set contains **no `adapted-from` tools**. Topographic Mask is the only confirmed internal `derived-from` tool.
@@ -132,7 +134,7 @@ Real Sketch remains the authoritative host/performance test, especially for WebG
 
 ## Credits and lineage
 
-External projects that influenced Visual Lab are credited in each tool README and in `THIRD_PARTY_NOTICES.md`.
+External projects that influenced INDEX HTML are credited in each tool README and in `THIRD_PARTY_NOTICES.md`.
 
 The current audit found no meaningful third-party implementation code retained in the distributed HTML tools. External relationships are therefore documented as creative/conceptual lineage unless explicitly stated otherwise.
 
@@ -142,10 +144,10 @@ Original code is published under the **PolyForm Noncommercial License 1.0.0**. O
 
 Commercial or monetised use is not automatically granted and requires a separate agreement.
 
-See `LICENSE.md`, `THIRD_PARTY_NOTICES.md` and the staging [About / licensing page](https://beerbelgio.github.io/visual-lab/about.html#licensing).
+See `LICENSE.md`, `THIRD_PARTY_NOTICES.md` and the staging [About / licensing page](https://beerbelgio.github.io/index-html/about.html#licensing).
 
 ---
 
-**Visual Lab**  
+**INDEX HTML**  
 Matteo Belgiovine / BeerBelgio  
 https://beerbelgio.github.io/
