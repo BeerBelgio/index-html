@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="color-scheme" content="light" />
+  <title>BeerBelgio Visual Lab — Tool</title>
+  <link rel="stylesheet" href="assets/css/tool-page.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand-block">
+      <p class="eyebrow">BEERBELGIO</p>
+      <p class="brand-name">Visual Lab</p>
+    </div>
+
+    <div class="tool-picker-wrap">
+      <label for="tool-picker">Pilot tool</label>
+      <select id="tool-picker" aria-label="Choose a Visual Lab tool"></select>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="tool-name">
+      <div class="hero-copy">
+        <div class="meta-row" id="meta-row"></div>
+        <h1 id="tool-name">Loading tool…</h1>
+        <p id="short-copy" class="short-copy"></p>
+      </div>
+
+      <div class="hero-actions">
+        <a id="standalone-link" class="button button-secondary" href="#" target="_blank" rel="noopener">Open standalone</a>
+        <a id="download-link" class="button button-primary" href="#" download>Download HTML</a>
+      </div>
+    </section>
+
+    <section class="workbench" aria-label="Live tool preview and controls">
+      <div class="preview-panel">
+        <div class="panel-head">
+          <span>LIVE PREVIEW</span>
+          <span id="preview-status" class="status">LOADING</span>
+        </div>
+        <div class="preview-stage" id="preview-stage">
+          <iframe id="tool-frame" title="Visual tool live preview"></iframe>
+        </div>
+      </div>
+
+      <aside class="controls-panel">
+        <div class="panel-head controls-head">
+          <span>CONTROLS</span>
+          <button id="reset-button" class="text-button" type="button" disabled>Reset</button>
+        </div>
+        <div id="controls" class="controls-body" aria-live="polite">
+          <p class="muted">Waiting for tool manifest…</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="content-grid">
+      <article class="content-card span-2">
+        <p class="section-kicker">WHAT IT DOES</p>
+        <p id="description"></p>
+      </article>
+
+      <article class="content-card span-2">
+        <p class="section-kicker">BEHAVIOUR</p>
+        <p id="behaviour"></p>
+      </article>
+
+      <article class="content-card">
+        <p class="section-kicker">MAPPING IDEAS</p>
+        <div id="mapping-ideas"></div>
+      </article>
+
+      <article class="content-card">
+        <p class="section-kicker">LINEAGE</p>
+        <div id="lineage"></div>
+      </article>
+
+      <article class="content-card span-2">
+        <p class="section-kicker">DEVELOPMENT</p>
+        <div id="development"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>BeerBelgio Visual Lab</span>
+    <span>BG = background</span>
+    <a href="https://github.com/BeerBelgio/visual-lab" target="_blank" rel="noopener">GitHub ↗</a>
+  </footer>
+
+  <div id="fatal-error" class="fatal-error" hidden></div>
+  <script src="assets/js/tool-page.js"></script>
+</body>
+</html>
