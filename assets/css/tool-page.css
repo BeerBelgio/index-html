@@ -65,12 +65,13 @@ a { color: inherit; }
   gap: 6px;
 }
 .tool-switcher-label {
-  font-size: 14px;
+  font-size: clamp(16px, 1.5vw, 19px);
   line-height: 1;
   font-weight: 650;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
-  opacity: 0.62;
+  color: var(--ink);
+  opacity: 0.92;
 }
 .tool-picker-button {
   min-width: 202px;
@@ -135,9 +136,17 @@ a { color: inherit; }
 .page-shell { padding: 42px 0 70px; }
 
 .hero { margin-bottom: 30px; }
+.hero-side {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
 .meta-row {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 7px;
   min-height: 27px;
 }
@@ -227,10 +236,9 @@ h1 {
   grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
   gap: 12px;
   align-items: stretch;
-  min-height: 760px;
+  min-height: 680px;
 }
 .preview-panel,
-.colors-panel,
 .controls-panel,
 .content-card {
   min-width: 0;
@@ -241,15 +249,12 @@ h1 {
 }
 .preview-panel {
   height: 100%;
-  min-height: 760px;
+  min-height: 680px;
   display: flex;
   flex-direction: column;
 }
-.live-side {
-  min-width: 0;
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 12px;
+.controls-panel {
+  height: 100%;
 }
 .panel-head {
   min-height: 47px;
@@ -258,14 +263,14 @@ h1 {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--line);
-  font-size: 14px;
+  font-size: clamp(15px, 1.3vw, 18px);
   font-weight: 650;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.085em;
   text-transform: uppercase;
 }
 .preview-stage {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 500px;
   overflow: hidden;
   background: var(--ink);
 }
@@ -332,10 +337,15 @@ input[type="range"] { width: 100%; accent-color: var(--orange); }
   font-size: 12px;
 }
 
-.colors-panel { align-self: end; }
+.colors-dock {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--line);
+  background: var(--cream-deep);
+}
+.colors-head { border-bottom: 1px solid var(--line); }
 .colors-body {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 0;
   padding: 0 14px;
 }
@@ -344,8 +354,8 @@ input[type="range"] { width: 100%; accent-color: var(--orange); }
   padding: 12px 0 14px;
 }
 .color-row + .color-row {
-  margin-left: 12px;
-  padding-left: 12px;
+  margin-left: 14px;
+  padding-left: 14px;
   border-left: 1px solid var(--soft-line);
 }
 .color-control { grid-template-columns: 38px minmax(0, 1fr); }
@@ -367,12 +377,13 @@ input[type="color"] {
 .content-card { padding: clamp(24px, 2.3vw, 34px); }
 .section-kicker {
   margin: 0 0 19px;
-  font-size: clamp(17px, 1.55vw, 21px);
+  font-size: clamp(22px, 2.1vw, 28px);
   line-height: 1;
   font-weight: 650;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.075em;
   text-transform: uppercase;
-  opacity: 0.72;
+  color: var(--ink);
+  opacity: 0.95;
 }
 .about-copy { width: 100%; }
 .section-lead {
@@ -386,9 +397,9 @@ input[type="color"] {
   margin: 19px 0 0;
   width: 100%;
   max-width: none;
-  font-size: 14px;
-  line-height: 1.58;
-  opacity: 0.68;
+  font-size: clamp(16px, 1.55vw, 19px);
+  line-height: 1.56;
+  opacity: 0.74;
 }
 .implementation-copy[hidden] { display: none; }
 
@@ -486,12 +497,13 @@ body.is-standalone #standalone-page { display: block !important; }
 @media (max-width: 1080px) {
   :root { --page: 86vw; }
   .hero-main-row { align-items: flex-start; flex-direction: column; gap: 18px; }
+  .hero-side { width: 100%; align-items: flex-start; }
+  .meta-row { justify-content: flex-start; }
   .hero-actions { justify-content: flex-start; }
   .workbench { grid-template-columns: 1fr; min-height: 0; }
-  .preview-panel { min-height: 560px; height: min(66vh, 720px); }
-  .live-side { grid-template-rows: auto auto; }
+  .preview-panel { min-height: 560px; height: auto; }
+  .controls-panel { height: auto; }
   .controls-body { overflow: visible; }
-  .colors-panel { align-self: stretch; }
   .parameter-item { grid-template-columns: 1fr; gap: 7px; }
   .site-footer { align-items: flex-start; flex-direction: column; padding: 22px 0; }
 }

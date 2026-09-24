@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="visual-lab-build" content="v0.3" />
+  <meta name="visual-lab-build" content="v0.4" />
   <title>VISUAL LAB - Tool</title>
   <link rel="icon" href="assets/favicon-vl.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/tool-page.css" />
@@ -28,19 +28,20 @@
 
     <main class="page-shell">
       <section class="hero" aria-labelledby="tool-name">
-        <div class="meta-row" id="meta-row"></div>
-
         <div class="hero-main-row">
           <div class="tool-title-line">
             <h1 id="tool-name">Loading tool…</h1>
             <span id="tool-version" class="tool-version"></span>
           </div>
 
-          <div class="hero-actions">
-            <a id="standalone-link" class="button button-secondary" href="#" target="_blank" rel="noopener">
-              <span>OPEN CURRENT SETUP</span><span class="arrow-icon" aria-hidden="true"></span>
-            </a>
-            <a id="download-link" class="button button-primary" href="#" download>DOWNLOAD HTML</a>
+          <div class="hero-side">
+            <div class="meta-row" id="meta-row"></div>
+            <div class="hero-actions">
+              <a id="standalone-link" class="button button-secondary" href="#" target="_blank" rel="noopener">
+                <span>OPEN CURRENT SETUP</span><span class="arrow-icon" aria-hidden="true"></span>
+              </a>
+              <a id="download-link" class="button button-primary" href="#" download>DOWNLOAD HTML</a>
+            </div>
           </div>
         </div>
 
@@ -53,24 +54,21 @@
           <div class="preview-stage" id="preview-stage">
             <iframe id="tool-frame" title="Visual tool live preview"></iframe>
           </div>
-        </div>
-
-        <aside class="live-side">
-          <div class="controls-panel">
-            <div class="panel-head controls-head">
-              <span>CONTROLS</span>
-              <button id="reset-button" class="text-button" type="button" disabled>RESET</button>
-            </div>
-            <div id="controls" class="controls-body" aria-live="polite">
-              <p class="muted">Waiting for tool manifest…</p>
-            </div>
-          </div>
-
-          <div class="colors-panel">
-            <div class="panel-head"><span>COLORS</span></div>
+          <div class="colors-dock">
+            <div class="panel-head colors-head"><span>COLORS</span></div>
             <div id="colors" class="colors-body" aria-live="polite">
               <p class="muted">Waiting for tool manifest…</p>
             </div>
+          </div>
+        </div>
+
+        <aside class="controls-panel">
+          <div class="panel-head controls-head">
+            <span>CONTROLS</span>
+            <button id="reset-button" class="text-button" type="button" disabled>RESET</button>
+          </div>
+          <div id="controls" class="controls-body" aria-live="polite">
+            <p class="muted">Waiting for tool manifest…</p>
           </div>
         </aside>
       </section>

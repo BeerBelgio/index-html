@@ -12,7 +12,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.3**  
+**Current staging UI build → V0.4**  
 
 **Visual Lab is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
@@ -42,10 +42,15 @@ visual-lab/
 ├── README.md
 ├── LICENSE.md
 ├── THIRD_PARTY_NOTICES.md
+├── index.html
 ├── tool.html
 ├── assets/
 │   ├── css/
+│   │   ├── home-page.css
+│   │   └── tool-page.css
 │   └── js/
+│       ├── home-page.js
+│       └── tool-page.js
 ├── data/
 │   └── tools.json
 ├── linking-nodes/
@@ -61,7 +66,7 @@ visual-lab/
 └── formshift/
 ```
 
-Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer uses one generic `tool.html` page: the URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
+Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer now includes a first catalogue homepage (`index.html`) plus one generic `tool.html` page. The homepage builds the 11 catalogue cards from `data/tools.json` and renders each actual tool once as a frozen preview; the detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
 
 ## How to use a tool
 
