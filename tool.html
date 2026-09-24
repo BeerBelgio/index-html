@@ -5,43 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <title>Visual Lab — Tool</title>
+  <title>VISUAL LAB - Tool</title>
   <link rel="icon" href="assets/favicon-vl.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/tool-page.css" />
 </head>
 <body>
   <div id="standard-page">
     <header class="site-header">
-      <div class="vl-mark" aria-label="Visual Lab">VL</div>
+      <!-- Temporary text wordmark. Replaced by the final Visual Lab SVG once supplied. -->
+      <div class="visual-lab-wordmark" aria-label="Visual Lab">VISUAL LAB</div>
     </header>
 
     <main class="page-shell">
       <section class="hero" aria-labelledby="tool-name">
         <div class="hero-copy">
           <div class="meta-row" id="meta-row"></div>
-          <div class="tool-heading-row">
+          <div class="tool-title-line">
             <h1 id="tool-name">Loading tool…</h1>
-            <div class="tool-picker-wrap">
-              <label for="tool-picker">Tool</label>
-              <select id="tool-picker" aria-label="Choose a Visual Lab tool"></select>
-            </div>
+            <span id="tool-version" class="tool-version"></span>
           </div>
           <p id="short-copy" class="short-copy"></p>
         </div>
 
-        <div class="hero-actions">
-          <a id="standalone-link" class="button button-secondary" href="#" target="_blank" rel="noopener">
-            <span>OPEN CURRENT SETUP</span><span class="arrow-icon" aria-hidden="true"></span>
-          </a>
-          <a id="download-link" class="button button-primary" href="#" download>DOWNLOAD HTML</a>
+        <div class="hero-side">
+          <div class="tool-picker-wrap">
+            <label for="tool-picker">Tool</label>
+            <select id="tool-picker" aria-label="Choose a Visual Lab tool"></select>
+          </div>
+          <div class="hero-actions">
+            <a id="standalone-link" class="button button-secondary" href="#" target="_blank" rel="noopener">
+              <span>OPEN CURRENT SETUP</span><span class="arrow-icon" aria-hidden="true"></span>
+            </a>
+            <a id="download-link" class="button button-primary" href="#" download>DOWNLOAD HTML</a>
+          </div>
         </div>
       </section>
 
       <section class="workbench" aria-label="Live tool preview and controls">
-        <div class="preview-panel">
-          <div class="panel-head"><span>LIVE PREVIEW</span></div>
-          <div class="preview-stage" id="preview-stage">
-            <iframe id="tool-frame" title="Visual tool live preview"></iframe>
+        <div class="preview-column">
+          <div class="preview-panel">
+            <div class="panel-head"><span>LIVE PREVIEW</span></div>
+            <div class="preview-stage" id="preview-stage">
+              <iframe id="tool-frame" title="Visual tool live preview"></iframe>
+            </div>
+          </div>
+
+          <div class="colors-panel">
+            <div class="panel-head"><span>COLORS</span></div>
+            <div id="colors" class="colors-body" aria-live="polite">
+              <p class="muted">Waiting for tool manifest…</p>
+            </div>
           </div>
         </div>
 
@@ -57,22 +70,22 @@
       </section>
 
       <section class="content-stack">
-        <article class="content-section">
+        <article class="content-card">
           <p class="section-kicker">ABOUT</p>
           <p id="description" class="section-lead"></p>
         </article>
 
-        <article class="content-section">
+        <article class="content-card">
           <p class="section-kicker">PARAMETERS</p>
           <div id="parameters" class="parameters-list"></div>
         </article>
 
-        <article class="content-section">
+        <article class="content-card">
           <p class="section-kicker">LINEAGE</p>
           <div id="lineage"></div>
         </article>
 
-        <article class="content-section">
+        <article class="content-card">
           <p class="section-kicker">DEVELOPMENT</p>
           <div id="development"></div>
         </article>
@@ -80,7 +93,7 @@
     </main>
 
     <footer class="site-footer">
-      <div class="footer-signature">© 2026 BeerBelgio <span aria-hidden="true">·</span> FUN IS A SERIOUS THING.</div>
+      <div class="footer-signature">© 2026 BeerBelgio <span aria-hidden="true">·</span> FUN IS A SERIOUS THING</div>
       <nav class="footer-links" aria-label="Visual Lab links">
         <a href="https://github.com/BeerBelgio/visual-lab" target="_blank" rel="noopener">
           <span>GITHUB</span><span class="arrow-icon" aria-hidden="true"></span>

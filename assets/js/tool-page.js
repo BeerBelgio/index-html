@@ -7,11 +7,13 @@
     standaloneStage: document.getElementById('standalone-stage'),
     picker: document.getElementById('tool-picker'),
     name: document.getElementById('tool-name'),
+    version: document.getElementById('tool-version'),
     shortCopy: document.getElementById('short-copy'),
     meta: document.getElementById('meta-row'),
     frame: document.getElementById('tool-frame'),
     previewStage: document.getElementById('preview-stage'),
     controls: document.getElementById('controls'),
+    colors: document.getElementById('colors'),
     reset: document.getElementById('reset-button'),
     description: document.getElementById('description'),
     parameters: document.getElementById('parameters'),
@@ -113,13 +115,13 @@
   }
 
   function renderEditorial(tool) {
-    document.title = `${tool.name} — Visual Lab`;
+    document.title = `VISUAL LAB - ${tool.name}`;
     els.name.textContent = tool.name;
+    els.version.textContent = tool.version || '';
     els.shortCopy.textContent = tool.copy?.short || '';
     els.description.textContent = tool.copy?.about || '';
 
     els.meta.innerHTML = '';
-    els.meta.appendChild(pill(tool.version));
     els.meta.appendChild(pill(tool.renderer));
     for (const tag of tool.conceptTags || []) els.meta.appendChild(pill(tag));
 
@@ -274,6 +276,7 @@
 
   function renderControls(manifest) {
     els.controls.innerHTML = '';
+    els.colors.innerHTML = '';
 
     for (const param of manifest.params || []) {
       const row = document.createElement('div');
@@ -328,9 +331,14 @@
       els.controls.appendChild(row);
     }
 
-    for (const color of manifest.colors || []) {
+    const colors = manifest.colors || [];
+    if (!colors.length) {
+      els.colors.innerHTML = '<p class="muted">No color controls for this tool.</p>';
+    }
+
+    for (const color of colors) {
       const row = document.createElement('div');
-      row.className = 'control-row';
+      row.className = 'color-row';
       row.appendChild(createControlHeader(color));
 
       const wrap = document.createElement('div');
@@ -368,7 +376,7 @@
 
       wrap.append(picker, hex);
       row.appendChild(wrap);
-      els.controls.appendChild(row);
+      els.colors.appendChild(row);
     }
 
     els.reset.disabled = false;
@@ -501,10 +509,11 @@
     if (!runtime.standaloneMode) {
       els.reset.disabled = true;
       els.controls.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
+      els.colors.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
       els.picker.value = tool.slug;
       renderEditorial(tool);
     } else {
-      document.title = `${tool.name} — Visual Lab`;
+      document.title = `VISUAL LAB - ${tool.name}`;
     }
 
     mountFrameForMode();
