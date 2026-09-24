@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="visual-lab-build" content="v0.4" />
+  <meta name="visual-lab-build" content="v0.5" />
   <title>VISUAL LAB</title>
   <link rel="icon" href="assets/favicon-vl.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/home-page.css" />
@@ -15,45 +15,45 @@
     <a class="home-wordmark" href="./" aria-label="Visual Lab home">VISUAL LAB</a>
     <nav class="home-nav" aria-label="Main navigation">
       <a href="#tools">TOOLS</a>
-      <a href="#about">ABOUT</a>
+      <a href="about.html">ABOUT</a>
       <a href="https://github.com/BeerBelgio/visual-lab" target="_blank" rel="noopener">GITHUB<span class="arrow-icon" aria-hidden="true"></span></a>
     </nav>
   </header>
 
   <main class="shell home-main">
     <section class="home-hero">
-      <p class="hero-kicker">HTML VISUAL TOOLS</p>
       <h1>A growing collection of standalone visual tools.</h1>
       <p class="hero-copy">Built inside an audio/MIDI-reactive workflow, compatible with Sketch Design Tools, and designed to remain portable beyond a single host.</p>
+    </section>
+
+    <section class="home-section entry-grid" aria-label="Visual Lab overview">
+      <a class="info-card info-card-link" href="about.html#standalone">
+        <div class="info-card-head"><h2>STANDALONE</h2><span class="arrow-icon" aria-hidden="true"></span></div>
+        <p>Each tool is a self-contained HTML file that can run in a browser and be imported into Sketch Design Tools.</p>
+      </a>
+      <a class="info-card info-card-link" href="about.html#mapping">
+        <div class="info-card-head"><h2>MAPPING-WISE</h2><span class="arrow-icon" aria-hidden="true"></span></div>
+        <p>Parameters are meant to be mapped freely, with range, curve, smoothing, attack/release and stepped handling supplied by the host.</p>
+      </a>
+      <a class="info-card info-card-link" href="about.html#licensing">
+        <div class="info-card-head"><h2>SOURCE-AVAILABLE</h2><span class="arrow-icon" aria-hidden="true"></span></div>
+        <p>Original code is shared for non-commercial use, with creative lineage, internal derivations and licensing documented per tool.</p>
+      </a>
     </section>
 
     <section id="tools" class="home-section">
       <div class="section-heading">
         <h2>TOOLS</h2>
-        <p>Actual tool code, rendered once and held still for the catalogue.</p>
+        <p>Rendered from the actual tool code. Frozen by default; live while you hover.</p>
       </div>
       <div id="tool-grid" class="tool-grid" aria-live="polite"></div>
-    </section>
-
-    <section id="about" class="home-section about-grid">
-      <article class="info-card">
-        <h2>STANDALONE</h2>
-        <p>Each tool is distributed as a self-contained HTML file that can run in a browser and be imported into Sketch Design Tools.</p>
-      </article>
-      <article class="info-card">
-        <h2>MANIFEST-DRIVEN</h2>
-        <p>The HTML manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.</p>
-      </article>
-      <article class="info-card">
-        <h2>SOURCE-AVAILABLE</h2>
-        <p>Original code is shared for non-commercial use. External creative lineage and internal derivations are credited per tool.</p>
-      </article>
     </section>
   </main>
 
   <footer class="home-footer shell">
-    <div>© 2026 BeerBelgio <span aria-hidden="true">·</span> FUN IS A SERIOUS THING</div>
+    <div class="footer-signature">© 2026 BeerBelgio <span aria-hidden="true">·</span> FUN IS A SERIOUS THING</div>
     <nav class="footer-links" aria-label="Visual Lab links">
+      <a class="privacy-link" href="about.html#privacy">PRIVACY: NO ANALYTICS · NO TRACKING COOKIES</a>
       <a href="https://github.com/BeerBelgio/visual-lab" target="_blank" rel="noopener">GITHUB<span class="arrow-icon" aria-hidden="true"></span></a>
       <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>HUB</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
     </nav>

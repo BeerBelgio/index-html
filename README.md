@@ -2,23 +2,25 @@
 
 A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio / Matteo Belgiovine**.
 
-The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **Sketch Design Tools**, while remaining self-contained browser files designed to evolve beyond a single host.
+The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **[Sketch Design Tools](https://tools.sketchdesign.club/)**, while remaining self-contained browser files designed to evolve beyond a single host.
 
 **Project → Visual Lab**  
-**Current host compatibility → Sketch Design Tools + standalone browser**  
+**Current host compatibility → [Sketch Design Tools](https://tools.sketchdesign.club/) + standalone browser**  
 **Creative lineage → credited per tool and in `THIRD_PARTY_NOTICES.md`**
 
 In this repository, **BG** is shorthand for **background**. After this note, documentation uses **BG** consistently.
 
 ## Project status
 
-**Current staging UI build → V0.4**  
+**Current staging UI build → V0.5**  
+
+**Live staging site → [beerbelgio.github.io/visual-lab/](https://beerbelgio.github.io/visual-lab/)**  
 
 **Visual Lab is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
 The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
 
-During staging, the tool page temporarily imports **M PLUS Rounded 1c** from the existing BeerBelgio hub so the typography can be tested consistently. Before public release, the same font assets will be self-hosted inside this repository.
+During staging, the Pages UI temporarily imports **M PLUS Rounded 1c** from the existing BeerBelgio hub so the typography can be tested consistently. Before public release, the same font assets will be self-hosted inside this repository.
 
 ## What lives here
 
@@ -43,6 +45,7 @@ visual-lab/
 ├── LICENSE.md
 ├── THIRD_PARTY_NOTICES.md
 ├── index.html
+├── about.html
 ├── tool.html
 ├── assets/
 │   ├── css/
@@ -66,11 +69,11 @@ visual-lab/
 └── formshift/
 ```
 
-Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer now includes a first catalogue homepage (`index.html`) plus one generic `tool.html` page. The homepage builds the 11 catalogue cards from `data/tools.json` and renders each actual tool once as a frozen preview; the detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
+Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer now includes a catalogue homepage (`index.html`), an `about.html` page and one generic `tool.html` page. The homepage builds the 11 catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
 
 ## How to use a tool
 
-### In Sketch Design Tools
+### In [Sketch Design Tools](https://tools.sketchdesign.club/)
 
 1. Import the HTML file as a Custom HTML Tool.
 2. Use the controls exposed by its manifest.
@@ -132,7 +135,7 @@ Original code is published under the **PolyForm Noncommercial License 1.0.0**. O
 
 Commercial or monetised use is not automatically granted and requires a separate agreement.
 
-See `LICENSE.md` and `THIRD_PARTY_NOTICES.md`.
+See `LICENSE.md`, `THIRD_PARTY_NOTICES.md` and the staging [About / licensing page](https://beerbelgio.github.io/visual-lab/about.html#licensing).
 
 ---
 

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="color-scheme" content="light" />
+  <meta name="visual-lab-build" content="v0.5" />
+  <title>VISUAL LAB - About</title>
+  <link rel="icon" href="assets/favicon-vl.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/css/home-page.css" />
+</head>
+<body>
+  <header class="home-header shell">
+    <a class="home-wordmark" href="./" aria-label="Visual Lab home">VISUAL LAB</a>
+    <nav class="home-nav" aria-label="Main navigation">
+      <a href="./#tools">TOOLS</a>
+      <a href="about.html" aria-current="page">ABOUT</a>
+      <a href="https://github.com/BeerBelgio/visual-lab" target="_blank" rel="noopener">GITHUB<span class="arrow-icon" aria-hidden="true"></span></a>
+    </nav>
+  </header>
+
+  <main class="shell home-main about-page">
+    <section class="about-hero">
+      <h1>About Visual Lab.</h1>
+      <p>Visual Lab is a growing collection of standalone HTML visual tools by BeerBelgio / Matteo Belgiovine. Sketch Design Tools is the current host compatibility target, not the identity of the project.</p>
+    </section>
+
+    <nav class="about-jump" aria-label="About sections">
+      <a href="#standalone">STANDALONE</a>
+      <a href="#mapping">MAPPING-WISE</a>
+      <a href="#architecture">HOW IT WORKS</a>
+      <a href="#licensing">LICENSING</a>
+      <a href="#privacy">PRIVACY</a>
+    </nav>
+
+    <section id="standalone" class="about-section content-card">
+      <p class="section-kicker">STANDALONE</p>
+      <h2>One HTML file, two current ways to use it.</h2>
+      <div class="about-two-col">
+        <div>
+          <h3>IN A BROWSER</h3>
+          <p>Open a tool from the catalogue and use its live controls, or download the original HTML file and open it directly in a modern browser. The downloaded file remains the same tool used by the catalogue and tool page.</p>
+        </div>
+        <div>
+          <h3>IN SKETCH DESIGN TOOLS</h3>
+          <p>Import the HTML as a Custom HTML Tool, use the controls exposed by its manifest, and map the controls exposed to Audio Sync where useful.</p>
+          <p><a class="inline-link" href="https://tools.sketchdesign.club/" target="_blank" rel="noopener">Open Sketch Design Tools<span class="arrow-icon" aria-hidden="true"></span></a></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="mapping" class="about-section content-card">
+      <p class="section-kicker">MAPPING-WISE</p>
+      <h2>Mapping suggestions are starting points, not prescriptions.</h2>
+      <p class="about-lead">Any parameter may be mapped to any useful source. The host or decoder should provide a common transformation layer so incoming signals can be shaped before they reach the visual parameter.</p>
+
+      <div class="mapping-grid" role="list">
+        <article role="listitem"><h3>INPUT RANGE</h3><p>Define the useful min/max of the incoming signal, then normalize or clamp it before mapping. This avoids dead zones and runaway values.</p></article>
+        <article role="listitem"><h3>OUTPUT MIN / MAX</h3><p>Map the normalized source into a chosen sub-range of the visual parameter, so a control can stay inside a useful musical or visual window.</p></article>
+        <article role="listitem"><h3>INVERT</h3><p>Reverse the mapping direction when useful: high input can produce low parameter values and vice versa.</p></article>
+        <article role="listitem"><h3>SENSITIVITY / CURVE</h3><p>Shape how strongly a parameter responds. A linear response is the baseline; adjustable sensitivity or response curves give finer or more aggressive behaviour.</p></article>
+        <article role="listitem"><h3>SMOOTHING</h3><p>Filter fast numerical jitter before it reaches the renderer, reducing nervous or visually noisy modulation.</p></article>
+        <article role="listitem"><h3>ATTACK</h3><p>Control how quickly a mapped value rises, from immediate transient response to a slower swell.</p></article>
+        <article role="listitem"><h3>RELEASE</h3><p>Control how quickly a mapped value falls, allowing tails, persistence and less abrupt visual decay.</p></article>
+        <article role="listitem"><h3>DISCRETE / STEPPED</h3><p>For integer or mode-like controls, quantize, latch or trigger only when thresholds are crossed instead of treating the parameter as continuously variable.</p></article>
+      </div>
+
+      <div class="host-contract">
+        <h3>CURRENT SKETCH HOST CONTRACT</h3>
+        <p><strong>Parameters:</strong> up to 12 numeric controls. <strong>Colors:</strong> up to 8 color controls. <strong>Audio Sync:</strong> up to 12 destinations in the current tested workflow. The 12-destination Audio Sync limit is empirical rather than presented here as an official Sketch API guarantee.</p>
+        <p>Every Audio Sync key must correspond to a control actually exposed in the tool manifest. A control left manual-only in Sketch is not inherently non-automatable in future browser, Max or Ableton hosts.</p>
+      </div>
+    </section>
+
+    <section id="architecture" class="about-section content-card">
+      <p class="section-kicker">HOW IT WORKS</p>
+      <h2>Manifest-driven is an internal architecture choice.</h2>
+      <p class="about-lead">Each tool declares a <code>window.SKETCH_TOOL</code> manifest containing its exposed parameters, ranges, defaults, colors and host-facing control list. The generic Visual Lab page reads that manifest instead of hard-coding a separate interface for every tool.</p>
+      <p>This is useful technically because the HTML tool remains the source of truth and the same page can host different tools without duplicating their control definitions. It is intentionally not one of the main homepage promises anymore; “Mapping-wise” describes something more meaningful to a visitor.</p>
+    </section>
+
+    <section id="licensing" class="about-section content-card">
+      <p class="section-kicker">SOURCE-AVAILABLE / LICENSING</p>
+      <h2>Readable, reusable for non-commercial work, and explicit about lineage.</h2>
+      <p class="about-lead">Original Visual Lab code is published under the PolyForm Noncommercial License 1.0.0. Original documentation and creative material are published under CC BY-NC 4.0 where the project owns the applicable rights. Commercial or monetised use requires a separate agreement.</p>
+      <p>Third-party creative references and internal derivations are recorded separately so source lineage is not confused with code ownership. The full terms and current notices remain the authoritative documents.</p>
+      <div class="about-links">
+        <a href="LICENSE.md">LICENSE</a>
+        <a href="THIRD_PARTY_NOTICES.md">THIRD-PARTY NOTICES</a>
+      </div>
+      <div class="future-contributors">
+        <h3>FUTURE CONTRIBUTORS</h3>
+        <p>Today the distributed tools are authored by BeerBelgio / Matteo Belgiovine. If other contributors are added later, Visual Lab can record author, source, licence and attribution per tool; a formal contribution policy should be added before accepting third-party code so authorship and licensing remain explicit.</p>
+      </div>
+    </section>
+
+    <section id="privacy" class="about-section content-card">
+      <p class="section-kicker">PRIVACY</p>
+      <h2>No analytics and no tracking cookies in Visual Lab.</h2>
+      <p class="about-lead">The current Visual Lab site does not run analytics or set tracking cookies. It is served through GitHub Pages. Links to GitHub, Sketch Design Tools and the BeerBelgio hub lead to other sites or services, which may operate under their own privacy policies.</p>
+    </section>
+  </main>
+
+  <footer class="home-footer shell">
+    <div class="footer-signature">© 2026 BeerBelgio <span aria-hidden="true">·</span> FUN IS A SERIOUS THING</div>
+    <nav class="footer-links" aria-label="Visual Lab links">
+      <a class="privacy-link" href="#privacy">PRIVACY: NO ANALYTICS · NO TRACKING COOKIES</a>
+      <a href="https://github.com/BeerBelgio/visual-lab" target="_blank" rel="noopener">GITHUB<span class="arrow-icon" aria-hidden="true"></span></a>
+      <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>HUB</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
+    </nav>
+  </footer>
+</body>
+</html>
