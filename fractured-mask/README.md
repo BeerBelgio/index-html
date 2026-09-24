@@ -1,5 +1,5 @@
 # Fractured Mask
-Part of **[BeerBelgio Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Fractured_Mask-v1.4.html`  
 **Version:** v1.4  

@@ -1,5 +1,5 @@
 # Cassini Flow
-Part of **[BeerBelgio Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Cassini_Flow-v1.6.html`  
 **Version:** v1.6  

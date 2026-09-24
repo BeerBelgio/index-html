@@ -2,18 +2,19 @@
   'use strict';
 
   const els = {
+    standardPage: document.getElementById('standard-page'),
+    standalonePage: document.getElementById('standalone-page'),
+    standaloneStage: document.getElementById('standalone-stage'),
     picker: document.getElementById('tool-picker'),
     name: document.getElementById('tool-name'),
     shortCopy: document.getElementById('short-copy'),
     meta: document.getElementById('meta-row'),
     frame: document.getElementById('tool-frame'),
     previewStage: document.getElementById('preview-stage'),
-    previewStatus: document.getElementById('preview-status'),
     controls: document.getElementById('controls'),
     reset: document.getElementById('reset-button'),
     description: document.getElementById('description'),
-    behaviour: document.getElementById('behaviour'),
-    mapping: document.getElementById('mapping-ideas'),
+    parameters: document.getElementById('parameters'),
     lineage: document.getElementById('lineage'),
     development: document.getElementById('development'),
     standalone: document.getElementById('standalone-link'),
@@ -27,9 +28,11 @@
     manifest: null,
     frameWindow: null,
     state: null,
+    requestedState: null,
     raf: 0,
     lastTime: 0,
-    resizeObserver: null
+    resizeObserver: null,
+    standaloneMode: new URLSearchParams(window.location.search).get('view') === 'standalone'
   };
 
   const escapeHtml = (value) => String(value ?? '')
@@ -42,10 +45,7 @@
   function setFatal(message) {
     els.fatal.textContent = message;
     els.fatal.hidden = false;
-    els.previewStatus.textContent = 'ERROR';
-    els.previewStatus.className = 'status error';
   }
-
   function clearFatal() {
     els.fatal.hidden = true;
     els.fatal.textContent = '';
@@ -55,15 +55,30 @@
     return new URLSearchParams(window.location.search).get('tool');
   }
 
+  function readRequestedState() {
+    const raw = new URLSearchParams(window.location.search).get('state');
+    if (!raw) return null;
+    try {
+      const value = JSON.parse(raw);
+      return value && typeof value === 'object' ? value : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function setRequestedSlug(slug) {
     const url = new URL(window.location.href);
     url.searchParams.set('tool', slug);
-    window.location.href = url.toString();
+    url.searchParams.delete('view');
+    url.searchParams.delete('state');
+    window.history.pushState({}, '', url);
+    const selected = runtime.data.tools.find((tool) => tool.slug === slug);
+    if (selected) loadTool(selected);
   }
 
-  function pill(text, extraClass = '') {
+  function pill(text) {
     const span = document.createElement('span');
-    span.className = `meta-pill ${extraClass}`.trim();
+    span.className = 'meta-pill';
     span.textContent = text;
     return span;
   }
@@ -80,82 +95,144 @@
     els.picker.addEventListener('change', () => setRequestedSlug(els.picker.value));
   }
 
+  function linkifyPublicText(item) {
+    let text = escapeHtml(item.publicText || '');
+    const replacements = [];
+    if (item.specificReference && item.specificReferenceUrl) {
+      replacements.push([item.specificReference, item.specificReferenceUrl]);
+    }
+    if (item.author && item.authorUrl) replacements.push([item.author, item.authorUrl]);
+
+    for (const [label, url] of replacements) {
+      const safeLabel = escapeHtml(label);
+      if (!safeLabel || !text.includes(safeLabel)) continue;
+      const anchor = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">${safeLabel}</a>`;
+      text = text.replace(safeLabel, anchor);
+    }
+    return text;
+  }
+
   function renderEditorial(tool) {
-    document.title = `${tool.name} ${tool.version} — BeerBelgio Visual Lab`;
+    document.title = `${tool.name} — Visual Lab`;
     els.name.textContent = tool.name;
     els.shortCopy.textContent = tool.copy?.short || '';
-    els.description.textContent = tool.copy?.description || '';
-    els.behaviour.textContent = tool.copy?.behaviour || '';
+    els.description.textContent = tool.copy?.about || '';
 
     els.meta.innerHTML = '';
     els.meta.appendChild(pill(tool.version));
     els.meta.appendChild(pill(tool.renderer));
     for (const tag of tool.conceptTags || []) els.meta.appendChild(pill(tag));
-    for (const tag of tool.provenanceTags || []) els.meta.appendChild(pill(tag, 'provenance'));
 
-    els.standalone.href = tool.file;
     els.download.href = tool.file;
     els.download.setAttribute('download', tool.file.split('/').pop());
 
-    renderMapping(tool.mappingIdeas || []);
-    renderLineage(tool.lineage || []);
+    renderParameters(tool.parameters || []);
+    renderLineage(tool.lineageSummary, tool.lineage || []);
     renderDevelopment(tool.development || {});
+    updateStandaloneHref();
   }
 
-  function renderMapping(items) {
-    els.mapping.innerHTML = '';
+  function renderParameters(items) {
+    els.parameters.innerHTML = '';
     if (!items.length) {
-      els.mapping.innerHTML = '<p class="muted">No mapping notes yet.</p>';
+      els.parameters.innerHTML = '<p class="muted">Parameter notes are still being prepared.</p>';
       return;
     }
     for (const item of items) {
-      const div = document.createElement('div');
-      div.className = 'mapping-item';
-      div.innerHTML = `<strong>${escapeHtml(item.control)}</strong><p>${escapeHtml(item.text)}</p>`;
-      els.mapping.appendChild(div);
+      const article = document.createElement('div');
+      article.className = 'parameter-item';
+
+      const name = document.createElement('div');
+      name.className = 'parameter-name';
+      name.textContent = item.label;
+
+      const copy = document.createElement('div');
+      copy.className = 'parameter-copy';
+      if (item.behaviour) {
+        const p = document.createElement('p');
+        p.textContent = item.behaviour;
+        copy.appendChild(p);
+      }
+      if (item.explanation) {
+        const p = document.createElement('p');
+        p.className = 'parameter-explanation';
+        p.textContent = item.explanation;
+        copy.appendChild(p);
+      }
+      if (item.mapping) {
+        const p = document.createElement('p');
+        p.className = 'parameter-mapping';
+        p.textContent = item.mapping;
+        copy.appendChild(p);
+      }
+
+      article.append(name, copy);
+      els.parameters.appendChild(article);
     }
   }
 
-  function renderLineage(items) {
+  function renderLineage(summary, items) {
     els.lineage.innerHTML = '';
+    if (summary) {
+      const p = document.createElement('p');
+      p.className = 'lineage-summary';
+      p.textContent = summary;
+      els.lineage.appendChild(p);
+    }
     if (!items.length) {
-      els.lineage.innerHTML = '<p class="muted">No external lineage recorded.</p>';
+      els.lineage.insertAdjacentHTML('beforeend', '<p class="muted">No external lineage recorded.</p>');
       return;
     }
+
     for (const item of items) {
       const div = document.createElement('div');
       div.className = 'lineage-item';
-      const title = item.url
-        ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(item.project)} ↗</a>`
-        : escapeHtml(item.project);
-      div.innerHTML = `
-        <strong>${title}</strong>
-        <p>${escapeHtml(item.text)}</p>
-        <p class="muted">${escapeHtml(item.relation)} · ${escapeHtml(item.author || '')}${item.sourceLicence ? ` · ${escapeHtml(item.sourceLicence)}` : ''}</p>
-      `;
+
+      const project = document.createElement('p');
+      project.className = 'lineage-project';
+      if (item.projectUrl) {
+        const link = document.createElement('a');
+        link.href = item.projectUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = item.project;
+        project.appendChild(link);
+      } else {
+        project.textContent = item.project || 'Lineage';
+      }
+
+      const copy = document.createElement('p');
+      copy.className = 'lineage-text';
+      copy.innerHTML = linkifyPublicText(item);
+
+      const meta = document.createElement('div');
+      meta.className = 'lineage-meta';
+      meta.textContent = [item.relation, item.sourceLicence].filter(Boolean).join(' · ');
+
+      div.append(project, copy, meta);
       els.lineage.appendChild(div);
     }
   }
 
   function renderDevelopment(development) {
     els.development.innerHTML = '';
-    const blocks = [];
-    if (development.notes) blocks.push(['Notes', `<p>${escapeHtml(development.notes)}</p>`]);
-    if (development.limitations) blocks.push(['Known limitations', `<p>${escapeHtml(development.limitations)}</p>`]);
-    if (Array.isArray(development.nextIdeas) && development.nextIdeas.length) {
-      const list = development.nextIdeas.map((idea) => `<li>${escapeHtml(idea)}</li>`).join('');
-      blocks.push(['Next ideas', `<ul>${list}</ul>`]);
-    }
-    if (!blocks.length) {
-      els.development.innerHTML = '<p class="muted">No development notes yet.</p>';
-      return;
-    }
-    for (const [label, body] of blocks) {
+    let count = 0;
+    if (development.limitations) {
       const div = document.createElement('div');
       div.className = 'development-block';
-      div.innerHTML = `<strong>${label}</strong>${body}`;
+      div.innerHTML = `<h3>Known limitations</h3><p>${escapeHtml(development.limitations)}</p>`;
       els.development.appendChild(div);
+      count += 1;
     }
+    if (Array.isArray(development.nextIdeas) && development.nextIdeas.length) {
+      const div = document.createElement('div');
+      div.className = 'development-block';
+      const list = development.nextIdeas.map((idea) => `<li>${escapeHtml(idea)}</li>`).join('');
+      div.innerHTML = `<h3>Next ideas</h3><ul>${list}</ul>`;
+      els.development.appendChild(div);
+      count += 1;
+    }
+    if (!count) els.development.innerHTML = '<p class="muted">No public development notes yet.</p>';
   }
 
   function precisionForStep(step) {
@@ -169,42 +246,39 @@
     return Math.min(Number(param.max), Math.max(Number(param.min), number));
   }
 
-  function createAudioPill() {
-    const span = document.createElement('span');
-    span.className = 'audio-pill';
-    span.textContent = 'Audio Sync';
-    return span;
-  }
-
-  function createControlHeader(item, isAudio) {
+  function createControlHeader(item) {
     const top = document.createElement('div');
     top.className = 'control-top';
-
     const label = document.createElement('span');
     label.className = 'control-label';
     label.textContent = item.label;
-
-    const meta = document.createElement('span');
-    meta.className = 'control-meta';
-    if (isAudio) meta.appendChild(createAudioPill());
-
-    const key = document.createElement('span');
-    key.className = 'control-key';
-    key.textContent = item.key;
-    meta.appendChild(key);
-
-    top.append(label, meta);
+    top.appendChild(label);
     return top;
   }
 
+  function updateStandaloneHref() {
+    if (!els.standalone || !runtime.tool) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('tool', runtime.tool.slug);
+    url.searchParams.set('view', 'standalone');
+    const snapshot = {};
+    if (runtime.state && runtime.manifest) {
+      for (const item of [...(runtime.manifest.params || []), ...(runtime.manifest.colors || [])]) {
+        snapshot[item.key] = runtime.state[item.key];
+      }
+    }
+    if (Object.keys(snapshot).length) url.searchParams.set('state', JSON.stringify(snapshot));
+    else url.searchParams.delete('state');
+    els.standalone.href = url.toString();
+  }
+
   function renderControls(manifest) {
-    const audioKeys = new Set(Array.isArray(manifest.audio) ? manifest.audio : []);
     els.controls.innerHTML = '';
 
     for (const param of manifest.params || []) {
       const row = document.createElement('div');
       row.className = 'control-row';
-      row.appendChild(createControlHeader(param, audioKeys.has(param.key)));
+      row.appendChild(createControlHeader(param));
 
       const wrap = document.createElement('div');
       wrap.className = 'number-control';
@@ -234,6 +308,7 @@
         if (source !== 'number' || document.activeElement !== number) {
           number.value = precision ? value.toFixed(precision) : String(Math.round(value));
         }
+        updateStandaloneHref();
       };
 
       range.addEventListener('input', () => update(range.value, 'range'));
@@ -242,6 +317,7 @@
         if (Number.isFinite(parsed)) {
           runtime.state[param.key] = numericValue(parsed, param);
           range.value = runtime.state[param.key];
+          updateStandaloneHref();
         }
       });
       number.addEventListener('change', () => update(number.value, 'number'));
@@ -255,7 +331,7 @@
     for (const color of manifest.colors || []) {
       const row = document.createElement('div');
       row.className = 'control-row';
-      row.appendChild(createControlHeader(color, audioKeys.has(color.key)));
+      row.appendChild(createControlHeader(color));
 
       const wrap = document.createElement('div');
       wrap.className = 'color-control';
@@ -268,7 +344,7 @@
       const hex = document.createElement('input');
       hex.type = 'text';
       hex.className = 'hex-input';
-      hex.value = runtime.state[color.key].toUpperCase();
+      hex.value = String(runtime.state[color.key]).toUpperCase();
       hex.maxLength = 7;
       hex.setAttribute('aria-label', `${color.label} hex value`);
 
@@ -278,6 +354,7 @@
         runtime.state[color.key] = normalized;
         picker.value = normalized;
         hex.value = normalized;
+        updateStandaloneHref();
         return true;
       };
 
@@ -304,9 +381,28 @@
     return state;
   }
 
+  function applyRequestedState(state, manifest, requested) {
+    if (!requested) return state;
+    for (const param of manifest.params || []) {
+      if (!Object.prototype.hasOwnProperty.call(requested, param.key)) continue;
+      state[param.key] = numericValue(requested[param.key], param);
+    }
+    for (const color of manifest.colors || []) {
+      const value = requested[color.key];
+      if (typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)) state[color.key] = value.toUpperCase();
+    }
+    return state;
+  }
+
+  function activeStage() {
+    return runtime.standaloneMode ? els.standaloneStage : els.previewStage;
+  }
+
   function resizeTool() {
     if (!runtime.frameWindow || typeof runtime.frameWindow.sketchResize !== 'function') return;
-    const rect = els.previewStage.getBoundingClientRect();
+    const stage = activeStage();
+    if (!stage) return;
+    const rect = stage.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -343,7 +439,6 @@
       const dt = Math.min(0.05, Math.max(0, (now - runtime.lastTime) / 1000));
       runtime.lastTime = now;
       runtime.state.time += dt;
-
       try {
         runtime.frameWindow.sketchDraw(runtime.state);
       } catch (error) {
@@ -361,6 +456,12 @@
     runtime.state = stateFromManifest(runtime.manifest);
     renderControls(runtime.manifest);
     resizeTool();
+    updateStandaloneHref();
+  }
+
+  function mountFrameForMode() {
+    const stage = activeStage();
+    if (stage && els.frame.parentElement !== stage) stage.appendChild(els.frame);
   }
 
   function handleFrameLoaded() {
@@ -377,14 +478,12 @@
 
       runtime.frameWindow = win;
       runtime.manifest = manifest;
-      runtime.state = stateFromManifest(manifest);
+      runtime.state = applyRequestedState(stateFromManifest(manifest), manifest, runtime.requestedState);
 
-      renderControls(manifest);
+      if (!runtime.standaloneMode) renderControls(manifest);
       resizeTool();
       startRenderLoop();
-
-      els.previewStatus.textContent = 'LIVE';
-      els.previewStatus.className = 'status ready';
+      updateStandaloneHref();
     } catch (error) {
       setFatal(`Could not initialise this tool: ${error.message}`);
     }
@@ -395,13 +494,20 @@
     runtime.manifest = null;
     runtime.frameWindow = null;
     runtime.state = null;
+    runtime.requestedState = runtime.standaloneMode ? readRequestedState() : null;
     stopRenderLoop();
-    els.reset.disabled = true;
-    els.controls.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
-    els.previewStatus.textContent = 'LOADING';
-    els.previewStatus.className = 'status';
+    clearFatal();
 
-    renderEditorial(tool);
+    if (!runtime.standaloneMode) {
+      els.reset.disabled = true;
+      els.controls.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
+      els.picker.value = tool.slug;
+      renderEditorial(tool);
+    } else {
+      document.title = `${tool.name} — Visual Lab`;
+    }
+
+    mountFrameForMode();
     els.frame.title = `${tool.name} live preview`;
     els.frame.src = tool.file;
   }
@@ -409,6 +515,8 @@
   async function boot() {
     clearFatal();
     try {
+      if (runtime.standaloneMode) document.body.classList.add('is-standalone');
+
       const response = await fetch('data/tools.json', { cache: 'no-store' });
       if (!response.ok) throw new Error(`tools.json returned HTTP ${response.status}.`);
       runtime.data = await response.json();
@@ -419,18 +527,26 @@
       const requested = getRequestedSlug();
       const selected = tools.find((tool) => tool.slug === requested) || tools[0];
 
-      populatePicker(tools, selected.slug);
-      if (requested !== selected.slug) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('tool', selected.slug);
-        window.history.replaceState({}, '', url);
+      if (!runtime.standaloneMode) {
+        populatePicker(tools, selected.slug);
+        if (requested !== selected.slug) {
+          const url = new URL(window.location.href);
+          url.searchParams.set('tool', selected.slug);
+          window.history.replaceState({}, '', url);
+        }
+        els.reset.addEventListener('click', resetState);
       }
 
       els.frame.addEventListener('load', handleFrameLoaded);
-      els.reset.addEventListener('click', resetState);
-
       runtime.resizeObserver = new ResizeObserver(() => resizeTool());
-      runtime.resizeObserver.observe(els.previewStage);
+      runtime.resizeObserver.observe(activeStage());
+
+      window.addEventListener('popstate', () => {
+        if (runtime.standaloneMode) return;
+        const slug = getRequestedSlug();
+        const tool = tools.find((item) => item.slug === slug) || tools[0];
+        loadTool(tool);
+      });
 
       loadTool(selected);
     } catch (error) {

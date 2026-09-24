@@ -1,18 +1,26 @@
-# BeerBelgio Visual Lab
+# Visual Lab
 
 A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio / Matteo Belgiovine**.
 
 The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **Sketch Design Tools**, while remaining self-contained browser files designed to evolve beyond a single host.
 
-**Project → BeerBelgio Visual Lab**  
+**Project → Visual Lab**  
 **Current host compatibility → Sketch Design Tools + standalone browser**  
 **Creative lineage → credited per tool and in `THIRD_PARTY_NOTICES.md`**
 
 In this repository, **BG** is shorthand for **background**. After this note, documentation uses **BG** consistently.
 
+## Project status
+
+**Visual Lab is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
+
+The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
+
+During staging, the tool page temporarily imports **M PLUS Rounded 1c** from the existing BeerBelgio hub so the typography can be tested consistently. Before public release, the same font assets will be self-hosted inside this repository.
+
 ## What lives here
 
-BeerBelgio Visual Lab is a collection of visual generators, masks, transitions and procedural systems. Each distributed HTML file is:
+Visual Lab is a collection of visual generators, masks, transitions and procedural systems. Each distributed HTML file is:
 
 - standalone and inspectable;
 - usable directly in a modern browser;
@@ -32,6 +40,12 @@ visual-lab/
 ├── README.md
 ├── LICENSE.md
 ├── THIRD_PARTY_NOTICES.md
+├── tool.html
+├── assets/
+│   ├── css/
+│   └── js/
+├── data/
+│   └── tools.json
 ├── linking-nodes/
 ├── cassini-flow/
 ├── caustic-stitch/
@@ -45,7 +59,7 @@ visual-lab/
 └── formshift/
 ```
 
-Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The public catalogue / live-preview layer will be developed on top of this code baseline later.
+Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer uses one generic `tool.html` page: the URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
 
 ## How to use a tool
 
@@ -64,7 +78,7 @@ Open the same HTML file directly. Its local preview follows the browser viewport
 
 - **original** — no meaningful third-party implementation code or structure is retained in the current tool. A tool may still have explicit creative lineage.
 - **inspired-by** — another public project influenced the concept, visual language or interaction, while the current implementation was independently built.
-- **derived-from** — meaningful implementation is inherited from another BeerBelgio Visual Lab tool.
+- **derived-from** — meaningful implementation is inherited from another Visual Lab tool.
 - **adapted-from** — reserved for a future case where meaningful third-party implementation code or structure is retained and its licence obligations must be carried through.
 
 The current set contains **no `adapted-from` tools**. Topographic Mask is the only confirmed internal `derived-from` tool.
@@ -101,7 +115,7 @@ Real Sketch remains the authoritative host/performance test, especially for WebG
 
 ## Credits and lineage
 
-External projects that influenced BeerBelgio Visual Lab are credited in each tool README and in `THIRD_PARTY_NOTICES.md`.
+External projects that influenced Visual Lab are credited in each tool README and in `THIRD_PARTY_NOTICES.md`.
 
 The current audit found no meaningful third-party implementation code retained in the distributed HTML tools. External relationships are therefore documented as creative/conceptual lineage unless explicitly stated otherwise.
 
@@ -115,6 +129,6 @@ See `LICENSE.md` and `THIRD_PARTY_NOTICES.md`.
 
 ---
 
-**BeerBelgio Visual Lab**  
+**Visual Lab**  
 Matteo Belgiovine / BeerBelgio  
 https://beerbelgio.github.io/

@@ -1,5 +1,5 @@
 # Topographic
-Part of **[BeerBelgio Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Topographic-v1.3.html`  
 **Version:** v1.3  

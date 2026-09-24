@@ -1,5 +1,5 @@
 # Caustic Stitch
-Part of **[BeerBelgio Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Caustic_Stitch-v1.7.html`  
 **Version:** v1.7  

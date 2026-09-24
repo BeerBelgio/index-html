@@ -1,5 +1,5 @@
 # Linking Nodes
-Part of **[BeerBelgio Visual Lab](../README.md)** — a standalone HTML visual tool.
+Part of **[Visual Lab](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Linking_Nodes-v2.0.html`  
 **Version:** v2.0  
