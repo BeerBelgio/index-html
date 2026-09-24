@@ -2,7 +2,7 @@
 
 A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio**.
 
-The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **Sketch Design Tools**, while remaining self-contained browser files designed to evolve beyond a single host.
+The tools began inside my audio/MIDI-reactive workflow and are currently compatible with **Sketch Design Tools**, while remaining self-contained browser files designed to evolve beyond a single host.
 
 **Project → Visual Lab**  
 **Current host compatibility → Sketch Design Tools + standalone browser**  
