@@ -1,3 +1,0 @@
-Copy the existing M PLUS Rounded 1c webfont files from:
-beerbelgio.github.io/assets/fonts/m-plus-rounded-1c/
-into this folder before switching Visual Lab from the current staging remote import to local font files.
