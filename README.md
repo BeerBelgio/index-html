@@ -12,6 +12,8 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
+**Current staging UI build → V0.3**  
+
 **Visual Lab is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
 The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.

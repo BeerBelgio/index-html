@@ -5,7 +5,10 @@
     standardPage: document.getElementById('standard-page'),
     standalonePage: document.getElementById('standalone-page'),
     standaloneStage: document.getElementById('standalone-stage'),
-    picker: document.getElementById('tool-picker'),
+    switcher: document.getElementById('tool-switcher'),
+    pickerButton: document.getElementById('tool-picker-button'),
+    pickerCurrent: document.getElementById('tool-picker-current'),
+    pickerMenu: document.getElementById('tool-picker-menu'),
     name: document.getElementById('tool-name'),
     version: document.getElementById('tool-version'),
     shortCopy: document.getElementById('short-copy'),
@@ -16,6 +19,7 @@
     colors: document.getElementById('colors'),
     reset: document.getElementById('reset-button'),
     description: document.getElementById('description'),
+    implementation: document.getElementById('implementation'),
     parameters: document.getElementById('parameters'),
     lineage: document.getElementById('lineage'),
     development: document.getElementById('development'),
@@ -48,6 +52,7 @@
     els.fatal.textContent = message;
     els.fatal.hidden = false;
   }
+
   function clearFatal() {
     els.fatal.hidden = true;
     els.fatal.textContent = '';
@@ -65,6 +70,24 @@
       return value && typeof value === 'object' ? value : null;
     } catch (_) {
       return null;
+    }
+  }
+
+  function setPickerOpen(open) {
+    if (!els.pickerButton || !els.pickerMenu) return;
+    els.pickerButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    els.pickerMenu.hidden = !open;
+  }
+
+  function updatePickerSelection(slug) {
+    if (!runtime.data || !els.pickerCurrent || !els.pickerMenu) return;
+    const tool = runtime.data.tools.find((item) => item.slug === slug);
+    if (tool) els.pickerCurrent.textContent = tool.name;
+    for (const item of els.pickerMenu.querySelectorAll('[data-tool-slug]')) {
+      const current = item.dataset.toolSlug === slug;
+      item.classList.toggle('is-current', current);
+      if (current) item.setAttribute('aria-current', 'page');
+      else item.removeAttribute('aria-current');
     }
   }
 
@@ -86,15 +109,40 @@
   }
 
   function populatePicker(tools, selectedSlug) {
-    els.picker.innerHTML = '';
+    if (!els.pickerMenu || !els.pickerButton) return;
+    els.pickerMenu.innerHTML = '';
+
     for (const tool of tools) {
-      const option = document.createElement('option');
-      option.value = tool.slug;
-      option.textContent = tool.name;
-      option.selected = tool.slug === selectedSlug;
-      els.picker.appendChild(option);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'tool-picker-item';
+      button.dataset.toolSlug = tool.slug;
+      button.setAttribute('role', 'menuitem');
+      button.textContent = tool.name;
+      button.addEventListener('click', () => {
+        setPickerOpen(false);
+        setRequestedSlug(tool.slug);
+      });
+      els.pickerMenu.appendChild(button);
     }
-    els.picker.addEventListener('change', () => setRequestedSlug(els.picker.value));
+
+    els.pickerButton.addEventListener('click', () => {
+      const open = els.pickerButton.getAttribute('aria-expanded') === 'true';
+      setPickerOpen(!open);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!els.switcher || els.switcher.contains(event.target)) return;
+      setPickerOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      setPickerOpen(false);
+      els.pickerButton.focus();
+    });
+
+    updatePickerSelection(selectedSlug);
   }
 
   function linkifyPublicText(item) {
@@ -121,6 +169,10 @@
     els.shortCopy.textContent = tool.copy?.short || '';
     els.description.textContent = tool.copy?.about || '';
 
+    const implementation = tool.copy?.implementation || '';
+    els.implementation.textContent = implementation;
+    els.implementation.hidden = !implementation;
+
     els.meta.innerHTML = '';
     els.meta.appendChild(pill(tool.renderer));
     for (const tag of tool.conceptTags || []) els.meta.appendChild(pill(tag));
@@ -129,9 +181,32 @@
     els.download.setAttribute('download', tool.file.split('/').pop());
 
     renderParameters(tool.parameters || []);
-    renderLineage(tool.lineageSummary, tool.lineage || []);
+    renderLineage(tool.lineage || []);
     renderDevelopment(tool.development || {});
+    updatePickerSelection(tool.slug);
     updateStandaloneHref();
+  }
+
+  function sentenceCase(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  function ensureTerminalPunctuation(value) {
+    const text = String(value || '').trim();
+    if (!text) return '';
+    return /[.!?…]$/.test(text) ? text : `${text}.`;
+  }
+
+  function sameEditorialThought(a, b) {
+    const normalise = (value) => String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    const aa = normalise(a);
+    const bb = normalise(b);
+    return aa && bb && (aa === bb || aa.includes(bb) || bb.includes(aa));
   }
 
   function renderParameters(items) {
@@ -140,6 +215,7 @@
       els.parameters.innerHTML = '<p class="muted">Parameter notes are still being prepared.</p>';
       return;
     }
+
     for (const item of items) {
       const article = document.createElement('div');
       article.className = 'parameter-item';
@@ -150,21 +226,25 @@
 
       const copy = document.createElement('div');
       copy.className = 'parameter-copy';
-      if (item.behaviour) {
+
+      const behaviour = String(item.behaviour || '').trim();
+      const explanation = String(item.explanation || '').trim();
+      const combined = [];
+      if (behaviour) combined.push(ensureTerminalPunctuation(behaviour));
+      if (explanation && !sameEditorialThought(behaviour, explanation)) {
+        combined.push(ensureTerminalPunctuation(sentenceCase(explanation)));
+      }
+      if (combined.length) {
         const p = document.createElement('p');
-        p.textContent = item.behaviour;
+        p.className = 'parameter-description';
+        p.textContent = combined.join(' ');
         copy.appendChild(p);
       }
-      if (item.explanation) {
-        const p = document.createElement('p');
-        p.className = 'parameter-explanation';
-        p.textContent = item.explanation;
-        copy.appendChild(p);
-      }
+
       if (item.mapping) {
         const p = document.createElement('p');
         p.className = 'parameter-mapping';
-        p.textContent = item.mapping;
+        p.textContent = `Modulation tip: ${item.mapping}`;
         copy.appendChild(p);
       }
 
@@ -173,16 +253,10 @@
     }
   }
 
-  function renderLineage(summary, items) {
+  function renderLineage(items) {
     els.lineage.innerHTML = '';
-    if (summary) {
-      const p = document.createElement('p');
-      p.className = 'lineage-summary';
-      p.textContent = summary;
-      els.lineage.appendChild(p);
-    }
     if (!items.length) {
-      els.lineage.insertAdjacentHTML('beforeend', '<p class="muted">No external lineage recorded.</p>');
+      els.lineage.innerHTML = '<p class="muted">No external lineage recorded.</p>';
       return;
     }
 
@@ -190,28 +264,35 @@
       const div = document.createElement('div');
       div.className = 'lineage-item';
 
-      const project = document.createElement('p');
-      project.className = 'lineage-project';
+      const copy = document.createElement('p');
+      copy.className = 'lineage-text';
+      copy.innerHTML = linkifyPublicText(item);
+      div.appendChild(copy);
+
+      if (item.spark) {
+        const spark = document.createElement('p');
+        spark.className = 'lineage-spark';
+        spark.textContent = item.spark;
+        div.appendChild(spark);
+      }
+
+      const source = document.createElement('p');
+      source.className = 'lineage-source';
       if (item.projectUrl) {
         const link = document.createElement('a');
         link.href = item.projectUrl;
         link.target = '_blank';
         link.rel = 'noopener';
-        link.textContent = item.project;
-        project.appendChild(link);
+        link.textContent = item.project || 'Source project';
+        source.appendChild(link);
       } else {
-        project.textContent = item.project || 'Lineage';
+        source.appendChild(document.createTextNode(item.project || 'Lineage'));
       }
 
-      const copy = document.createElement('p');
-      copy.className = 'lineage-text';
-      copy.innerHTML = linkifyPublicText(item);
+      const suffix = [item.relation, item.sourceLicence].filter(Boolean).join(' · ');
+      if (suffix) source.appendChild(document.createTextNode(` · ${suffix}`));
+      div.appendChild(source);
 
-      const meta = document.createElement('div');
-      meta.className = 'lineage-meta';
-      meta.textContent = [item.relation, item.sourceLicence].filter(Boolean).join(' · ');
-
-      div.append(project, copy, meta);
       els.lineage.appendChild(div);
     }
   }
@@ -333,7 +414,7 @@
 
     const colors = manifest.colors || [];
     if (!colors.length) {
-      els.colors.innerHTML = '<p class="muted">No color controls for this tool.</p>';
+      els.colors.innerHTML = '<p class="muted color-empty">No color controls for this tool.</p>';
     }
 
     for (const color of colors) {
@@ -510,7 +591,6 @@
       els.reset.disabled = true;
       els.controls.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
       els.colors.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
-      els.picker.value = tool.slug;
       renderEditorial(tool);
     } else {
       document.title = `VISUAL LAB - ${tool.name}`;

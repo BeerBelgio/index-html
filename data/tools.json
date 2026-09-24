@@ -7,7 +7,8 @@
     "dataset": "staging",
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
     "editorialSourceOfTruth": "visual-lab_content-inventory_v8.3.xlsx",
-    "notes": "Technical controls, ranges, defaults, colors and Sketch Audio Sync exposure are intentionally not duplicated here. Parameter copy is keyed to the manifest control key."
+    "notes": "Technical controls, ranges, defaults, colors and Sketch Audio Sync exposure are intentionally not duplicated here. Parameter copy is keyed to the manifest control key.",
+    "stagingBuild": "v0.3"
   },
   "tools": [
     {
@@ -26,7 +27,8 @@
       ],
       "copy": {
         "short": "Blobs wandering around, with live, bendable links forming between them.",
-        "about": "Generates a population of soft moving blobs/nodes that wander through the frame. Meanwhile proximity links are generated and bent into motion-driven melted forms."
+        "about": "Generates a population of soft moving blobs/nodes that wander through the frame. Meanwhile proximity links are generated and bent into motion-driven melted forms.",
+        "implementation": "Canvas2D; deterministic blob population, wandering/spread, proximity links with reusable force profiles, motion/turn-driven Melt deformation, fill/core rendering; no pointer trail, source capture, ray-marching or refraction."
       },
       "parameters": [
         {
@@ -125,7 +127,8 @@
           "authorUrl": "https://github.com/DavidHDev",
           "projectUrl": "https://github.com/DavidHDev/canvas-ui",
           "specificReference": "Canvas UI Bubble",
-          "specificReferenceUrl": "https://canvasui.dev/docs/components/bubble"
+          "specificReferenceUrl": "https://canvasui.dev/docs/components/bubble",
+          "spark": "The droplets-style behaviour ignited the idea."
         }
       ],
       "development": {
@@ -151,7 +154,8 @@
       ],
       "copy": {
         "short": "Cassini-like shapes, two cores and a whole lot of membrane-like layers.",
-        "about": "Builds filled orbital slices from Cassini-oval / lemniscate-like fields. The result moves between nested loops, stretched orbits and more unstable warped orbital structures."
+        "about": "Builds filled orbital slices from Cassini-oval / lemniscate-like fields. The result moves between nested loops, stretched orbits and more unstable warped orbital structures.",
+        "implementation": "Canvas2D; two-focus product-distance Cassini field, six modes, clipped filled slices, continuous integrated Drift and independent BG controls."
       },
       "parameters": [
         {
@@ -274,7 +278,8 @@
       ],
       "copy": {
         "short": "Points, two-color lines and basic forms. Then a multi-force warp makes the lines move fluidly and unpredictably.",
-        "about": "Creates string-art style line fields across several geometric boundary families, with an independently controlled accent group and optional multi-force line warping."
+        "about": "Creates string-art style line fields across several geometric boundary families, with an independently controlled accent group and optional multi-force line warping.",
+        "implementation": "Canvas2D; nine endpoint/boundary families, explicit chord drawing, independent accent group and an internal multi-force Bézier Warp system. No Fluid shader/distance-field implementation retained."
       },
       "parameters": [
         {
@@ -404,7 +409,8 @@
       ],
       "copy": {
         "short": "A digital cellular ecosystem. Did you pay attention in biology class?",
-        "about": "Generates a living cellular field with separate cores, inner gaps and membranes, then deforms the field with animated warp. The target is an organic/tissue-like system that can move from stable cells into more distorted morphologies without becoming illustrative."
+        "about": "Generates a living cellular field with separate cores, inner gaps and membranes, then deforms the field with animated warp. The target is an organic/tissue-like system that can move from stable cells into more distorted morphologies without becoming illustrative.",
+        "implementation": "WebGL; standard Worley F1/F2 neighbourhood core with its own hash/feature motion, accumulated warp-drift phase, multi-band deformation, membrane/core/gap model and premultiplied-alpha BG composition."
       },
       "parameters": [
         {
@@ -520,7 +526,8 @@
       ],
       "copy": {
         "short": "Chladni figures with variable morphing and warped motion.",
-        "about": "Generates Chladni-like nodal figures on the GPU, morphing between modal states and rendering through an adaptive supersampled WebGL pass."
+        "about": "Generates Chladni-like nodal figures on the GPU, morphing between modal states and rendering through an adaptive supersampled WebGL pass.",
+        "implementation": "WebGL; canonical Chladni minus-family equation with analytic gradient, explicit Mode X/Y pairs, morphing and warp/rotation; rendered to an adaptive supersampled framebuffer before blitting to output."
       },
       "parameters": [
         {
@@ -638,7 +645,8 @@
       ],
       "copy": {
         "short": "Basic forms, cut into slices. Kinda like a birthday cake...",
-        "about": "Generates a simple source shape, keeps a stable base copy visible, then fragments and displaces a second copy when Trigger fires. It is a shape-decomposition tool built for punchy, event-like cuts."
+        "about": "Generates a simple source shape, keeps a stable base copy visible, then fragments and displaces a second copy when Trigger fires. It is a shape-decomposition tool built for punchy, event-like cuts.",
+        "implementation": "Canvas2D; internally generated circles/rectangles/stripes, stable base plus fragmented copy, six cut modes using rectangle/wedge clipping, displacement, rotation and echoes."
       },
       "parameters": [
         {
@@ -785,7 +793,8 @@
       ],
       "copy": {
         "short": "Random, irregular and warped fragments for multilayer masking.",
-        "about": "Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled and how opaque the result is. The result behaves as a generated fracture/mask layer rather than a displaced copy of another image."
+        "about": "Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled and how opaque the result is. The result behaves as a generated fracture/mask layer rather than a displaced copy of another image.",
+        "implementation": "Canvas2D; ordered weighted grid cuts, strongly asymmetric but non-self-intersecting cells, coverage ranking, fragment shrink/fill and 2 px seam-overlap compensation."
       },
       "parameters": [
         {
@@ -882,7 +891,8 @@
       ],
       "copy": {
         "short": "A flow of particles in basic shapes, ready to be unleashed.",
-        "about": "Generates a dense moving particle front with directional progression, scatter, turbulence, trailing dust and grain. It translates the particle-reveal idea into a standalone generator rather than sampling underlying content."
+        "about": "Generates a dense moving particle front with directional progression, scatter, turbulence, trailing dust and grain. It translates the particle-reveal idea into a standalone generator rather than sampling underlying content.",
+        "implementation": "Canvas2D; generated particle lattice driven by a Progress front, ten metric/direction patterns, scatter, turbulence, trail, grain and two-colour mixing; no upstream-content sampling."
       },
       "parameters": [
         {
@@ -1000,7 +1010,8 @@
       ],
       "copy": {
         "short": "Not like a pirate map, but if you look hard enough, maybe you'll find a treasure here too.",
-        "about": "Generates animated topographic contour lines from a procedural scalar field. Several field families can produce soft terrain, ridges, rings, waves and warped contours."
+        "about": "Generates animated topographic contour lines from a procedural scalar field. Several field families can produce soft terrain, ridges, rings, waves and warped contours.",
+        "implementation": "Canvas2D; six custom scalar-field families, continuous Drift, explicit marching-squares-style contour extraction, 0–10 accent amount and independent BG controls."
       },
       "parameters": [
         {
@@ -1123,7 +1134,8 @@
       ],
       "copy": {
         "short": "High-school fluid dynamics, but fun.",
-        "about": "Uses the Topographic procedural field as a filled-mask engine: ranked contour bands are progressively activated, with independent BG opacity and color."
+        "about": "Uses the Topographic procedural field as a filled-mask engine: ranked contour bands are progressively activated, with independent BG opacity and color.",
+        "implementation": "Canvas2D internal derivative of Topographic: retains substantial scalar-field family logic while rendering ranked clipped filled bands with adaptive sampling, BG controls and overlap compensation."
       },
       "parameters": [
         {
@@ -1250,7 +1262,8 @@
       ],
       "copy": {
         "short": "Basic shapes, photography concepts and middle-school geometry: can something go wrong?",
-        "about": "Generates a basic geometric source and applies trigger-driven Flash-style cuts, slotting, wedge splits, echoes and radial copy movements. The current engine is shape-based rather than typographic."
+        "about": "Generates a basic geometric source and applies trigger-driven Flash-style cuts, slotting, wedge splits, echoes and radial copy movements. The current engine is shape-based rather than typographic.",
+        "implementation": "Canvas2D; offscreen generated geometric shapes and six direct-Trigger scene families using rectangular/wedge clipping, slotting, echoes and radial copies; independent X/Y stretch; no text engine or p5 dependency."
       },
       "parameters": [
         {
