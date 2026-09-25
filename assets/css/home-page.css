@@ -378,14 +378,12 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   padding: 16px 0 58px;
   border-bottom: 1px solid var(--line);
 }
-.about-hero-art {
-  width: min(100%, 760px);
+.about-hero h1 {
   margin: 0;
-}
-.about-hero-art img {
-  display: block;
-  width: 100%;
-  height: auto;
+  font-size: clamp(54px, 7vw, 98px);
+  line-height: .92;
+  letter-spacing: -.055em;
+  font-weight: 800;
 }
 .about-hero > p {
   width: 100%;

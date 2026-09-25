@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.9.1**  
+**Current staging UI build → V0.9**  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
@@ -57,8 +57,7 @@ index-html/
 │   ├── branding/
 │   │   ├── favicon.svg
 │   │   ├── wordmark.svg
-│   │   ├── wordmark-claim.svg
-│   │   └── about.svg
+│   │   └── wordmark-claim.svg
 │   ├── css/
 │   │   ├── home-page.css
 │   │   └── tool-page.css
