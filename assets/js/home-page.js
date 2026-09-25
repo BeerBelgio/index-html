@@ -10,6 +10,7 @@
   const tagFilters = document.getElementById('tool-tag-filters');
   const emptyState = document.getElementById('tool-filter-empty');
   const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false;
+  const homeHeader = document.getElementById('home-header');
 
   const catalogue = {
     tools: [],
@@ -47,6 +48,11 @@
     if (open) requestAnimationFrame(() => searchInput?.focus());
   }
 
+
+  function syncStickyHeader() {
+    if (!homeHeader) return;
+    homeHeader.classList.toggle('is-scrolled', window.scrollY > 18);
+  }
   function stateFromManifest(manifest) {
     const state = { time: 2.75 };
     for (const item of manifest.params || []) state[item.key] = item.default;
@@ -459,6 +465,9 @@
       showError(`INDEX HTML catalogue could not start: ${error.message}`);
     }
   }
+
+  syncStickyHeader();
+  window.addEventListener('scroll', syncStickyHeader, { passive: true });
 
   window.addEventListener('beforeunload', () => {
     for (const preview of livePreviews) {
