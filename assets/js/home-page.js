@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const grid = document.getElementById('tool-grid');
+  const grid = document.getElementById('tool-grid') || document.getElementById('tools');
   const errorBox = document.getElementById('home-error');
   const searchInput = document.getElementById('tool-search');
   const searchToggle = document.getElementById('tool-search-toggle');
@@ -402,7 +402,10 @@
   }
 
   async function boot() {
-    if (!grid) return;
+    if (!grid) {
+      showError('Catalogue mount was not found.');
+      return;
+    }
     try {
       const response = await fetch('data/tools.json', { cache: 'no-store' });
       if (!response.ok) throw new Error(`tools.json returned HTTP ${response.status}`);

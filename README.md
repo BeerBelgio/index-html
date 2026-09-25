@@ -14,9 +14,11 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.9**  
+**Current staging UI build → V0.9.2**  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
+
+**V0.9.2 catalogue mount hotfix:** restores the catalogue mount after the V0.9.1 anchor/id regression and adds a defensive JS fallback so a mount-id mismatch does not silently blank the catalogue.
 
 **INDEX HTML is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
@@ -57,7 +59,8 @@ index-html/
 │   ├── branding/
 │   │   ├── favicon.svg
 │   │   ├── wordmark.svg
-│   │   └── wordmark-claim.svg
+│   │   ├── wordmark-claim.svg
+│   │   └── about.svg
 │   ├── css/
 │   │   ├── home-page.css
 │   │   └── tool-page.css
