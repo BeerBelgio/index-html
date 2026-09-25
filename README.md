@@ -14,11 +14,11 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.11**  
+**Current staging UI build → V0.12**  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
-**V0.11 desktop UI refinement:** Barlow Condensed display typography, refreshed branding assets, unified sticky header lockups, BeerBelgio header links, compact independent privacy columns, revised tool switcher/reset interactions and a warmer neutral panel surface.
+**V0.12 desktop UI refinement:** optical alignment and icon sizing in navigation, looser Barlow display typography, single-column privacy, simplified tool header, refined development CTA, and a more distinct neutral secondary surface.
 
 **INDEX HTML is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 

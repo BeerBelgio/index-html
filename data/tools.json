@@ -8,7 +8,7 @@
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
     "editorialSourceOfTruth": "index-html_content-inventory_v8.3.xlsx",
     "notes": "Technical controls, ranges, defaults, colors and Sketch Audio Sync exposure are intentionally not duplicated here. Parameter copy is keyed to the manifest control key.",
-    "stagingBuild": "v0.11"
+    "stagingBuild": "v0.12"
   },
   "tools": [
     {

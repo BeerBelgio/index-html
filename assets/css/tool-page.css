@@ -4,7 +4,7 @@
 :root {
   --ink: #000000;
   --cream: #F1F1EE;
-  --cream-deep: #ECEBE7;
+  --cream-deep: #E2E3DE;
   --orange: #EC6B2D;
   --orange-deep: #C94B2E;
   --green: #6A9E5D;
@@ -60,7 +60,7 @@ a { color: inherit; }
 }
 .index-html-wordmark {
   display: block;
-  width: clamp(112px, 11vw, 148px);
+  width: clamp(108px, 10vw, 132px);
   height: auto;
   flex: 0 0 auto;
 }
@@ -71,32 +71,15 @@ a { color: inherit; }
   display: inline-flex;
   align-items: center;
   font-family: var(--display-font);
-  font-size: 12px;
-  line-height: .95;
+  font-size: clamp(16px, 1.45vw, 18.5px);
+  line-height: .92;
   font-weight: 500;
   letter-spacing: .045em;
 }
 
-.site-header-actions {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 20px;
-}
-.header-beerbelgio-link {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  text-decoration: none;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .08em;
-}
-.header-beerbelgio-link img { width: 22px; height: 22px; display: block; }
 
 .tool-switcher {
+  margin-left: auto;
   position: relative;
   display: flex;
   flex-direction: row;
@@ -106,10 +89,11 @@ a { color: inherit; }
 }
 .tool-switcher-label {
   flex: 0 0 auto;
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: 0.09em;
+  font-family: var(--display-font);
+  font-size: clamp(16px, 1.45vw, 18.5px);
+  line-height: .92;
+  font-weight: 500;
+  letter-spacing: .045em;
   text-transform: uppercase;
   color: var(--ink);
   opacity: 0.92;
@@ -226,7 +210,7 @@ h1 {
   min-width: 0;
   font-size: clamp(48px, 6vw, 86px);
   line-height: 0.92;
-  letter-spacing: -0.055em;
+  letter-spacing: .01em;
   font-weight: 800;
 }
 .tool-version {
@@ -609,7 +593,14 @@ input[type="color"] {
   gap: 24px;
 }
 .development-contact-copy {
-  font-family: var(--display-font); margin: 0; font-size: clamp(18px, 1.8vw, 25px); line-height: 1.25; font-weight: 700; }
+  font-family: var(--display-font);
+  margin: 0;
+  font-size: clamp(18px, 1.8vw, 25px);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
 .write-me-button {
   flex: 0 0 auto;
   min-width: 230px;
@@ -627,8 +618,15 @@ input[type="color"] {
   font-weight: 800;
   letter-spacing: .08em;
 }
+.write-me-button { transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, color 140ms ease; }
 .write-me-button:hover,
-.write-me-button:focus-visible { background: var(--orange); border-color: var(--orange); }
+.write-me-button:focus-visible,
+.write-me-button:active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--cream);
+  transform: translateY(-1px);
+}
 .muted { opacity: 0.58; }
 
 .site-footer {
@@ -644,9 +642,9 @@ input[type="color"] {
 }
 .footer-links { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 18px; }
 .footer-links a { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }
-.github-icon { width: 15px; height: 15px; display: block; flex: 0 0 auto; }
+.github-icon,
+.hub-link img { width: 24px; height: 24px; display: block; flex: 0 0 auto; }
 .privacy-link { opacity: 1; }
-.hub-link img { width: 24px; height: 24px; display: block; }
 
 .fatal-error {
   position: fixed;
@@ -685,11 +683,9 @@ body.is-standalone #standalone-page { display: block !important; }
   :root { --page: 88vw; }
   .site-header { min-height: 78px; gap: 16px; }
   .index-html-brand { gap: 7px; }
-  .index-html-wordmark { width: 112px; }
+  .index-html-wordmark { width: 108px; }
   .index-html-claim { display: none; }
   .tool-switcher-label { display: none; }
-  .site-header-actions { gap: 10px; }
-  .header-beerbelgio-link span { display: none; }
   .tool-picker-button { min-width: 0; max-width: 190px; min-height: 36px; font-size: 12px; }
   .tool-picker-menu { width: 210px; }
   .page-shell { padding-top: 30px; }
