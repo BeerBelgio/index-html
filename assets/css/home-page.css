@@ -118,6 +118,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   padding: 16px 0 0;
 }
 .hero-brand {
+  position: relative;
   width: min(100%, 920px);
   margin: 0 auto 54px;
 }
@@ -125,13 +126,41 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   display: block;
   width: 100%;
   height: auto;
+  opacity: 0;
+}
+.hero-brand::before,
+.hero-brand::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: url("../branding/wordmark-claim.svg?v=0130") center / 100% 100% no-repeat;
+  transform: translate3d(0, 0, 0);
+}
+.hero-brand::before {
+  clip-path: inset(0 0 38% 0);
+  animation: index-wordmark-phase 11s ease-in-out infinite;
+}
+.hero-brand::after {
+  clip-path: inset(61% 0 0 0);
+  animation: index-claim-phase 13s ease-in-out infinite;
+}
+@keyframes index-wordmark-phase {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  36% { transform: translate3d(-1.6px, .35px, 0); }
+  72% { transform: translate3d(1.1px, -.35px, 0); }
+}
+@keyframes index-claim-phase {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  31% { transform: translate3d(1.35px, -.3px, 0); }
+  68% { transform: translate3d(-1.25px, .3px, 0); }
 }
 .home-hero h1 {
   font-family: var(--display-font);
   width: 100%;
   max-width: none;
   margin: 0;
-  font-size: clamp(44px, 4.5vw, 68px);
+  font-size: clamp(42px, 3.8vw, 58px);
   line-height: .92;
   letter-spacing: .012em;
   font-weight: 600;
@@ -554,16 +583,25 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   border-top: 1px solid var(--soft-line);
 }
 .privacy-stack article:first-child { border-top: 0; padding-top: 0; }
+.privacy-stack article p,
+.privacy-updated {
+  font-size: 14px;
+  line-height: 1.58;
+  font-weight: 400;
+  letter-spacing: normal;
+  color: var(--ink);
+  opacity: 1;
+}
 .privacy-stack p + p { margin-top: 10px; }
 .privacy-updated {
   margin: 5px 0 0;
   padding-top: 5px;
   border-top: 1px solid var(--soft-line);
-  font-size: inherit;
-  line-height: normal;
-  font-weight: 400;
-  letter-spacing: normal;
-  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-brand::before,
+  .hero-brand::after { animation: none; }
 }
 
 @media (max-width: 1050px) {
