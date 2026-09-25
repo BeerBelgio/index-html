@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="index-html-build" content="v0.8" />
+  <meta name="index-html-build" content="v0.9.1" />
   <title>INDEX HTML - Tool</title>
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/tool-page.css" />
@@ -15,17 +15,20 @@
     <header class="site-header">
       <a class="index-html-brand" href="./" aria-label="INDEX HTML home">
         <img class="index-html-mark" src="assets/branding/favicon.svg" alt="" aria-hidden="true" />
-        <img class="index-html-wordmark" src="assets/branding/wordmark.svg" alt="INDEX HTML" />
+        <span class="index-html-name">INDEX HTML</span>
         <span class="index-html-claim">CREATIVE CODE FOR VISUAL SYSTEMS</span>
       </a>
 
-      <div class="tool-switcher" id="tool-switcher">
+      <div class="header-tools">
+        <a class="header-about" href="about.html">ABOUT</a>
+        <div class="tool-switcher" id="tool-switcher">
         <span class="tool-switcher-label">TOOLS</span>
         <button id="tool-picker-button" class="tool-picker-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="tool-picker-menu">
           <span id="tool-picker-current">Loading…</span>
           <span class="tool-picker-chevron" aria-hidden="true"></span>
         </button>
-        <div id="tool-picker-menu" class="tool-picker-menu" role="menu" hidden></div>
+          <div id="tool-picker-menu" class="tool-picker-menu" role="menu" hidden></div>
+        </div>
       </div>
     </header>
 
@@ -119,6 +122,17 @@
   <main id="standalone-page" class="standalone-page" hidden>
     <div class="standalone-stage" id="standalone-stage"></div>
   </main>
+
+  <div class="email-fallback" id="email-fallback" hidden>
+    <div class="email-fallback-card" role="dialog" aria-modal="true" aria-labelledby="email-fallback-title">
+      <button class="email-fallback-close" id="email-fallback-close" type="button" aria-label="Close email details">×</button>
+      <h2 id="email-fallback-title">NO MAIL APP?</h2>
+      <p>Use these three fields in your webmail.</p>
+      <div class="email-field"><span>TO</span><code id="email-fallback-to">matteo.sonodgtl@gmail.com</code><button type="button" data-copy-target="email-fallback-to">COPY</button></div>
+      <div class="email-field"><span>SUBJECT</span><code id="email-fallback-subject"></code><button type="button" data-copy-target="email-fallback-subject">COPY</button></div>
+      <div class="email-field email-field-body"><span>MESSAGE</span><code id="email-fallback-body"></code><button type="button" data-copy-target="email-fallback-body">COPY</button></div>
+    </div>
+  </div>
 
   <div id="fatal-error" class="fatal-error" hidden></div>
   <script src="assets/js/tool-page.js"></script>

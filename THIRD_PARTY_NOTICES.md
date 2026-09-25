@@ -4,6 +4,13 @@ INDEX HTML contains original HTML visual tools by BeerBelgio / Matteo Belgiovine
 
 The current tool set has been audited against the sources listed below. No distributed tool is currently identified as retaining meaningful third-party implementation code or structure. The relationships below are therefore creative/conceptual references unless explicitly described as internal derivation.
 
+
+## Sketch Design Tools
+
+Compatibility target: [Sketch Design Tools](https://tools.sketchdesign.club/)
+
+INDEX HTML tools are designed to work as Custom HTML tools inside Sketch Design Tools while remaining standalone browser files. Sketch Design Tools is a third-party platform and is not bundled with this repository. INDEX HTML is an independent project; references to Sketch Design Tools describe compatibility only and do not imply affiliation, sponsorship or endorsement.
+
 ## Fluid — enonforetsam/fluid
 
 Source: https://github.com/enonforetsam/fluid  

@@ -361,7 +361,10 @@
 
     const link = document.createElement('a');
     link.className = 'write-me-button';
+    link.id = 'tool-write-me';
     link.href = `mailto:matteo.sonodgtl@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    link.dataset.emailSubject = subject;
+    link.dataset.emailBody = body;
     link.innerHTML = '<span>WRITE ME</span><span class="arrow-icon" aria-hidden="true"></span>';
 
     contact.append(copy, link);
@@ -379,14 +382,36 @@
     return Math.min(Number(param.max), Math.max(Number(param.min), number));
   }
 
-  function createControlHeader(item) {
+  function formatControlBound(value, step) {
+    const precision = precisionForStep(step);
+    const n = Number(value);
+    if (!Number.isFinite(n)) return String(value);
+    if (Number.isInteger(n)) return String(n);
+    return precision ? n.toFixed(precision) : String(n);
+  }
+
+  function createControlHeader(item, includeRange = false) {
     const top = document.createElement('div');
     top.className = 'control-top';
     const label = document.createElement('span');
     label.className = 'control-label';
     label.textContent = item.label;
     top.appendChild(label);
+    if (includeRange) {
+      const hint = document.createElement('span');
+      hint.className = 'control-range-hint';
+      hint.textContent = `${formatControlBound(item.min, item.step)} — ${formatControlBound(item.max, item.step)}`;
+      top.appendChild(hint);
+    }
     return top;
+  }
+
+  function setRangeProgress(range, param, value) {
+    const min = Number(param.min);
+    const max = Number(param.max);
+    const v = Number(value);
+    const progress = Number.isFinite(v) && max > min ? ((v - min) / (max - min)) * 100 : 0;
+    range.style.setProperty('--range-progress', `${Math.max(0, Math.min(100, progress))}%`);
   }
 
   function updateStandaloneHref() {
@@ -412,7 +437,7 @@
     for (const param of manifest.params || []) {
       const row = document.createElement('div');
       row.className = 'control-row';
-      row.appendChild(createControlHeader(param));
+      row.appendChild(createControlHeader(param, true));
 
       const wrap = document.createElement('div');
       wrap.className = 'number-control';
@@ -426,18 +451,6 @@
       range.setAttribute('aria-label', param.label);
 
       const precision = precisionForStep(param.step);
-      const formatBound = (value) => {
-        const n = Number(value);
-        if (!Number.isFinite(n)) return String(value);
-        if (Number.isInteger(n)) return String(n);
-        return precision ? n.toFixed(precision) : String(n);
-      };
-
-      const valueStack = document.createElement('div');
-      valueStack.className = 'value-stack';
-      const rangeHint = document.createElement('span');
-      rangeHint.className = 'param-range-hint';
-      rangeHint.textContent = `${formatBound(param.min)} — ${formatBound(param.max)}`;
 
       const number = document.createElement('input');
       number.type = 'number';
@@ -447,11 +460,12 @@
       number.step = param.step;
       number.value = runtime.state[param.key];
       number.setAttribute('aria-label', `${param.label} numeric value`);
-      valueStack.append(rangeHint, number);
+      setRangeProgress(range, param, runtime.state[param.key]);
       const update = (raw, source) => {
         const value = numericValue(raw, param);
         runtime.state[param.key] = value;
         range.value = value;
+        setRangeProgress(range, param, value);
         if (source !== 'number' || document.activeElement !== number) {
           number.value = precision ? value.toFixed(precision) : String(Math.round(value));
         }
@@ -464,13 +478,14 @@
         if (Number.isFinite(parsed)) {
           runtime.state[param.key] = numericValue(parsed, param);
           range.value = runtime.state[param.key];
+          setRangeProgress(range, param, runtime.state[param.key]);
           updateStandaloneHref();
         }
       });
       number.addEventListener('change', () => update(number.value, 'number'));
       number.addEventListener('blur', () => update(number.value, 'range'));
 
-      wrap.append(range, valueStack);
+      wrap.append(range, number);
       row.appendChild(wrap);
       els.controls.appendChild(row);
     }
@@ -664,10 +679,96 @@
     els.frame.src = tool.file;
   }
 
+  const emailFallback = document.getElementById('email-fallback');
+  const emailFallbackClose = document.getElementById('email-fallback-close');
+  let emailFallbackTimer = 0;
+
+  function closeEmailFallback() {
+    if (!emailFallback) return;
+    emailFallback.hidden = true;
+    document.body.classList.remove('email-fallback-open');
+  }
+
+  function openEmailFallback(link) {
+    if (!emailFallback || !link) return;
+    const subject = link.dataset.emailSubject || '';
+    const body = link.dataset.emailBody || '';
+    const subjectField = document.getElementById('email-fallback-subject');
+    const bodyField = document.getElementById('email-fallback-body');
+    if (subjectField) subjectField.textContent = subject;
+    if (bodyField) bodyField.textContent = body;
+    emailFallback.hidden = false;
+    document.body.classList.add('email-fallback-open');
+  }
+
+  async function copyFallbackField(id, button) {
+    const target = document.getElementById(id);
+    if (!target) return;
+    const value = target.textContent || '';
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(value);
+      else {
+        const area = document.createElement('textarea');
+        area.value = value;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        area.remove();
+      }
+      if (button) {
+        const old = button.textContent;
+        button.textContent = 'COPIED';
+        setTimeout(() => { button.textContent = old; }, 900);
+      }
+    } catch (_) {
+      if (button) button.textContent = 'SELECT TEXT';
+    }
+  }
+
+  function bindEmailFallback() {
+    document.addEventListener('click', (event) => {
+      const link = event.target.closest?.('.write-me-button');
+      if (!link) return;
+      const href = link.getAttribute('href') || '';
+      if (!href.startsWith('mailto:')) return;
+      event.preventDefault();
+      clearTimeout(emailFallbackTimer);
+      let handedOff = false;
+      const markHandedOff = () => {
+        handedOff = true;
+        clearTimeout(emailFallbackTimer);
+        window.removeEventListener('blur', markHandedOff);
+        document.removeEventListener('visibilitychange', onVisibility);
+      };
+      const onVisibility = () => { if (document.hidden) markHandedOff(); };
+      window.addEventListener('blur', markHandedOff, { once: true });
+      document.addEventListener('visibilitychange', onVisibility);
+      window.location.href = href;
+      emailFallbackTimer = window.setTimeout(() => {
+        window.removeEventListener('blur', markHandedOff);
+        document.removeEventListener('visibilitychange', onVisibility);
+        if (!handedOff && !document.hidden) openEmailFallback(link);
+      }, 900);
+    });
+
+    if (emailFallbackClose) emailFallbackClose.addEventListener('click', closeEmailFallback);
+    emailFallback?.addEventListener('click', (event) => {
+      if (event.target === emailFallback) closeEmailFallback();
+      const button = event.target.closest?.('[data-copy-target]');
+      if (button) copyFallbackField(button.dataset.copyTarget, button);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && emailFallback && !emailFallback.hidden) closeEmailFallback();
+    });
+  }
+
   async function boot() {
     clearFatal();
     try {
       if (runtime.standaloneMode) document.body.classList.add('is-standalone');
+      if (!runtime.standaloneMode) bindEmailFallback();
 
       const response = await fetch('data/tools.json', { cache: 'no-store' });
       if (!response.ok) throw new Error(`tools.json returned HTTP ${response.status}.`);
