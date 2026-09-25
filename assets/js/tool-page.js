@@ -182,7 +182,7 @@
 
     renderParameters(tool.parameters || []);
     renderLineage(tool.lineage || []);
-    renderDevelopment(tool.development || {});
+    renderDevelopment(tool.development || {}, tool);
     updatePickerSelection(tool.slug);
     updateStandaloneHref();
   }
@@ -244,7 +244,19 @@
       if (item.mapping) {
         const p = document.createElement('p');
         p.className = 'parameter-mapping';
-        p.textContent = `Modulation tip: ${item.mapping}`;
+
+        const label = document.createElement('span');
+        label.className = 'modulation-label';
+        const icon = document.createElement('span');
+        icon.className = 'knob-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        label.append(icon, document.createTextNode('MODULATION TIP'));
+
+        const modulationCopy = document.createElement('span');
+        modulationCopy.className = 'modulation-copy';
+        modulationCopy.textContent = item.mapping;
+
+        p.append(label, modulationCopy);
         copy.appendChild(p);
       }
 
@@ -302,7 +314,7 @@
     els.lineage.appendChild(licence);
   }
 
-  function renderDevelopment(development) {
+  function renderDevelopment(development, tool) {
     els.development.innerHTML = '';
     let count = 0;
     if (development.limitations) {
@@ -321,6 +333,39 @@
       count += 1;
     }
     if (!count) els.development.innerHTML = '<p class="muted">No public development notes yet.</p>';
+
+    const contact = document.createElement('div');
+    contact.className = 'development-contact';
+
+    const copy = document.createElement('p');
+    copy.className = 'development-contact-copy';
+    copy.textContent = 'Bug? New implementation? Write me!';
+
+    const subject = `INDEX HTML — ${tool?.name || 'Tool'} — Bug / implementation idea`;
+    const pageUrl = window.location.href.split('#')[0];
+    const body = [
+      'Hi Matteo,',
+      '',
+      `TOOL: ${tool?.name || ''}`,
+      `PAGE: ${pageUrl}`,
+      '',
+      'TYPE: BUG / IDEA / NEW IMPLEMENTATION',
+      '',
+      'BROWSER / HOST:',
+      '',
+      'WHAT HAPPENED / WHAT I HAVE IN MIND:',
+      '',
+      'STEPS / LINKS / NOTES:',
+      ''
+    ].join('\n');
+
+    const link = document.createElement('a');
+    link.className = 'write-me-button';
+    link.href = `mailto:matteo.sonodgtl@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    link.innerHTML = '<span>WRITE ME</span><span class="arrow-icon" aria-hidden="true"></span>';
+
+    contact.append(copy, link);
+    els.development.appendChild(contact);
   }
 
   function precisionForStep(step) {
@@ -380,6 +425,20 @@
       range.value = runtime.state[param.key];
       range.setAttribute('aria-label', param.label);
 
+      const precision = precisionForStep(param.step);
+      const formatBound = (value) => {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return String(value);
+        if (Number.isInteger(n)) return String(n);
+        return precision ? n.toFixed(precision) : String(n);
+      };
+
+      const valueStack = document.createElement('div');
+      valueStack.className = 'value-stack';
+      const rangeHint = document.createElement('span');
+      rangeHint.className = 'param-range-hint';
+      rangeHint.textContent = `${formatBound(param.min)} — ${formatBound(param.max)}`;
+
       const number = document.createElement('input');
       number.type = 'number';
       number.className = 'number-input';
@@ -388,8 +447,7 @@
       number.step = param.step;
       number.value = runtime.state[param.key];
       number.setAttribute('aria-label', `${param.label} numeric value`);
-
-      const precision = precisionForStep(param.step);
+      valueStack.append(rangeHint, number);
       const update = (raw, source) => {
         const value = numericValue(raw, param);
         runtime.state[param.key] = value;
@@ -412,7 +470,7 @@
       number.addEventListener('change', () => update(number.value, 'number'));
       number.addEventListener('blur', () => update(number.value, 'range'));
 
-      wrap.append(range, number);
+      wrap.append(range, valueStack);
       row.appendChild(wrap);
       els.controls.appendChild(row);
     }

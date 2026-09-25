@@ -4,6 +4,9 @@
   const grid = document.getElementById('tool-grid');
   const errorBox = document.getElementById('home-error');
   const searchInput = document.getElementById('tool-search');
+  const searchToggle = document.getElementById('tool-search-toggle');
+  const searchField = document.getElementById('tool-search-field');
+  const searchShell = document.getElementById('tool-search-shell');
   const tagFilters = document.getElementById('tool-tag-filters');
   const emptyState = document.getElementById('tool-filter-empty');
   const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false;
@@ -34,6 +37,14 @@
     if (!errorBox) return;
     errorBox.textContent = message;
     errorBox.hidden = false;
+  }
+
+  function setSearchOpen(open) {
+    if (!searchToggle || !searchField || !searchShell) return;
+    searchToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    searchField.hidden = !open;
+    searchShell.classList.toggle('is-open', open);
+    if (open) requestAnimationFrame(() => searchInput?.focus());
   }
 
   function stateFromManifest(manifest) {
@@ -410,9 +421,36 @@
       }
       grid.replaceChildren(frag);
 
+      searchToggle?.addEventListener('click', () => {
+        const open = searchToggle.getAttribute('aria-expanded') === 'true';
+        if (open && searchInput?.value) {
+          searchInput.focus();
+          return;
+        }
+        setSearchOpen(!open);
+      });
+
       searchInput?.addEventListener('input', () => {
         catalogue.query = searchInput.value;
         applyFilters();
+      });
+
+      searchInput?.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (searchInput.value) {
+          searchInput.value = '';
+          catalogue.query = '';
+          applyFilters();
+        }
+        setSearchOpen(false);
+        searchToggle?.focus();
+      });
+
+      searchInput?.addEventListener('blur', () => {
+        if (searchInput.value) return;
+        window.setTimeout(() => {
+          if (!searchShell?.contains(document.activeElement)) setSearchOpen(false);
+        }, 80);
       });
     } catch (error) {
       showError(`INDEX HTML catalogue could not start: ${error.message}`);

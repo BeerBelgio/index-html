@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.7**  
+**Current staging UI build → V0.8**  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
@@ -23,6 +23,8 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
 
 The staging homepage queues real tool previews as they approach the viewport, initialises at most two in parallel, retries a failed runtime once, then keeps previews frozen by default and animates them only while hovered on pointer devices. The catalogue can be filtered by tool name or concept tag.
+
+V0.8 is a desktop UI refinement build: optical-black site ink, revised catalogue surfaces and filters, updated INDEX HTML header branding, GitHub marks, control-range hints, modulation-tip iconography and a direct development-contact CTA on each tool page.
 
 **M PLUS Rounded 1c** is self-hosted inside this repository under `assets/fonts/`; the Pages UI no longer depends on the BeerBelgio hub for its typeface.
 
