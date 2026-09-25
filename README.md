@@ -14,11 +14,11 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.12.2**  
+**Current staging UI build → V0.12.3**  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
-**V0.12.2 desktop freeze candidate:** current user-supplied `wordmark-claim.svg`, tighter privacy spacing, and unified secondary surfaces using the homepage overview-card hover tone (`#F4F4F0`).
+**V0.12.3 desktop freeze candidate:** icon-only GitHub navigation, full-hierarchy privacy update text, uppercase homepage hero statement, current user-supplied `wordmark-claim.svg`, 5 px privacy spacing, and unified secondary surfaces using the homepage overview-card hover tone (`#F4F4F0`).
 
 **V0.12.2 desktop UI refinement:** optical alignment and icon sizing in navigation, looser Barlow display typography, single-column privacy, simplified tool header, refined development CTA, and a unified neutral secondary surface.
 

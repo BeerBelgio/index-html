@@ -559,10 +559,11 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   margin: 5px 0 0;
   padding-top: 5px;
   border-top: 1px solid var(--soft-line);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  opacity: .56;
+  font-size: inherit;
+  line-height: normal;
+  font-weight: 400;
+  letter-spacing: normal;
+  opacity: 1;
 }
 
 @media (max-width: 1050px) {
