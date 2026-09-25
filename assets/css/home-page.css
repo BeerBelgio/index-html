@@ -4,7 +4,7 @@
 :root {
   --ink: #000000;
   --cream: #F1F1EE;
-  --cream-deep: #D9DFE4;
+  --cream-deep: #F4F4F0;
   --panel: #FAFAF7;
   --orange: #EC6B2D;
   --green: #6A9E5D;
@@ -550,14 +550,14 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   margin-top: 30px;
 }
 .privacy-stack article {
-  padding: 11px 0;
+  padding: 5px 0;
   border-top: 1px solid var(--soft-line);
 }
 .privacy-stack article:first-child { border-top: 0; padding-top: 0; }
 .privacy-stack p + p { margin-top: 10px; }
 .privacy-updated {
-  margin: 11px 0 0;
-  padding-top: 11px;
+  margin: 5px 0 0;
+  padding-top: 5px;
   border-top: 1px solid var(--soft-line);
   font-size: 11px;
   font-weight: 700;
