@@ -5,20 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="index-html-build" content="v0.10" />
+  <meta name="index-html-build" content="v0.11" />
   <title>INDEX HTML - About</title>
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/home-page.css" />
 </head>
 <body>
-  <header class="home-header shell">
+  <header class="home-header shell about-header">
     <a class="home-brand about-header-brand" href="./" aria-label="INDEX HTML home">
-      <span class="home-brand-compact"><img src="assets/branding/favicon.svg" alt="" aria-hidden="true" /></span>
+      <span class="home-brand-sticky is-always">
+        <img class="home-brand-wordmark" src="assets/branding/wordmark.svg" alt="INDEX HTML" />
+        <span class="home-brand-claim">CREATIVE CODE FOR VISUAL SYSTEMS</span>
+      </span>
     </a>
     <nav class="home-nav" aria-label="Main navigation">
       <a href="./#tools">TOOLS</a>
-      <a href="about.html">ABOUT</a>
       <a href="https://github.com/BeerBelgio/index-html" target="_blank" rel="noopener">GITHUB<img class="github-icon" src="assets/icon-github.svg" alt="" aria-hidden="true" /></a>
+      <a class="beerbelgio-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>BEERBELGIO</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
     </nav>
   </header>
 
@@ -46,7 +49,7 @@
     </section>
 
     <section id="mapping" class="about-section content-card">
-      <p class="section-kicker mapping-kicker"><span class="mapping-knob" aria-hidden="true"></span><span>MAPPING-WISE</span></p>
+      <p class="section-kicker mapping-kicker"><span>MAPPING-WISE</span><span class="mapping-knob" aria-hidden="true"></span></p>
       <h2>Mapping suggestions are starting points, not prescriptions.</h2>
       <p class="about-lead">Any parameter may be mapped to any useful source. The host or decoder should provide a common transformation layer so incoming signals can be shaped before they reach the visual parameter.</p>
 
@@ -84,45 +87,50 @@
       <p class="section-kicker">PRIVACY</p>
       <h2>This site is intentionally light on tracking.</h2>
 
-      <div class="privacy-grid">
-        <article>
-          <h3>THIS SITE</h3>
-          <p>No first-party analytics, advertising pixels, profiling or marketing trackers are used by this website.</p>
-        </article>
+      <div class="privacy-columns">
+        <div class="privacy-column privacy-column-left">
+          <article>
+            <h3>THIS SITE</h3>
+            <p>No first-party analytics, advertising pixels, profiling or marketing trackers are used by this website.</p>
+          </article>
 
-        <article>
-          <h3>HOSTING</h3>
-          <p>The site is hosted with GitHub Pages. GitHub states that visitors’ IP addresses are logged and stored for security purposes.</p>
-          <p><a class="inline-link" href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement<span class="arrow-icon" aria-hidden="true"></span></a></p>
-        </article>
+          <article>
+            <h3>CONTROLLER / CONTACT</h3>
+            <p>Matteo Belgiovine — Turin, Italy<br><a class="inline-link" href="mailto:matteo.sonodgtl@gmail.com">matteo.sonodgtl@gmail.com</a></p>
+          </article>
 
-        <article>
-          <h3>EXTERNAL LINKS</h3>
-          <p>GitHub, Sketch Design Tools, BeerBelgio and other external links open third-party services. Their own privacy terms apply once you leave this site.</p>
-        </article>
+          <p class="privacy-updated">Last updated: 25 September 2026.</p>
+        </div>
 
-        <article>
-          <h3>CONTACT DATA</h3>
-          <p>“Write me” first tries to open your email app through a <code>mailto:</code> link. If no mail handler takes over, INDEX HTML shows a local fallback with recipient, subject and message as separate copyable fields. This website does not submit or store the message itself. If you email Matteo, the data you voluntarily provide are used to reply to your request and manage the related correspondence. The legal basis is taking steps at your request before a possible collaboration where applicable (GDPR Art. 6(1)(b)); otherwise, the legitimate interest in answering and managing correspondence (Art. 6(1)(f)). Providing contact data is voluntary.</p>
-        </article>
+        <div class="privacy-column privacy-column-right">
+          <article>
+            <h3>HOSTING</h3>
+            <p>The site is hosted with GitHub Pages. GitHub states that visitors’ IP addresses are logged and stored for security purposes.</p>
+            <p><a class="inline-link" href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement<span class="arrow-icon" aria-hidden="true"></span></a></p>
+          </article>
 
-        <article>
-          <h3>EMAIL PROVIDER</h3>
-          <p>Email is received through Gmail / Google. Google may process that correspondence under its own privacy terms and applicable international-transfer safeguards.</p>
-          <p><a class="inline-link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy<span class="arrow-icon" aria-hidden="true"></span></a></p>
-        </article>
+          <article>
+            <h3>EXTERNAL LINKS</h3>
+            <p>GitHub, Sketch Design Tools, BeerBelgio and other external links open third-party services. Their own privacy terms apply once you leave this site.</p>
+          </article>
 
-        <article>
-          <h3>RETENTION &amp; RIGHTS</h3>
-          <p>Correspondence is kept only as long as reasonably needed for the request, any resulting relationship and applicable legal or accounting obligations. No automated decision-making or profiling is carried out by Matteo through this site. Where the GDPR applies, you may request access, correction, deletion, restriction, objection or portability where applicable, and you may lodge a complaint with the competent supervisory authority.</p>
-        </article>
+          <article>
+            <h3>CONTACT DATA</h3>
+            <p>“Write me” first tries to open your email app through a <code>mailto:</code> link. If no mail handler takes over, INDEX HTML shows a local fallback with recipient, subject and message as separate copyable fields. This website does not submit or store the message itself. If you email Matteo, the data you voluntarily provide are used to reply to your request and manage the related correspondence. The legal basis is taking steps at your request before a possible collaboration where applicable (GDPR Art. 6(1)(b)); otherwise, the legitimate interest in answering and managing correspondence (Art. 6(1)(f)). Providing contact data is voluntary.</p>
+          </article>
 
-        <article>
-          <h3>CONTROLLER / CONTACT</h3>
-          <p>Matteo Belgiovine — Turin, Italy<br><a class="inline-link" href="mailto:matteo.sonodgtl@gmail.com">matteo.sonodgtl@gmail.com</a></p>
-        </article>
+          <article>
+            <h3>EMAIL PROVIDER</h3>
+            <p>Email is received through Gmail / Google. Google may process that correspondence under its own privacy terms and applicable international-transfer safeguards.</p>
+            <p><a class="inline-link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy<span class="arrow-icon" aria-hidden="true"></span></a></p>
+          </article>
+
+          <article>
+            <h3>RETENTION &amp; RIGHTS</h3>
+            <p>Correspondence is kept only as long as reasonably needed for the request, any resulting relationship and applicable legal or accounting obligations. No automated decision-making or profiling is carried out by Matteo through this site. Where the GDPR applies, you may request access, correction, deletion, restriction, objection or portability where applicable, and you may lodge a complaint with the competent supervisory authority.</p>
+          </article>
+        </div>
       </div>
-      <p class="privacy-updated">Last updated: 25 September 2026.</p>
     </section>
   </main>
 
@@ -131,7 +139,7 @@
     <nav class="footer-links" aria-label="INDEX HTML links">
       <a class="privacy-link" href="#privacy">PRIVACY</a>
       <a href="https://github.com/BeerBelgio/index-html" target="_blank" rel="noopener">GITHUB<img class="github-icon" src="assets/icon-github.svg" alt="" aria-hidden="true" /></a>
-      <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>HUB</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
+      <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>BEERBELGIO</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
     </nav>
   </footer>
 </body>

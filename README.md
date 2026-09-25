@@ -14,11 +14,11 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.10**  
+**Current staging UI build → V0.11**  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
-**V0.10 desktop UI refinement:** sticky navigation, compact single-row catalogue filtering, refined tool-page branding/switcher, restored thin progress-filled sliders, inline numeric ranges and Mapping-wise knob iconography. The V0.9.2 catalogue mount hotfix remains in place.
+**V0.11 desktop UI refinement:** Barlow Condensed display typography, refreshed branding assets, unified sticky header lockups, BeerBelgio header links, compact independent privacy columns, revised tool switcher/reset interactions and a warmer neutral panel surface.
 
 **INDEX HTML is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
@@ -28,7 +28,7 @@ The staging homepage queues real tool previews as they approach the viewport, in
 
 V0.8 is a desktop UI refinement build: optical-black site ink, revised catalogue surfaces and filters, updated INDEX HTML header branding, GitHub marks, control-range hints, modulation-tip iconography and a direct development-contact CTA on each tool page.
 
-**M PLUS Rounded 1c** is self-hosted inside this repository under `assets/fonts/`; the Pages UI no longer depends on the BeerBelgio hub for its typeface.
+**M PLUS Rounded 1c** remains the body/UI typeface. **Barlow Condensed** is the display typeface for headings and strong signals, using Medium for claims and ExtraBold for titles. Both are self-hosted under `assets/fonts/` under their respective SIL Open Font License terms.
 
 ## What lives here
 
@@ -65,6 +65,7 @@ index-html/
 │   │   ├── home-page.css
 │   │   └── tool-page.css
 │   ├── fonts/
+│   │   └── barlow-condensed/
 │   └── js/
 │       ├── home-page.js
 │       └── tool-page.js

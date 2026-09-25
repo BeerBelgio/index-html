@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="index-html-build" content="v0.10" />
+  <meta name="index-html-build" content="v0.11" />
   <title>INDEX HTML - Tool</title>
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="assets/css/tool-page.css" />
@@ -18,13 +18,18 @@
         <span class="index-html-claim">CREATIVE CODE FOR VISUAL SYSTEMS</span>
       </a>
 
-      <div class="tool-switcher" id="tool-switcher">
-        <span class="tool-switcher-label">CHANGE TOOL</span>
-        <button id="tool-picker-button" class="tool-picker-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="tool-picker-menu">
-          <span id="tool-picker-current">Loading…</span>
-          <span class="tool-picker-chevron" aria-hidden="true"></span>
-        </button>
-        <div id="tool-picker-menu" class="tool-picker-menu" role="menu" hidden></div>
+      <div class="site-header-actions">
+        <div class="tool-switcher" id="tool-switcher">
+          <span class="tool-switcher-label">CHANGE TOOL</span>
+          <button id="tool-picker-button" class="tool-picker-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="tool-picker-menu">
+            <span id="tool-picker-current">Loading…</span>
+            <span class="tool-picker-chevron" aria-hidden="true"></span>
+          </button>
+          <div id="tool-picker-menu" class="tool-picker-menu" role="menu" hidden></div>
+        </div>
+        <a class="header-beerbelgio-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener">
+          <span>BEERBELGIO</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" />
+        </a>
       </div>
     </header>
 
@@ -67,7 +72,7 @@
         <aside class="controls-panel">
           <div class="panel-head controls-head">
             <span>CONTROLS</span>
-            <button id="reset-button" class="text-button" type="button" disabled>RESET</button>
+            <button id="reset-button" class="text-button reset-button" type="button" disabled><span>RESET</span><span class="reset-icon" aria-hidden="true"></span></button>
           </div>
           <div id="controls" class="controls-body" aria-live="polite">
             <p class="muted">Waiting for tool manifest…</p>
@@ -109,7 +114,7 @@
           <span>GITHUB</span><img class="github-icon" src="assets/icon-github.svg" alt="" aria-hidden="true" />
         </a>
         <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener">
-          <span>HUB</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" />
+          <span>BEERBELGIO</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" />
         </a>
       </nav>
     </footer>

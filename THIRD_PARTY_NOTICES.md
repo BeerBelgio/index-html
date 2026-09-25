@@ -11,6 +11,14 @@ Compatibility target: [Sketch Design Tools](https://tools.sketchdesign.club/)
 
 INDEX HTML tools are designed to work as Custom HTML tools inside Sketch Design Tools while remaining standalone browser files. Sketch Design Tools is a third-party platform and is not bundled with this repository. INDEX HTML is an independent project; references to Sketch Design Tools describe compatibility only and do not imply affiliation, sponsorship or endorsement.
 
+
+## Interface fonts
+
+- **M PLUS Rounded 1c** — used for body text and interface copy; distributed under the SIL Open Font License 1.1.
+- **Barlow Condensed** — used for display headings and claims; designed by Jeremy Tribby and distributed under the SIL Open Font License 1.1.
+
+The font licence texts are kept alongside the self-hosted font files under `assets/fonts/`.
+
 ## Fluid — enonforetsam/fluid
 
 Source: https://github.com/enonforetsam/fluid  

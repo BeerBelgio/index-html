@@ -1,9 +1,10 @@
 @import url("../fonts/m-plus-rounded-1c/m-plus-rounded-1c/font.css");
+@import url("../fonts/barlow-condensed/font.css");
 
 :root {
   --ink: #000000;
   --cream: #F1F1EE;
-  --cream-deep: #E6E6E2;
+  --cream-deep: #ECEBE7;
   --orange: #EC6B2D;
   --orange-deep: #C94B2E;
   --green: #6A9E5D;
@@ -12,6 +13,7 @@
   --soft-line: rgba(0, 0, 0, 0.11);
   --radius: 18px;
   --page: min(80vw, 1200px);
+  --display-font: "Barlow Condensed", "Arial Narrow", sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -58,18 +60,41 @@ a { color: inherit; }
 }
 .index-html-wordmark {
   display: block;
-  width: clamp(132px, 14vw, 190px);
+  width: clamp(112px, 11vw, 148px);
   height: auto;
   flex: 0 0 auto;
 }
 .index-html-claim {
-  padding-left: 11px;
+  min-height: 30px;
+  padding-left: 12px;
   border-left: 1px solid var(--line);
-  font-size: 9px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: .09em;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--display-font);
+  font-size: 12px;
+  line-height: .95;
+  font-weight: 500;
+  letter-spacing: .045em;
 }
+
+.site-header-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
+.header-beerbelgio-link {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.header-beerbelgio-link img { width: 22px; height: 22px; display: block; }
 
 .tool-switcher {
   position: relative;
@@ -81,7 +106,7 @@ a { color: inherit; }
 }
 .tool-switcher-label {
   flex: 0 0 auto;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1;
   font-weight: 800;
   letter-spacing: 0.09em;
@@ -90,8 +115,9 @@ a { color: inherit; }
   opacity: 0.92;
 }
 .tool-picker-button {
-  min-width: 202px;
-  max-width: 240px;
+  width: auto;
+  min-width: 0;
+  max-width: none;
   min-height: 39px;
   display: inline-flex;
   align-items: center;
@@ -106,6 +132,7 @@ a { color: inherit; }
   font-size: 14px;
   line-height: 1;
   text-align: right;
+  white-space: nowrap;
 }
 .tool-picker-button:hover { background: rgba(0, 0, 0, 0.035); }
 .tool-picker-chevron {
@@ -124,7 +151,9 @@ a { color: inherit; }
   position: absolute;
   top: calc(100% + 9px);
   right: 0;
-  width: 240px;
+  width: max-content;
+  min-width: 100%;
+  max-width: 280px;
   z-index: 30;
   padding: 6px;
   border: 1px solid var(--line);
@@ -192,6 +221,7 @@ a { color: inherit; }
   gap: clamp(11px, 1.45vw, 21px);
 }
 h1 {
+  font-family: var(--display-font);
   margin: 12px 0 0;
   min-width: 0;
   font-size: clamp(48px, 6vw, 86px);
@@ -242,7 +272,7 @@ h1 {
 .button-secondary { background: transparent; }
 .button-secondary:hover,
 .button-secondary:focus-visible,
-.button-secondary:active { background: var(--orange); border-color: var(--orange); color: var(--ink); }
+.button-secondary:active { background: var(--orange); border-color: var(--orange); color: var(--cream); }
 .button:hover { transform: translateY(-1px); }
 .arrow-icon {
   width: 14px;
@@ -316,14 +346,36 @@ h1 {
   padding: 2px 14px 15px;
 }
 .text-button {
-  border: 0;
-  padding: 4px 0;
+  min-height: 29px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--ink);
+  border-radius: 7px;
+  padding: 0 8px 0 9px;
   background: transparent;
-  color: inherit;
+  color: var(--ink);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
   cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+.text-button:hover:not(:disabled),
+.text-button:focus-visible:not(:disabled) {
+  color: var(--orange-deep);
+  border-color: var(--orange-deep);
+  background: rgba(201, 75, 46, .06);
+}
+.reset-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask: url("../icon-reset.svg") center / contain no-repeat;
+  mask: url("../icon-reset.svg") center / contain no-repeat;
 }
 .text-button:disabled { opacity: 0.35; cursor: default; }
 .control-row {
@@ -432,6 +484,7 @@ input[type="color"] {
 }
 .content-card { padding: clamp(24px, 2.3vw, 34px); }
 .section-kicker {
+  font-family: var(--display-font);
   margin: 0 0 19px;
   font-size: clamp(22px, 2.1vw, 28px);
   line-height: 1;
@@ -555,7 +608,8 @@ input[type="color"] {
   justify-content: space-between;
   gap: 24px;
 }
-.development-contact-copy { margin: 0; font-size: clamp(18px, 1.8vw, 25px); line-height: 1.25; font-weight: 700; }
+.development-contact-copy {
+  font-family: var(--display-font); margin: 0; font-size: clamp(18px, 1.8vw, 25px); line-height: 1.25; font-weight: 700; }
 .write-me-button {
   flex: 0 0 auto;
   min-width: 230px;
@@ -631,10 +685,12 @@ body.is-standalone #standalone-page { display: block !important; }
   :root { --page: 88vw; }
   .site-header { min-height: 78px; gap: 16px; }
   .index-html-brand { gap: 7px; }
-  .index-html-wordmark { width: 132px; }
+  .index-html-wordmark { width: 112px; }
   .index-html-claim { display: none; }
   .tool-switcher-label { display: none; }
-  .tool-picker-button { min-width: 168px; max-width: 192px; min-height: 36px; font-size: 12px; }
+  .site-header-actions { gap: 10px; }
+  .header-beerbelgio-link span { display: none; }
+  .tool-picker-button { min-width: 0; max-width: 190px; min-height: 36px; font-size: 12px; }
   .tool-picker-menu { width: 210px; }
   .page-shell { padding-top: 30px; }
   .tool-title-line { gap: 10px; }
