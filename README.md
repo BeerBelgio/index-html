@@ -14,11 +14,11 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.13**  
+**Current staging UI build → V0.13.1**  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
-**V0.13 desktop motion / polish candidate:** fixes the homepage statement width and Privacy update hierarchy, adds lightweight autonomous phase motion to the homepage wordmark + claim, and adds build-level cache busting to critical CSS, JavaScript and branding assets so staging changes do not get hidden by browser caching. The current user-supplied `wordmark-claim.svg`, 5 px privacy spacing and unified secondary surface tone (`#F4F4F0`) remain in place.
+**V0.13.1 desktop motion test:** replaces the barely perceptible phase drift with a periodic raster-style scan pass across the homepage wordmark + claim. A narrow displaced slice travels through the lockup together with a thin orange scan line; the effect is autonomous, CSS-only, and disabled by `prefers-reduced-motion`. V0.13 sizing, privacy hierarchy, cache busting, the current user-supplied `wordmark-claim.svg`, 5 px privacy spacing and unified secondary surface tone (`#F4F4F0`) remain in place.
 
 **V0.12.2 desktop UI refinement:** optical alignment and icon sizing in navigation, looser Barlow display typography, single-column privacy, simplified tool header, refined development CTA, and a unified neutral secondary surface.
 

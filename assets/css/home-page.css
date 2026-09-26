@@ -126,34 +126,70 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   display: block;
   width: 100%;
   height: auto;
-  opacity: 0;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
-.hero-brand::before,
-.hero-brand::after {
+.hero-brand::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: url("../branding/wordmark-claim.svg?v=0130") center / 100% 100% no-repeat;
+  opacity: 0;
+  background: url("../branding/wordmark-claim.svg?v=0131") center / 100% 100% no-repeat;
+  clip-path: inset(0 0 88% 0);
   transform: translate3d(0, 0, 0);
-}
-.hero-brand::before {
-  clip-path: inset(0 0 38% 0);
-  animation: index-wordmark-phase 11s ease-in-out infinite;
+  animation: index-scan-slice 5.8s cubic-bezier(.2,.78,.2,1) infinite;
 }
 .hero-brand::after {
-  clip-path: inset(61% 0 0 0);
-  animation: index-claim-phase 13s ease-in-out infinite;
+  content: "";
+  position: absolute;
+  left: -1%;
+  top: 0;
+  width: 102%;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--orange);
+  transform: translate3d(0, 0, 0);
+  animation: index-scan-line 5.8s cubic-bezier(.2,.78,.2,1) infinite;
 }
-@keyframes index-wordmark-phase {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  36% { transform: translate3d(-1.6px, .35px, 0); }
-  72% { transform: translate3d(1.1px, -.35px, 0); }
+@keyframes index-scan-slice {
+  0%, 63%, 86%, 100% {
+    opacity: 0;
+    clip-path: inset(0 0 88% 0);
+    transform: translate3d(0, 0, 0);
+  }
+  65% {
+    opacity: .96;
+    clip-path: inset(2% 0 84% 0);
+    transform: translate3d(11px, 0, 0);
+  }
+  70% {
+    opacity: .96;
+    clip-path: inset(23% 0 65% 0);
+    transform: translate3d(-9px, 0, 0);
+  }
+  75% {
+    opacity: .96;
+    clip-path: inset(45% 0 43% 0);
+    transform: translate3d(13px, 0, 0);
+  }
+  80% {
+    opacity: .96;
+    clip-path: inset(67% 0 21% 0);
+    transform: translate3d(-10px, 0, 0);
+  }
+  84% {
+    opacity: .96;
+    clip-path: inset(85% 0 3% 0);
+    transform: translate3d(8px, 0, 0);
+  }
 }
-@keyframes index-claim-phase {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  31% { transform: translate3d(1.35px, -.3px, 0); }
-  68% { transform: translate3d(-1.25px, .3px, 0); }
+@keyframes index-scan-line {
+  0%, 63%, 86%, 100% { opacity: 0; top: 0; }
+  65% { opacity: .9; top: 3%; }
+  84% { opacity: .9; top: 94%; }
+  86% { opacity: 0; top: 98%; }
 }
 .home-hero h1 {
   font-family: var(--display-font);
