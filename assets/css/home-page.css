@@ -121,75 +121,90 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   position: relative;
   width: min(100%, 920px);
   margin: 0 auto 54px;
+  overflow: hidden;
+  isolation: isolate;
 }
 .hero-brand img {
+  position: relative;
+  z-index: 2;
   display: block;
   width: 100%;
   height: auto;
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
 }
 .hero-brand::before {
   content: "";
   position: absolute;
-  inset: 0;
+  z-index: 3;
+  left: 2%;
+  top: 5%;
+  width: clamp(92px, 16%, 152px);
+  aspect-ratio: 1.28 / 1;
   pointer-events: none;
-  opacity: 0;
-  background: url("../branding/wordmark-claim.svg?v=0131") center / 100% 100% no-repeat;
-  clip-path: inset(0 0 88% 0);
-  transform: translate3d(0, 0, 0);
-  animation: index-scan-slice 5.8s cubic-bezier(.2,.78,.2,1) infinite;
+  background: var(--orange);
+  opacity: .92;
+  mix-blend-mode: multiply;
+  border-radius: 63% 37% 54% 46% / 42% 58% 42% 58%;
+  transform-origin: center;
+  will-change: left, top, border-radius, transform;
+  animation:
+    index-blob-x 8.2s linear infinite alternate,
+    index-blob-y 5.4s linear infinite alternate,
+    index-blob-morph 3.7s ease-in-out infinite alternate;
 }
 .hero-brand::after {
   content: "";
   position: absolute;
-  left: -1%;
-  top: 0;
-  width: 102%;
-  height: 2px;
+  z-index: 4;
+  left: 8%;
+  top: 18%;
+  width: clamp(44px, 7.5%, 72px);
+  aspect-ratio: 1;
   pointer-events: none;
-  opacity: 0;
-  background: var(--orange);
-  transform: translate3d(0, 0, 0);
-  animation: index-scan-line 5.8s cubic-bezier(.2,.78,.2,1) infinite;
+  opacity: .72;
+  background:
+    radial-gradient(circle at 18% 32%, var(--orange) 0 10%, transparent 11%),
+    radial-gradient(circle at 68% 18%, var(--orange) 0 7%, transparent 8%),
+    radial-gradient(circle at 78% 68%, var(--orange) 0 12%, transparent 13%),
+    radial-gradient(circle at 34% 78%, var(--orange) 0 6%, transparent 7%);
+  will-change: left, top, transform;
+  animation:
+    index-particles-x 8.2s linear infinite alternate,
+    index-particles-y 5.4s linear infinite alternate,
+    index-particles-spin 6.6s linear infinite;
 }
-@keyframes index-scan-slice {
-  0%, 63%, 86%, 100% {
-    opacity: 0;
-    clip-path: inset(0 0 88% 0);
-    transform: translate3d(0, 0, 0);
+@keyframes index-blob-x {
+  from { left: 2%; }
+  to { left: 81%; }
+}
+@keyframes index-blob-y {
+  from { top: 5%; }
+  to { top: 52%; }
+}
+@keyframes index-blob-morph {
+  0% {
+    border-radius: 63% 37% 54% 46% / 42% 58% 42% 58%;
+    transform: rotate(-8deg) scale(1);
   }
-  65% {
-    opacity: .96;
-    clip-path: inset(2% 0 84% 0);
-    transform: translate3d(11px, 0, 0);
+  50% {
+    border-radius: 38% 62% 35% 65% / 61% 39% 63% 37%;
+    transform: rotate(5deg) scale(1.08, .92);
   }
-  70% {
-    opacity: .96;
-    clip-path: inset(23% 0 65% 0);
-    transform: translate3d(-9px, 0, 0);
-  }
-  75% {
-    opacity: .96;
-    clip-path: inset(45% 0 43% 0);
-    transform: translate3d(13px, 0, 0);
-  }
-  80% {
-    opacity: .96;
-    clip-path: inset(67% 0 21% 0);
-    transform: translate3d(-10px, 0, 0);
-  }
-  84% {
-    opacity: .96;
-    clip-path: inset(85% 0 3% 0);
-    transform: translate3d(8px, 0, 0);
+  100% {
+    border-radius: 57% 43% 68% 32% / 34% 66% 41% 59%;
+    transform: rotate(12deg) scale(.94, 1.06);
   }
 }
-@keyframes index-scan-line {
-  0%, 63%, 86%, 100% { opacity: 0; top: 0; }
-  65% { opacity: .9; top: 3%; }
-  84% { opacity: .9; top: 94%; }
-  86% { opacity: 0; top: 98%; }
+@keyframes index-particles-x {
+  from { left: 8%; }
+  to { left: 84%; }
+}
+@keyframes index-particles-y {
+  from { top: 18%; }
+  to { top: 62%; }
+}
+@keyframes index-particles-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 .home-hero h1 {
   font-family: var(--display-font);
