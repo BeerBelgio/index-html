@@ -14,13 +14,13 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.13.2**  
+**Current staging UI build → V0.13.3**  
 
-**V0.13.2 hero motion test:** replaces the intermittent raster scan with a continuously visible, CSS-only bouncing amorphous blob and satellite particle cluster. The motion is autonomous, lightweight and disabled when `prefers-reduced-motion` is enabled.  
+**V0.13.3 hero motion test:** replaces the intermittent raster scan with a continuously visible, CSS-only bouncing amorphous blob and satellite particle cluster. The motion is autonomous, lightweight and disabled when `prefers-reduced-motion` is enabled.  
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
 
-**V0.13.2 desktop motion test:** replaces the intermittent raster scan with a continuously visible DVD-style motion system inside the homepage wordmark stage. An amorphous orange blob and a small satellite particle cluster move on independent horizontal and vertical bounce cycles while the blob slowly morphs. The effect is autonomous, CSS-only, and respects `prefers-reduced-motion`. V0.13 sizing, privacy hierarchy, cache busting, the current user-supplied `wordmark-claim.svg`, 5 px privacy spacing and unified secondary surface tone (`#F4F4F0`) remain in place.
+**V0.13.3 desktop motion test:** replaces the intermittent raster scan with a continuously visible DVD-style motion system inside the homepage wordmark stage. An amorphous orange blob and a small satellite particle cluster move on independent horizontal and vertical bounce cycles while the blob slowly morphs. The effect is autonomous, CSS-only, and respects `prefers-reduced-motion`. V0.13 sizing, privacy hierarchy, cache busting, the current user-supplied `wordmark-claim.svg`, 5 px privacy spacing and unified secondary surface tone (`#F4F4F0`) remain in place.
 
 **V0.12.2 desktop UI refinement:** optical alignment and icon sizing in navigation, looser Barlow display typography, single-column privacy, simplified tool header, refined development CTA, and a unified neutral secondary surface.
 

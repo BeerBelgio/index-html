@@ -53,6 +53,80 @@
     if (!homeHeader) return;
     homeHeader.classList.toggle('is-scrolled', window.scrollY > 18);
   }
+
+  function initHeroCutout() {
+    const hero = document.getElementById('home-hero');
+    const blob = document.getElementById('hero-cutout-blob');
+    const stage = document.getElementById('hero-cutout-stage');
+    if (!hero || !blob || !stage) return;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    let raf = 0;
+    let last = 0;
+    let phase = 0;
+    let x = 0;
+    let y = 0;
+    let vx = 118;
+    let vy = 74;
+
+    function syncStageSize() {
+      stage.style.width = `${hero.clientWidth}px`;
+      stage.style.height = `${hero.clientHeight}px`;
+    }
+
+    function paint() {
+      blob.style.transform = `translate(${x}px, ${y}px)`;
+      stage.style.transform = `translate(${-x}px, ${-y}px)`;
+      const a = Math.sin(phase * 1.1);
+      const b = Math.sin(phase * 0.83 + 1.3);
+      const c = Math.sin(phase * 1.37 + 2.1);
+      const d = Math.sin(phase * 0.61 + 0.8);
+      const e = Math.sin(phase * 1.52 + 2.8);
+      const f = Math.sin(phase * 0.93 + 1.7);
+      const tlx = 56 + a * 10;
+      const trx = 44 - b * 10;
+      const brx = 54 + c * 12;
+      const blx = 46 - d * 10;
+      const tly = 42 + e * 10;
+      const tryy = 58 - a * 12;
+      const bry = 38 + f * 11;
+      const bly = 62 - c * 11;
+      blob.style.borderRadius = `${tlx}% ${trx}% ${brx}% ${blx}% / ${tly}% ${tryy}% ${bry}% ${bly}%`;
+    }
+
+    function frame(now) {
+      if (!last) last = now;
+      const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+      last = now;
+      phase += dt;
+
+      const maxX = Math.max(0, hero.clientWidth - blob.offsetWidth);
+      const maxY = Math.max(0, hero.clientHeight - blob.offsetHeight);
+      x += vx * dt;
+      y += vy * dt;
+
+      if (x <= 0) { x = 0; vx = Math.abs(vx); }
+      if (x >= maxX) { x = maxX; vx = -Math.abs(vx); }
+      if (y <= 0) { y = 0; vy = Math.abs(vy); }
+      if (y >= maxY) { y = maxY; vy = -Math.abs(vy); }
+
+      paint();
+      raf = requestAnimationFrame(frame);
+    }
+
+    function reset() {
+      syncStageSize();
+      x = Math.max(0, Math.min(hero.clientWidth * 0.12, hero.clientWidth - blob.offsetWidth));
+      y = Math.max(0, Math.min(hero.clientHeight * 0.08, hero.clientHeight - blob.offsetHeight));
+      paint();
+    }
+
+    window.addEventListener('resize', reset);
+    reset();
+
+    if (reduceMotion) return;
+    raf = requestAnimationFrame(frame);
+    window.addEventListener('beforeunload', () => { if (raf) cancelAnimationFrame(raf); }, { once: true });
+  }
   function stateFromManifest(manifest) {
     const state = { time: 2.75 };
     for (const item of manifest.params || []) state[item.key] = item.default;
@@ -466,6 +540,7 @@
     }
   }
 
+  initHeroCutout();
   syncStickyHeader();
   window.addEventListener('scroll', syncStickyHeader, { passive: true });
 
