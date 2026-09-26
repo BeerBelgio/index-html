@@ -11,6 +11,13 @@
   const emptyState = document.getElementById('tool-filter-empty');
   const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false;
   const homeHeader = document.getElementById('home-header');
+  const heroBrand = document.getElementById('hero-brand');
+  const heroToolMask = document.getElementById('hero-tool-mask');
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const HERO_RENDER_WIDTH = 831;
+  const HERO_RENDER_HEIGHT = 211;
+  let heroPreview = null;
+  let heroVisible = true;
 
   const catalogue = {
     tools: [],
@@ -104,6 +111,161 @@
         break;
       default:
         break;
+    }
+  }
+
+
+  // Hero motion currently inherits the catalogue recipe so both surfaces speak
+  // the same visual language. The separate hook is intentional: the next content
+  // pass can give each tool distinct catalogue / hero recipes without changing
+  // the loading architecture again.
+  function applyHeroMotion(slug, state, dt) {
+    applyCatalogueMotion(slug, state, dt);
+  }
+
+  function randomIndex(max) {
+    if (max <= 1) return 0;
+    if (window.crypto?.getRandomValues) {
+      const value = new Uint32Array(1);
+      window.crypto.getRandomValues(value);
+      return value[0] % max;
+    }
+    return Math.floor(Math.random() * max);
+  }
+
+  function heroCandidates(tools) {
+    // Future catalogue metadata can set hero.enabled=false for tools that do not
+    // compose well inside the 831×211 wordmark surface. For now every tool is eligible.
+    return tools.filter((tool) => tool?.hero?.enabled !== false);
+  }
+
+  function drawHeroPreview(preview) {
+    if (!preview || !runtimeReady(preview.iframe)) return false;
+
+    try {
+      const win = preview.iframe.contentWindow;
+      const doc = preview.iframe.contentDocument;
+      const canvas = doc?.getElementById('sketch-canvas');
+
+      if (doc?.documentElement) {
+        doc.documentElement.style.width = '100%';
+        doc.documentElement.style.height = '100%';
+        doc.documentElement.style.overflow = 'hidden';
+      }
+      if (doc?.body) {
+        doc.body.style.margin = '0';
+        doc.body.style.width = '100%';
+        doc.body.style.height = '100%';
+        doc.body.style.overflow = 'hidden';
+      }
+      if (canvas) {
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.maxWidth = 'none';
+        canvas.style.maxHeight = 'none';
+      }
+
+      // Keep the hero's logical render surface fixed to the Illustrator-measured
+      // wordmark + claim bounds. CSS scales the iframe responsively afterwards.
+      win.sketchResize(HERO_RENDER_WIDTH, HERO_RENDER_HEIGHT);
+      win.sketchDraw(preview.state);
+      return true;
+    } catch (error) {
+      console.warn('[INDEX HTML] hero draw failed:', preview.tool?.slug, error);
+      return false;
+    }
+  }
+
+  function stopHeroPreview() {
+    if (!heroPreview) return;
+    if (heroPreview.raf) cancelAnimationFrame(heroPreview.raf);
+    heroPreview.raf = 0;
+    heroPreview.lastTime = 0;
+  }
+
+  function startHeroPreview() {
+    if (!heroPreview?.ready || heroPreview.raf || !heroVisible || document.hidden) return;
+    if (prefersReducedMotion) return;
+
+    const tick = (now) => {
+      if (!heroPreview?.ready || !heroVisible || document.hidden) {
+        if (heroPreview) {
+          heroPreview.raf = 0;
+          heroPreview.lastTime = 0;
+        }
+        return;
+      }
+
+      if (!heroPreview.lastTime) heroPreview.lastTime = now;
+      const dt = Math.min(0.05, Math.max(0, (now - heroPreview.lastTime) / 1000));
+      heroPreview.lastTime = now;
+      heroPreview.state.time += dt;
+      applyHeroMotion(heroPreview.tool.slug, heroPreview.state, dt);
+      drawHeroPreview(heroPreview);
+      heroPreview.raf = requestAnimationFrame(tick);
+    };
+
+    heroPreview.raf = requestAnimationFrame(tick);
+  }
+
+  async function initialiseHeroPreview(tools) {
+    if (!heroBrand || !heroToolMask) return;
+
+    const candidates = heroCandidates(tools);
+    if (!candidates.length) return;
+
+    const tool = candidates[randomIndex(candidates.length)];
+    const iframe = document.createElement('iframe');
+    iframe.title = `${tool.name} hero preview`;
+    iframe.setAttribute('aria-hidden', 'true');
+
+    try {
+      const loadPromise = waitForIframeLoad(iframe);
+      iframe.src = `${tool.file}?hero=1`;
+      heroToolMask.replaceChildren(iframe);
+
+      await loadPromise;
+      const ready = await waitForRuntime(iframe);
+      if (!ready) throw new Error('tool runtime did not become ready');
+
+      heroPreview = {
+        tool,
+        iframe,
+        state: stateFromManifest(iframe.contentWindow.SKETCH_TOOL),
+        ready: true,
+        raf: 0,
+        lastTime: 0
+      };
+
+      await nextFrame();
+      await nextFrame();
+
+      if (!drawHeroPreview(heroPreview)) throw new Error('initial hero draw failed');
+
+      heroBrand.classList.add('is-rendered');
+
+      // The hero is always animated while visible. Hover is deliberately irrelevant.
+      const observer = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        heroVisible = !!entry?.isIntersecting;
+        if (heroVisible) startHeroPreview();
+        else stopHeroPreview();
+      }, { rootMargin: '120px 0px' });
+      observer.observe(heroBrand);
+      heroPreview.observer = observer;
+
+      if (prefersReducedMotion) {
+        // Keep one clean static frame for users who request reduced motion.
+        drawHeroPreview(heroPreview);
+      } else {
+        startHeroPreview();
+      }
+    } catch (error) {
+      console.warn('[INDEX HTML] hero preview unavailable:', error);
+      heroPreview?.observer?.disconnect();
+      heroPreview = null;
+      heroToolMask.replaceChildren();
+      heroBrand.classList.remove('is-rendered');
     }
   }
 
@@ -421,6 +583,7 @@
       if (!tools.length) throw new Error('No tools are defined.');
 
       catalogue.tools = tools;
+      void initialiseHeroPreview(tools);
       buildTagFilters(tools);
 
       const frag = document.createDocumentFragment();
@@ -470,7 +633,15 @@
   syncStickyHeader();
   window.addEventListener('scroll', syncStickyHeader, { passive: true });
 
+  document.addEventListener('visibilitychange', () => {
+    if (!heroPreview?.ready) return;
+    if (document.hidden) stopHeroPreview();
+    else if (heroVisible) startHeroPreview();
+  });
+
   window.addEventListener('beforeunload', () => {
+    stopHeroPreview();
+    heroPreview?.observer?.disconnect();
     for (const preview of livePreviews) {
       stopPreview(preview);
       preview.resizeObserver?.disconnect();

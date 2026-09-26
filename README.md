@@ -14,23 +14,17 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.13.3**  
+**Current staging UI build → V0.15**
 
-**V0.13.3 hero motion test:** replaces the intermittent raster scan with a continuously visible, CSS-only bouncing amorphous blob and satellite particle cluster. The motion is autonomous, lightweight and disabled when `prefers-reduced-motion` is enabled.  
+**V0.15 hero system:** the homepage wordmark + claim is now a live vector-masked viewport for the actual INDEX HTML tools. One of the catalogue tools is selected randomly on each page load, rendered on the fixed **831 × 211 px** logical hero surface, and kept in continuous motion while the hero is visible. The current hero motion recipe deliberately inherits the catalogue-preview motion recipe; the two hooks are separate so the next metadata/content pass can tune hover and hero behaviour independently per tool.
 
-**Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**  
-
-**V0.13.3 desktop motion test:** replaces the intermittent raster scan with a continuously visible DVD-style motion system inside the homepage wordmark stage. An amorphous orange blob and a small satellite particle cluster move on independent horizontal and vertical bounce cycles while the blob slowly morphs. The effect is autonomous, CSS-only, and respects `prefers-reduced-motion`. V0.13 sizing, privacy hierarchy, cache busting, the current user-supplied `wordmark-claim.svg`, 5 px privacy spacing and unified secondary surface tone (`#F4F4F0`) remain in place.
-
-**V0.12.2 desktop UI refinement:** optical alignment and icon sizing in navigation, looser Barlow display typography, single-column privacy, simplified tool header, refined development CTA, and a unified neutral secondary surface.
+**Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
 
 **INDEX HTML is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
 
 The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
 
-The staging homepage queues real tool previews as they approach the viewport, initialises at most two in parallel, retries a failed runtime once, then keeps previews frozen by default and animates them only while hovered on pointer devices. The catalogue can be filtered by tool name or concept tag. Search stays collapsed until requested; catalogue cards and overview cards use the current INDEX HTML hover language, while the tool detail page now includes inline numeric ranges, progress-filled sliders and an email fallback for bug / implementation feedback.
-
-V0.8 is a desktop UI refinement build: optical-black site ink, revised catalogue surfaces and filters, updated INDEX HTML header branding, GitHub marks, control-range hints, modulation-tip iconography and a direct development-contact CTA on each tool page.
+The homepage queues real tool previews as they approach the viewport, initialises at most two catalogue previews in parallel, retries a failed runtime once, keeps catalogue previews frozen by default and animates them only while hovered on fine-pointer devices. Separately, the homepage hero loads one random real tool and animates it continuously whenever the hero is on screen. The catalogue can be filtered by tool name or concept tag.
 
 **M PLUS Rounded 1c** remains the body/UI typeface. **Barlow Condensed** is the display typeface for headings and strong signals, using Medium for claims and ExtraBold for titles. Both are self-hosted under `assets/fonts/` under their respective SIL Open Font License terms.
 
@@ -88,7 +82,7 @@ index-html/
 └── formshift/
 ```
 
-Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer now includes a catalogue homepage (`index.html`), an `about.html` page and one generic `tool.html` page. The homepage builds the 11 catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
+Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer now includes a catalogue homepage (`index.html`), an `about.html` page and one generic `tool.html` page. The homepage builds the 11 catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The hero independently selects one real tool at random on each page load and renders it continuously through the vector wordmark + claim mask on an 831 × 211 logical surface. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
 
 ## How to use a tool
 
