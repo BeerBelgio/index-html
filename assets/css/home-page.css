@@ -117,62 +117,15 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .home-hero {
   padding: 16px 0 0;
 }
-.hero-brand-zone {
-  --hero-brand-overhang: 92px;
-  position: relative;
-  margin-top: calc(var(--hero-brand-overhang) * -1);
-  padding-top: var(--hero-brand-overhang);
-  margin-bottom: 54px;
-  overflow: visible;
-  isolation: isolate;
-}
 .hero-brand {
   position: relative;
-  z-index: 2;
   width: min(100%, 920px);
-  margin: 0 auto;
+  margin: 0 auto 54px;
 }
 .hero-brand img {
   display: block;
   width: 100%;
   height: auto;
-}
-.home-hero {
-  position: relative;
-  overflow: visible;
-}
-.hero-local-inversion-blob {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 3;
-  width: clamp(360px, 36vw, 520px);
-  height: clamp(132px, 12vw, 176px);
-  overflow: hidden;
-  pointer-events: none;
-  background: var(--orange);
-  border-radius: 58% 42% 61% 39% / 46% 55% 45% 54%;
-  transform-origin: 0 0;
-  will-change: transform, border-radius;
-}
-.hero-local-inversion-stage {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform-origin: 0 0;
-  pointer-events: none;
-  will-change: transform;
-}
-.hero-brand-inverted {
-  padding-top: var(--hero-brand-overhang);
-}
-.hero-brand-inverted img {
-  filter: brightness(0) invert(1);
-  clip-path: inset(0 0 38% 0);
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-local-inversion-blob { transform: translate(7vw, 2px) !important; }
-  .hero-local-inversion-stage { transform: translate(-7vw, -2px) !important; }
 }
 .home-hero h1 {
   font-family: var(--display-font);
