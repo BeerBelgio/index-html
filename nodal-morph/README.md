@@ -22,9 +22,9 @@ Mode X and Mode Y select the modal pair; Morph blends toward the neighbouring pa
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
 | Mode X | `mode_x` | 1–12 | 1 | 4 | Yes |
-| Mode Y | `mode_y` | 1–12 | 1 | 7 | Yes |
+| Mode Y | `mode_y` | 1–12 | 1 | 12 | Yes |
 | Morph | `morph` | 0–100 | 1 | 18 | Yes |
-| Line Width | `line_width` | 1–100 | 1 | 26 | Yes |
+| Line Width | `line_width` | 1–100 | 1 | 50 | Yes |
 | Warp | `warp` | 0–100 | 1 | 14 | Yes |
 | Rotation | `rotation` | 0–360 | 1 | 0 | Yes |
 | Motion BPM | `motion_bpm` | 30–240 | 1 | 120 | Yes |
@@ -50,7 +50,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-The renderer has moved from the earlier CPU/Canvas2D implementation to a GPU WebGL pipeline with adaptive supersampling and a render-budget cap, retaining the same Chladni mathematics and visual behaviour while reducing high-resolution CPU cost.
+WebGL; canonical Chladni minus-family equation with analytic gradient, explicit Mode X/Y pairs, morphing and warp/rotation; rendered to an adaptive supersampled framebuffer before blitting to output.
 
 ## Known limitations
 
@@ -58,7 +58,7 @@ The visual system is mathematically inspired by Chladni figures but is not inten
 
 ## Next ideas
 
-- explore a genuinely audio-derived nodal response rather than only mapping controls onto a mathematical Chladni construction
+> explore a genuinely audio-derived nodal response rather than only mapping controls onto a mathematical Chladni construction
 
 ## Licensing
 

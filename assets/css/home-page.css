@@ -139,8 +139,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   overflow: hidden;
   opacity: 0;
   background: var(--ink);
-  -webkit-mask: url("../branding/wordmark-claim.svg?v=0150") center / 100% 100% no-repeat;
-  mask: url("../branding/wordmark-claim.svg?v=0150") center / 100% 100% no-repeat;
+  -webkit-mask: url("../branding/wordmark-claim.svg?v=0160") center / 100% 100% no-repeat;
+  mask: url("../branding/wordmark-claim.svg?v=0160") center / 100% 100% no-repeat;
 }
 .hero-brand.is-rendered .hero-tool-mask { opacity: 1; }
 .hero-brand.is-rendered .hero-brand-fallback { opacity: 0; }
@@ -340,7 +340,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .info-card-link:focus-visible h2,
 .info-card-link:hover .arrow-icon,
 .info-card-link:focus-visible .arrow-icon { color: var(--orange); }
-.info-card-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.info-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.info-card .mapping-title { align-items: flex-start; }
 .info-card p { margin: 18px 0 0; font-size: 15px; line-height: 1.55; }
 
 .tool-grid {
@@ -565,6 +566,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   border-top: 1px solid var(--soft-line);
 }
 .mapping-grid article { padding: 20px 0; border-bottom: 1px solid var(--soft-line); }
+.mapping-grid article:nth-last-child(-n + 2) { border-bottom: 0; }
 .host-contract {
   margin-top: 30px;
   padding-top: 24px;
@@ -636,6 +638,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   .tool-grid { grid-template-columns: 1fr; }
   .about-two-col,
   .mapping-grid { grid-template-columns: 1fr; }
+  .mapping-grid article:nth-last-child(2) { border-bottom: 1px solid var(--soft-line); }
   .home-footer { align-items: flex-start; flex-direction: column; padding: 22px 0; }
   .footer-links { width: 100%; justify-content: flex-start; }
   .privacy-link { width: 100%; }

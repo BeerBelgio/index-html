@@ -580,9 +580,10 @@ input[type="color"] {
 
 .development-block + .development-block { margin-top: 20px; }
 .development-block h3 { margin: 0 0 7px; font-size: 15px; }
-.development-block p,
-.development-block ul { margin: 0; width: 100%; max-width: none; line-height: 1.55; }
-.development-block ul { padding-left: 20px; }
+.development-block p { margin: 0; width: 100%; max-width: none; line-height: 1.55; }
+.development-next-idea { display: flex; align-items: flex-start; gap: 9px; }
+.development-next-idea + .development-next-idea { margin-top: 7px; }
+.development-next-marker { flex: 0 0 auto; font-family: var(--display-font); font-weight: 800; }
 .development-contact {
   margin-top: 28px;
   padding-top: 24px;

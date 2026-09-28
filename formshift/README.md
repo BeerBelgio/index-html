@@ -11,7 +11,7 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 ## What it does
 
-Generates a basic geometric source and applies trigger-driven Flash-style cuts, slotting, wedge splits, echoes and radial copy movements. The current engine is shape-based rather than typographic.
+Generates a basic geometric source and applies trigger-driven Flash-style cuts, slotting, wedge splits, echoes and radial copy movements.
 
 ## Behavior
 
@@ -21,8 +21,8 @@ FX Type selects one of six transition families; Shape selects one of six generat
 
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
-| FX Type | `scene` | 0–5 | 1 | 0 | Yes |
-| Shape | `shape` | 0–5 | 1 | 0 | Yes |
+| FX Type | `scene` | 0–5 | 1 | 2 | Yes |
+| Shape | `shape` | 0–5 | 1 | 5 | Yes |
 | Trigger | `trigger` | 0–100 | 1 | 0 | Yes |
 | Impact | `impact` | 0–100 | 1 | 70 | Yes |
 | Scale | `scale` | 0–100 | 1 | 70 | Yes |
@@ -36,8 +36,8 @@ FX Type selects one of six transition families; Shape selects one of six generat
 
 | Control | Key | Default | Audio Sync |
 |---|---|---|---|
-| Shape Color | `shape_color` | `#f2eee6` | No |
-| Accent Color | `accent_color` | `#ec6b2d` | No |
+| Shape Color | `shape_color` | `#F2EEE6` | No |
+| Accent Color | `accent_color` | `#EC6B2D` | No |
 
 ## Standalone preview
 
@@ -47,19 +47,15 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Inspiration / lineage
 
-- **inspired-by — [Typoman](https://github.com/markdo27/typoman)**: Inspired by markdo27's Typoman and its kinetic Flash-style transition grammar. FormShift is an independent shape-based implementation.
+- **inspired-by — [Typoman](https://github.com/markdo27/typoman)**: Inspired by markdo27's previous version of Typoman and its kinetic Flash-style transition grammar. FormShift is an independent shape-based implementation.
 
 ## Development notes
 
-The current shape-based engine keeps the external Typoman project as visual/interaction lineage only. Transition was replaced by a direct Trigger envelope, internal Decay was removed, and stretch is now independent on X/Y.
+Canvas2D; offscreen generated geometric shapes and six direct-Trigger scene families using rectangular/wedge clipping, slotting, echoes and radial copies; independent X/Y stretch; no text engine or p5 dependency.
 
 ## Known limitations
 
-Like FormCutter, the current implementation transforms its own generated source canvas; it does not decompose the actual lower Sketch layer without an exposed source texture/canvas.
-
-## Next ideas
-
-- add optional BG color/opacity while preserving transparent output
+Like FormCutter, the current implementation transforms its own generated source canvas; it does not decompose the actual lower layer without an exposed source texture/canvas.
 
 ## Licensing
 

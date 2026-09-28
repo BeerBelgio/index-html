@@ -7,11 +7,11 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `particles`, `lines`
 
-> Blobs wandering around, with live links forming between them.
+> Blobs wandering around, with live, bendable links forming between them.
 
 ## What it does
 
-Generates a population of soft moving blobs/nodes that wander through the frame, create proximity links and deform into motion-driven melted forms.
+Generates a population of soft moving blobs/nodes that wander through the frame. Meanwhile proximity links are generated and bent into motion-driven melted forms.
 
 ## Behavior
 
@@ -26,11 +26,11 @@ Amount is the actual blob count (2–200); Size sets blob radius; Wandering BPM 
 | Wandering BPM | `wandering_bpm` | 30–240 | 1 | 120 | Yes |
 | Wandering | `wandering` | 0–200 | 1 | 96 | Yes |
 | Spread | `spread` | 0–200 | 1 | 110 | Yes |
-| Linking | `linking` | 0–200 | 1 | 70 | Yes |
+| Linking | `linking` | 0–200 | 1 | 100 | Yes |
 | Link Width | `link_width` | 0–200 | 1 | 80 | Yes |
 | Center Size | `center_size` | 0–100 | 1 | 18 | Yes |
 | Melt | `melt` | 0–500 | 1 | 0 | Yes |
-| Fill Opacity | `fill_opacity` | 0–100 | 1 | 16 | Yes |
+| Fill Opacity | `fill_opacity` | 0–100 | 1 | 50 | Yes |
 
 ### Colors
 
@@ -51,7 +51,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Independent Canvas2D implementation. The current engine adds deterministic multi-force linking and motion-driven Melt while remaining a generated field rather than a refractive post-process.
+Canvas2D; deterministic blob population, wandering/spread, proximity links with reusable force profiles, motion/turn-driven Melt deformation, fill/core rendering; no pointer trail, source capture, ray-marching or refraction.
 
 ## Known limitations
 
@@ -59,7 +59,7 @@ No underlying image refraction is performed; the current tool is a generated fla
 
 ## Next ideas
 
-- add an optional BG color/opacity control while preserving transparent output
+> change the order of the blob's layers: fill then core center and linking.
 
 ## Licensing
 

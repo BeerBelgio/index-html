@@ -11,7 +11,7 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 ## What it does
 
-Generates a dense moving particle front with directional progression, scatter, turbulence, trailing dust and grain. It translates the particle-reveal idea into a standalone generator rather than sampling underlying content.
+Generates a dense moving particle front with directional progression, scatter, turbulence, trailing dust and grain.
 
 ## Behavior
 
@@ -22,7 +22,7 @@ Progress moves the active particle front; Direction selects ten directional/radi
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
 | Progress | `progress` | 0–100 | 1 | 42 | Yes |
-| Direction | `direction` | 0–9 | 1 | 0 | Yes |
+| Direction | `direction` | 0–9 | 1 | 5 | Yes |
 | Amount | `amount` | 0–100 | 1 | 70 | Yes |
 | Edge Width | `edge_width` | 0–100 | 1 | 34 | Yes |
 | Scatter | `scatter` | 0–200 | 1 | 95 | Yes |
@@ -35,8 +35,8 @@ Progress moves the active particle front; Direction selects ten directional/radi
 
 | Control | Key | Default | Audio Sync |
 |---|---|---|---|
-| Particle Color | `particle_color` | `#f2eee6` | No |
-| Accent Color | `accent_color` | `#ec6b2d` | No |
+| Particle Color | `particle_color` | `#F2EEE6` | No |
+| Accent Color | `accent_color` | `#EC6B2D` | No |
 
 ## Standalone preview
 
@@ -50,15 +50,15 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Canvas UI ParticleReveal remains the conceptual reference; the current file is an independent Canvas2D particle system. Progress is now the direct front-position control.
+Canvas2D; generated particle lattice driven by a Progress front, ten metric/direction patterns, scatter, turbulence, trail, grain and two-colour mixing; no upstream-content sampling.
 
 ## Known limitations
 
-Unlike Canvas UI ParticleReveal, this file does not capture or dissolve arbitrary HTML/image content underneath it; it generates the particle field itself.
+This file does not capture or dissolve arbitrary HTML/image content underneath it; it generates the particle field itself.
 
 ## Next ideas
 
-- allow the particle system to process an upstream visual source in the future browser pipeline
+> allow the particle system to process an upstream visual source in the future browser pipeline
 
 ## Licensing
 

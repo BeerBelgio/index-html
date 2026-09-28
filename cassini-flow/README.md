@@ -11,7 +11,7 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 ## What it does
 
-Builds filled orbital slices from Cassini-oval / lemniscate-like fields. The result moves between nested loops, stretched orbits and more unstable warped orbital structures.
+Builds filled orbital slices from Cassini-oval / lemniscate-like fields. It create something between nested loops, stretched orbits and more unstable warped orbital structures.
 
 ## Behavior
 
@@ -51,7 +51,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Independent Canvas2D Cassini-style field. Drift integrates speed continuously so mapped changes alter velocity without retriggering or repositioning the field.
+Canvas2D; two-focus product-distance Cassini field, six modes, clipped filled slices, continuous integrated Drift and independent BG controls.
 
 ## Known limitations
 

@@ -11,7 +11,7 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 ## What it does
 
-Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled and how opaque the result is. The result behaves as a generated fracture/mask layer rather than a displaced copy of another image.
+Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled and how opaque the result is.
 
 ## Behavior
 
@@ -23,7 +23,7 @@ Layout selects balanced, horizontal or vertical bias; Seed changes the fracture;
 |---|---|---:|---:|---:|---|
 | Layout | `layout` | 0–2 | 1 | 0 | Yes |
 | Seed | `seed` | 0–100 | 1 | 18 | Yes |
-| Density | `density` | 0–100 | 1 | 46 | Yes |
+| Density | `density` | 0–100 | 1 | 100 | Yes |
 | Cut Asymmetry | `cut_asymmetry` | 0–100 | 1 | 42 | Yes |
 | Coverage Distribution | `coverage_distribution` | 0–100 | 1 | 74 | Yes |
 | Fragment Fill | `fragment_fill` | 0–100 | 1 | 100 | Yes |
@@ -33,7 +33,7 @@ Layout selects balanced, horizontal or vertical bias; Seed changes the fracture;
 
 | Control | Key | Default | Audio Sync |
 |---|---|---|---|
-| Fill Color | `fill_color` | `#1c1713` | No |
+| Fill Color | `fill_color` | `#1C1713` | No |
 
 ## Standalone preview
 
@@ -43,11 +43,11 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Inspiration / lineage
 
-- **internal sibling — FormCutter / shared Flash exploration**: Developed alongside FormCutter from the same internal masking/cutting exploration; it is a sibling idea, not a code derivative.
+- **internal sibling — [FormCutter / shared Flash exploration](https://beerbelgio.github.io/index-html/tool.html?tool=form-cutter)**: Developed alongside FormCutter from the same internal masking/cutting exploration; it is a sibling idea, not a code derivative.
 
 ## Development notes
 
-The current grid uses ordered weighted cuts for stronger asymmetry without self-intersecting cells; a small geometric overlap closes antialiasing seams at full Fragment Fill.
+Canvas2D; ordered weighted grid cuts, strongly asymmetric but non-self-intersecting cells, coverage ranking, fragment shrink/fill and 2 px seam-overlap compensation.
 
 ## Known limitations
 
@@ -55,7 +55,7 @@ It generates its own mask polygons; it does not fracture the pixels of the layer
 
 ## Next ideas
 
-- use the generated fracture as a true interactive mask between upstream/downstream visual layers once the browser host can expose source content
+> use the generated fracture as a true interactive mask between upstream/downstream visual layers once the browser host can expose source content
 
 ## Licensing
 

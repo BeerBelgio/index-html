@@ -46,12 +46,12 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Inspiration / lineage
 
-- **derived-from — Topographic**: Derived internally from Topographic, reworking the same procedural field into a filled-mask system.
+- **derived-from — [Topographic](https://github.com/BeerBelgio/visual-lab)**: Derived internally from Topographic, reworking the same procedural field into a filled-mask system.
 - **inspired-by — [Fluid](https://github.com/enonforetsam/fluid)**: Topographic Mask inherits Fluid's conceptual lineage indirectly through its Topographic parent.
 
 ## Development notes
 
-Internally derived from Topographic but increasingly specialized: filled ranked bands, adaptive native-resolution sampling, BG controls and a sub-pixel overlap pass to remove cell seams.
+Canvas2D internal derivative of Topographic: retains substantial scalar-field family logic while rendering ranked clipped filled bands with adaptive sampling, BG controls and overlap compensation.
 
 ## Licensing
 

@@ -68,21 +68,34 @@
     return state;
   }
 
-  // Staging-only catalogue motion recipes. They affect card previews only and do
-  // not alter a tool's manifest defaults or the downloadable HTML file.
-  function applyCatalogueMotion(slug, state, dt) {
+  // One shared motion recipe per tool. Catalogue cards use it on hover;
+  // the hero uses the exact same recipe continuously while visible.
+  const previewMotionClock = new WeakMap();
+
+  function advancePreviewClock(state, dt) {
+    const next = (previewMotionClock.get(state) || 0) + dt;
+    previewMotionClock.set(state, next);
+    return next;
+  }
+
+  function applyPreviewMotion(slug, state, dt) {
     switch (slug) {
+      case 'linking-nodes':
+        state.melt = 250;
+        break;
       case 'cassini-flow':
-        state.drift = Math.max(Number(state.drift) || 0, 72);
+        state.drift = 80;
         break;
-      case 'caustic-stitch':
-        state.accent_variations = Math.floor(state.time * 2.6) % 101;
+      case 'caustic-stitch': {
+        const t = advancePreviewClock(state, dt);
+        state.warp = 50 - 50 * Math.cos(t * 0.55);
         break;
+      }
       case 'cellular-field':
         state.warp = 38 + 28 * Math.sin(state.time * 0.58);
         break;
       case 'form-cutter': {
-        const beat = (state.time * 2) % 1;
+        const beat = (state.time * 2.5) % 1;
         state.trigger = beat < 0.065 ? 100 * (1 - beat / 0.065) : 0;
         break;
       }
@@ -92,19 +105,18 @@
         break;
       }
       case 'fractured-mask':
-        state.seed = Math.floor(state.time * 1.15) % 101;
+        state.seed = Math.floor(state.time * 1.35) % 101;
         state.coverage_distribution = 54 + 34 * Math.sin(state.time * 0.68);
         break;
       case 'nodal-morph':
         state.morph = 28 + 22 * Math.sin(state.time * 0.53);
-        state.rotation = (state.time * 12) % 360;
+        state.warp = 50;
         break;
       case 'scatter-front':
-        state.progress = 50 + 50 * Math.sin(state.time * 0.22);
+        // The renderer already uses state.time: no control override is needed.
         break;
       case 'topographic':
-        state.height_shift = ((Number(state.height_shift) || 0) + dt * 2.2) % 100;
-        state.drift = 18;
+        state.drift = 40;
         break;
       case 'topographic-mask':
         state.height_shift = ((Number(state.height_shift) || 0) + dt * 4.0) % 100;
@@ -112,15 +124,6 @@
       default:
         break;
     }
-  }
-
-
-  // Hero motion currently inherits the catalogue recipe so both surfaces speak
-  // the same visual language. The separate hook is intentional: the next content
-  // pass can give each tool distinct catalogue / hero recipes without changing
-  // the loading architecture again.
-  function applyHeroMotion(slug, state, dt) {
-    applyCatalogueMotion(slug, state, dt);
   }
 
   function randomIndex(max) {
@@ -134,8 +137,6 @@
   }
 
   function heroCandidates(tools) {
-    // Future catalogue metadata can set hero.enabled=false for tools that do not
-    // compose well inside the 831×211 wordmark surface. For now every tool is eligible.
     return tools.filter((tool) => tool?.hero?.enabled !== false);
   }
 
@@ -200,7 +201,7 @@
       const dt = Math.min(0.05, Math.max(0, (now - heroPreview.lastTime) / 1000));
       heroPreview.lastTime = now;
       heroPreview.state.time += dt;
-      applyHeroMotion(heroPreview.tool.slug, heroPreview.state, dt);
+      applyPreviewMotion(heroPreview.tool.slug, heroPreview.state, dt);
       drawHeroPreview(heroPreview);
       heroPreview.raf = requestAnimationFrame(tick);
     };
@@ -367,7 +368,7 @@
       const dt = Math.min(0.05, Math.max(0, (now - preview.lastTime) / 1000));
       preview.lastTime = now;
       preview.state.time += dt;
-      applyCatalogueMotion(preview.slug, preview.state, dt);
+      applyPreviewMotion(preview.slug, preview.state, dt);
       resizeAndDraw(preview, stage);
       preview.raf = requestAnimationFrame(tick);
     };

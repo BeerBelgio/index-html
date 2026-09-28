@@ -23,8 +23,8 @@ Drift BPM sets the base temporal clock; Cell Count changes field density; Core S
 |---|---|---:|---:|---:|---|
 | Drift BPM | `drift_bpm` | 20–240 | 1 | 120 | No |
 | Cell Count | `cell_count` | 0–50 | 0.1 | 10 | Yes |
-| Core Size | `core` | 0–3 | 0.01 | 1 | Yes |
-| Inner Gap | `inner_gap` | 0–100 | 0.1 | 8 | Yes |
+| Core Size | `core` | 0–3 | 0.01 | 0.4 | Yes |
+| Inner Gap | `inner_gap` | 0–100 | 0.1 | 25 | Yes |
 | Membrane | `membrane` | 0–200 | 0.1 | 10 | Yes |
 | Warp | `warp` | 0–100 | 1 | 15 | Yes |
 | Warp Scale | `warp_scale` | 0–100 | 1 | 35 | Yes |
@@ -35,8 +35,8 @@ Drift BPM sets the base temporal clock; Cell Count changes field density; Core S
 
 | Control | Key | Default | Audio Sync |
 |---|---|---|---|
-| Core | `core_color` | `#88b774` | Yes |
-| Membrane | `edge` | `#ec6b2d` | Yes |
+| Core | `core_color` | `#88B774` | Yes |
+| Membrane | `edge` | `#EC6B2D` | Yes |
 
 ## Standalone preview
 
@@ -50,7 +50,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Independent WebGL reinterpretation of Cellular/Worley–Voronoi language. Warp Drift uses an accumulated phase so mapped speed changes do not jump the field; the renderer stays transparent outside the generated core/membrane structure.
+WebGL; standard Worley F1/F2 neighbourhood core with its own hash/feature motion, accumulated warp-drift phase, multi-band deformation, membrane/core/gap model and premultiplied-alpha BG composition.
 
 ## Known limitations
 

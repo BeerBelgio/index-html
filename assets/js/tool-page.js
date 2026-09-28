@@ -327,8 +327,10 @@
     if (Array.isArray(development.nextIdeas) && development.nextIdeas.length) {
       const div = document.createElement('div');
       div.className = 'development-block';
-      const list = development.nextIdeas.map((idea) => `<li>${escapeHtml(idea)}</li>`).join('');
-      div.innerHTML = `<h3>Next ideas</h3><ul>${list}</ul>`;
+      const ideas = development.nextIdeas
+        .map((idea) => `<p class="development-next-idea"><span class="development-next-marker" aria-hidden="true">&gt;</span><span>${escapeHtml(idea)}</span></p>`)
+        .join('');
+      div.innerHTML = `<h3>Next ideas</h3>${ideas}`;
       els.development.appendChild(div);
       count += 1;
     }

@@ -52,7 +52,7 @@ If a future tool includes or adapts third-party code or material, the applicable
 
 ## 5. No endorsement
 
-References to Sketch Design Tools, GitHub repositories, project names, authors, platforms or third-party products are provided for identification, compatibility and attribution only.
+References to Sketch, GitHub repositories, project names, authors, platforms or third-party products are provided for identification, compatibility and attribution only.
 
 No affiliation with or endorsement by those third parties is implied.
 

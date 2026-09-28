@@ -4,19 +4,19 @@
 
 A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio / Matteo Belgiovine**.
 
-The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **[Sketch Design Tools](https://tools.sketchdesign.club/)**, while remaining self-contained browser files designed to evolve beyond a single host.
+The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **[Sketch](https://tools.sketchdesign.club/)**, while remaining self-contained browser files designed to evolve beyond a single host.
 
 **Project → INDEX HTML**  
-**Current host compatibility → [Sketch Design Tools](https://tools.sketchdesign.club/) + standalone browser**  
+**Current host compatibility → [Sketch](https://tools.sketchdesign.club/) + standalone browser**  
 **Creative lineage → credited per tool and in `THIRD_PARTY_NOTICES.md`**
 
 In this repository, **BG** is shorthand for **background**. After this note, documentation uses **BG** consistently.
 
 ## Project status
 
-**Current staging UI build → V0.15**
+**Current staging UI build → V0.16**
 
-**V0.15 hero system:** the homepage wordmark + claim is now a live vector-masked viewport for the actual INDEX HTML tools. One of the catalogue tools is selected randomly on each page load, rendered on the fixed **831 × 211 px** logical hero surface, and kept in continuous motion while the hero is visible. The current hero motion recipe deliberately inherits the catalogue-preview motion recipe; the two hooks are separate so the next metadata/content pass can tune hover and hero behaviour independently per tool.
+**V0.16 content + preview pass:** the V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. Catalogue and hero now use one shared per-tool motion recipe, with hero eligibility stored in catalogue metadata. Tool copy, lineage, parameter notes and HTML defaults have been synchronized with the V8.6 content inventory.
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
 
@@ -24,7 +24,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
 
-The homepage queues real tool previews as they approach the viewport, initialises at most two catalogue previews in parallel, retries a failed runtime once, keeps catalogue previews frozen by default and animates them only while hovered on fine-pointer devices. Separately, the homepage hero loads one random real tool and animates it continuously whenever the hero is on screen. The catalogue can be filtered by tool name or concept tag.
+The homepage queues real tool previews as they approach the viewport, initialises at most two catalogue previews in parallel, retries a failed runtime once, keeps catalogue previews frozen by default and animates them only while hovered on fine-pointer devices. The homepage hero loads one random eligible real tool and animates it continuously whenever the hero is on screen. Both surfaces use the same per-tool motion recipe. The catalogue can be filtered by tool name or concept tag.
 
 **M PLUS Rounded 1c** remains the body/UI typeface. **Barlow Condensed** is the display typeface for headings and strong signals, using Medium for claims and ExtraBold for titles. Both are self-hosted under `assets/fonts/` under their respective SIL Open Font License terms.
 
@@ -34,7 +34,7 @@ INDEX HTML is a collection of visual generators, masks, transitions and procedur
 
 - standalone and inspectable;
 - usable directly in a modern browser;
-- compatible with [Sketch Design Tools](https://tools.sketchdesign.club/) through its exposed manifest;
+- compatible with [Sketch](https://tools.sketchdesign.club/) through its exposed manifest;
 - built without a project-wide build system or external runtime dependency;
 - documented with its own controls, lineage and licence notes.
 
@@ -86,7 +86,7 @@ Each tool folder contains the current standalone HTML file and its tool-specific
 
 ## How to use a tool
 
-### In [Sketch Design Tools](https://tools.sketchdesign.club/)
+### In [Sketch](https://tools.sketchdesign.club/)
 
 1. Import the HTML file as a Custom HTML Tool.
 2. Use the controls exposed by its manifest.

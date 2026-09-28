@@ -7,7 +7,7 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `mask-cut`, `transition`
 
-> Basic forms, cut into slices. Kinda like a birthday cake...
+> Basic forms, cut into slices. Main composition object or just layering mask is up to you, go wild.
 
 ## What it does
 
@@ -22,11 +22,11 @@ Source chooses filled/outlined circles and rectangles or stripe sources; Cut Mod
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
 | Cut Mode | `cut_mode` | 0–5 | 1 | 0 | Yes |
-| Source | `source` | 0–5 | 1 | 0 | Yes |
+| Source | `source` | 0–5 | 1 | 2 | Yes |
 | Trigger | `trigger` | 0–100 | 1 | 0 | Yes |
-| Scale | `scale` | 0–100 | 1 | 75 | Yes |
+| Scale | `scale` | 0–100 | 1 | 30 | Yes |
 | Stroke Width | `stroke_width` | 0–100 | 1 | 35 | Yes |
-| Cut Density | `cut_density` | 0–100 | 1 | 58 | Yes |
+| Cut Density | `cut_density` | 0–100 | 1 | 80 | Yes |
 | Cut Size | `cut_size` | 0–100 | 1 | 60 | Yes |
 | Displacement | `displacement` | 0–100 | 1 | 74 | Yes |
 | Rotation | `rotation` | 0–100 | 1 | 40 | Yes |
@@ -35,8 +35,8 @@ Source chooses filled/outlined circles and rectangles or stripe sources; Cut Mod
 
 | Control | Key | Default | Audio Sync |
 |---|---|---|---|
-| Main Color | `main_color` | `#f2eee6` | No |
-| Base Color | `base_color` | `#ec6b2d` | No |
+| Main Color | `main_color` | `#EC6B2D` | No |
+| Base Color | `base_color` | `#F2EEE6` | No |
 
 ## Standalone preview
 
@@ -46,18 +46,15 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Inspiration / lineage
 
-- **inspired-by — [Typoman](https://github.com/markdo27/typoman)**: FormCutter grew from a broader study of markdo27's Typoman and Flash-style kinetic visual grammar. Its cutter engine was independently built for this project.
-- **inspired-by — [nuftext](https://github.com/markdo27/nuftext)**: Additional visual research reference during the FormCutter exploration: markdo27/nuftext.
-- **inspired-by — [grad_text](https://github.com/markdo27/grad_text)**: Additional visual research reference during the FormCutter exploration: markdo27/grad_text.
-- **inspired-by — [animtypo](https://github.com/markdo27/animtypo)**: Additional visual research reference during the FormCutter exploration: markdo27/animtypo.
+- **inspired-by — [Typoman](https://github.com/markdo27/typoman)**: FormCutter grew from a broader study of markdo27's previous version of Typoman and Flash-style kinetic visual grammar. The implementation was independently built for this project.
 
 ## Development notes
 
-The tool was built from internally generated geometry. Its public lineage documents only identified, verifiable reference projects. | Decay was intentionally omitted from this branch because Sketch automation can supply envelope/decay behavior.
+Canvas2D; internally generated circles/rectangles/stripes, stable base plus fragmented copy, six cut modes using rectangle/wedge clipping, displacement, rotation and echoes.
 
 ## Known limitations
 
-It cannot cut/rearrange the actual layer below unless Sketch exposes that layer as a texture/canvas/ImageData source. The current implementation only fragments its own generated source.
+It cannot cut/rearrange the actual layer below. The current implementation only fragments its own generated source.
 
 ## Licensing
 

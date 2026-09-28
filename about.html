@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="index-html-build" content="v0.14" />
+  <meta name="index-html-build" content="v0.16" />
   <title>INDEX HTML - About</title>
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="assets/css/home-page.css?v=0132" />
+  <link rel="stylesheet" href="assets/css/home-page.css?v=0160" />
 </head>
 <body>
   <header class="home-header shell about-header">
     <a class="home-brand about-header-brand" href="./" aria-label="INDEX HTML home">
       <span class="home-brand-sticky is-always">
-        <img class="home-brand-wordmark" src="assets/branding/wordmark.svg?v=0132" alt="INDEX HTML" />
+        <img class="home-brand-wordmark" src="assets/branding/wordmark.svg?v=0160" alt="INDEX HTML" />
         <span class="home-brand-claim">CREATIVE CODE FOR VISUAL SYSTEMS</span>
       </span>
     </a>
@@ -27,8 +27,8 @@
 
   <main class="shell home-main about-page">
     <section class="about-hero">
-      <div class="about-hero-art"><img src="assets/branding/about.svg?v=0132" alt="About" /></div>
-      <p>INDEX HTML is a growing collection of standalone HTML visual tools by BeerBelgio / Matteo Belgiovine. Sketch Design Tools is the current host compatibility target, not the identity of the project.</p>
+      <div class="about-hero-art"><img src="assets/branding/about.svg?v=0160" alt="About" /></div>
+      <p>INDEX HTML is a growing collection of standalone HTML visual tools built to run inside Sketch.</p>
     </section>
 
 
@@ -38,12 +38,12 @@
       <div class="about-two-col">
         <div>
           <h3>IN A BROWSER</h3>
-          <p>Open a tool from the catalogue and use its live controls, or download the original HTML file and open it directly in a modern browser. The downloaded file remains the same tool used by the catalogue and tool page.</p>
+          <p>Open a tool from the catalogue and use its live controls to understand how it behaves. Download the original HTML file, edit or patch the code, and open it directly in a modern browser.</p>
         </div>
         <div>
-          <h3>IN SKETCH DESIGN TOOLS</h3>
-          <p>Import the HTML as a Custom HTML Tool, use the controls exposed by its manifest, and map the controls exposed to Audio Sync where useful.</p>
-          <p><a class="inline-link" href="https://tools.sketchdesign.club/" target="_blank" rel="noopener">Open Sketch Design Tools<span class="arrow-icon" aria-hidden="true"></span></a></p>
+          <h3>IN SKETCH</h3>
+          <p>Import the HTML as a Custom HTML Tool, use the exposed controls, and map them to Audio Sync or simply automate them.</p>
+          <p><a class="inline-link" href="https://tools.sketchdesign.club/" target="_blank" rel="noopener">Open Sketch<span class="arrow-icon" aria-hidden="true"></span></a></p>
         </div>
       </div>
     </section>
@@ -51,7 +51,7 @@
     <section id="mapping" class="about-section content-card">
       <p class="section-kicker mapping-kicker"><span>MAPPING-WISE</span><span class="mapping-knob" aria-hidden="true"></span></p>
       <h2>Mapping suggestions are starting points, not prescriptions.</h2>
-      <p class="about-lead">Any parameter may be mapped to any useful source. The host or decoder should provide a common transformation layer so incoming signals can be shaped before they reach the visual parameter.</p>
+      <p class="about-lead">Any parameter may be mapped to any useful source. The host or decoder should provide a common transformation layer so incoming signals can be shaped before they reach the visual parameter. The following are the minimum requirements for mappings to remain useful and predictable.</p>
 
       <div class="mapping-grid" role="list">
         <article role="listitem"><h3>INPUT RANGE</h3><p>Define the useful min/max of the incoming signal, then normalize or clamp it before mapping. This avoids dead zones and runaway values.</p></article>
@@ -67,7 +67,7 @@
       <div class="host-contract">
         <h3>CURRENT SKETCH HOST CONTRACT</h3>
         <p><strong>Parameters:</strong> up to 12 numeric controls. <strong>Colors:</strong> up to 8 color controls. <strong>Audio Sync:</strong> up to 12 destinations in the current tested workflow. The 12-destination Audio Sync limit is empirical rather than presented here as an official Sketch API guarantee.</p>
-        <p>Every Audio Sync key must correspond to a control actually exposed in the tool manifest. A control left manual-only in Sketch is not inherently non-automatable in future browser, Max or Ableton hosts.</p>
+        <p>Every Audio Sync key must correspond to a control actually exposed in the tool manifest.</p>
       </div>
     </section>
 
@@ -76,6 +76,7 @@
       <p class="section-kicker">SOURCE-AVAILABLE / LICENSING</p>
       <h2>Readable, reusable for non-commercial work, and explicit about lineage.</h2>
       <p class="about-lead">Original INDEX HTML code is published under the PolyForm Noncommercial License 1.0.0. Original documentation and creative material are published under CC BY-NC 4.0 where the project owns the applicable rights. Commercial or monetised use requires a separate agreement.</p>
+      <p>The internet is an amazing place: you can find almost anything if you're willing to look hard enough. Referenced developers and projects are part of the creative lineage, not buried as legal footnotes.</p>
       <p>Third-party creative references and internal derivations are recorded separately so source lineage is not confused with code ownership. The full terms and current notices remain the authoritative documents.</p>
       <div class="about-links">
         <a href="https://github.com/BeerBelgio/index-html/blob/main/LICENSE.md" target="_blank" rel="noopener">LICENSE<span class="arrow-icon" aria-hidden="true"></span></a>
@@ -88,8 +89,7 @@
       <h2>This site is intentionally light on tracking.</h2>
 
       <div class="privacy-stack">
-        <article>
-          <h3>THIS SITE</h3>
+        <article class="privacy-intro">
           <p>No first-party analytics, advertising pixels, profiling or marketing trackers are used by this website.</p>
         </article>
 
@@ -101,31 +101,15 @@
 
         <article>
           <h3>EXTERNAL LINKS</h3>
-          <p>GitHub, Sketch Design Tools, BeerBelgio and other external links open third-party services. Their own privacy terms apply once you leave this site.</p>
-        </article>
-
-        <article>
-          <h3>CONTACT DATA</h3>
-          <p>“Write me” first tries to open your email app through a <code>mailto:</code> link. If no mail handler takes over, INDEX HTML shows a local fallback with recipient, subject and message as separate copyable fields. This website does not submit or store the message itself. If you email Matteo, the data you voluntarily provide are used to reply to your request and manage the related correspondence. The legal basis is taking steps at your request before a possible collaboration where applicable (GDPR Art. 6(1)(b)); otherwise, the legitimate interest in answering and managing correspondence (Art. 6(1)(f)). Providing contact data is voluntary.</p>
-        </article>
-
-        <article>
-          <h3>EMAIL PROVIDER</h3>
-          <p>Email is received through Gmail / Google. Google may process that correspondence under its own privacy terms and applicable international-transfer safeguards.</p>
-          <p><a class="inline-link" href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy<span class="arrow-icon" aria-hidden="true"></span></a></p>
-        </article>
-
-        <article>
-          <h3>RETENTION &amp; RIGHTS</h3>
-          <p>Correspondence is kept only as long as reasonably needed for the request, any resulting relationship and applicable legal or accounting obligations. No automated decision-making or profiling is carried out by Matteo through this site. Where the GDPR applies, you may request access, correction, deletion, restriction, objection or portability where applicable, and you may lodge a complaint with the competent supervisory authority.</p>
+          <p>All external links open third-party services. Their own privacy terms apply once you leave this site.</p>
         </article>
 
         <article>
           <h3>CONTROLLER / CONTACT</h3>
-          <p>Matteo Belgiovine — Turin, Italy<br><a class="inline-link" href="mailto:matteo.sonodgtl@gmail.com">matteo.sonodgtl@gmail.com</a></p>
+          <p>Matteo Belgiovine — Turin, Italy · <a class="inline-link" href="mailto:matteo.sonodgtl@gmail.com">matteo.sonodgtl@gmail.com</a></p>
         </article>
 
-        <p class="privacy-updated">Last updated: 25 September 2026.</p>
+        <p class="privacy-updated">Last updated: 28 September 2026.</p>
       </div>
     </section>
   </main>

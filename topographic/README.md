@@ -51,7 +51,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Base topographic generator using explicit contour extraction. The current version adds continuous Drift, a 0–10 Accent amount and the updated Terrain Mode / Roughness control language.
+Canvas2D; six custom scalar-field families, continuous Drift, explicit marching-squares-style contour extraction, 0–10 accent amount and independent BG controls.
 
 ## Known limitations
 
