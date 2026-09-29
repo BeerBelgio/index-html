@@ -135,7 +135,12 @@ function readVal(obj, key, fallback){
       const progress = clamp01(readVal(state, "progress", 42) / 100);
       const direction = Math.max(0, Math.min(9, Math.round(readVal(state, "direction", 0))));
       const amount = clamp01(readVal(state, "amount", 70) / 100);
-      const particleSize = Math.max(0.25, readVal(state, "particle_size", 100) / 100);
+      const particleSizeRaw = Math.max(0.25, readVal(state, "particle_size", 100) / 100);
+      // Keep 100 as the visual baseline, but make values above 100 expand more
+      // decisively so Particle Size remains legible in small catalogue/hero masks.
+      const particleSize = particleSizeRaw <= 1
+        ? particleSizeRaw
+        : 1 + (particleSizeRaw - 1) * 1.8;
       const edgeWidth = 0.014 + (readVal(state, "edge_width", 34) / 100) * 0.48;
       const scatter = readVal(state, "scatter", 95) / 100;
       const turbulence = readVal(state, "turbulence", 80) / 200;

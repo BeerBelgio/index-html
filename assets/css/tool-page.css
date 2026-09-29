@@ -612,8 +612,8 @@ input[type="color"] {
   gap: 8px;
   border: 1px solid var(--ink);
   border-radius: 999px;
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--ink);
+  color: var(--cream);
   text-decoration: none;
   font-size: 12px;
   font-weight: 800;

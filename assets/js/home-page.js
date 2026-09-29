@@ -239,6 +239,11 @@
         lastTime: 0
       };
 
+      // Apply the shared recipe before the very first hero frame.
+      // Fixed recipe values (for example Scatter Front's particle size) must
+      // be visible immediately, not only after the animation loop has ticked.
+      applyPreviewMotion(tool.slug, heroPreview.state, 0);
+
       await nextFrame();
       await nextFrame();
 
