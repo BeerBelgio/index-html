@@ -1,8 +1,8 @@
 # Fractured Mask
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Fractured_Mask-v1.4.html`  
-**Version:** v1.4  
+**Current file:** `Fractured_Mask-v1.5.html`  
+**Version:** v1.5  
 **Renderer:** Canvas 2D  
 **Provenance:** `original`  
 **Concept tags:** `mask-cut`
@@ -11,11 +11,11 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 ## What it does
 
-Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled and how opaque the result is.
+Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled, how opaque the result is and the two-color fragment/BG palette.
 
 ## Behavior
 
-Layout selects balanced, horizontal or vertical bias; Seed changes the fracture; Density sets subdivision count; Cut Asymmetry controls the size imbalance of neighbouring fragments; Coverage Distribution chooses which cells are active; Fragment Fill controls per-fragment area; Fill Opacity and Fill Color control the rendered mask.
+Layout selects balanced, horizontal or vertical bias; Seed changes the fracture; Density sets subdivision count; Cut Asymmetry controls the size imbalance of neighbouring fragments; Coverage Distribution chooses which cells are active; Fragment Fill controls per-fragment area; Fill Opacity controls the rendered mask, while Fill Color and BG Color define the two-color palette.
 
 ## Current controls
 
@@ -34,6 +34,7 @@ Layout selects balanced, horizontal or vertical bias; Seed changes the fracture;
 | Control | Key | Default | Audio Sync |
 |---|---|---|---|
 | Fill Color | `fill_color` | `#1C1713` | No |
+| BG Color | `bg_color` | `#EC6B2D` | No |
 
 ## Standalone preview
 
@@ -47,7 +48,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Canvas2D; ordered weighted grid cuts, strongly asymmetric but non-self-intersecting cells, coverage ranking, fragment shrink/fill and 2 px seam-overlap compensation.
+Canvas2D; ordered weighted grid cuts, strongly asymmetric but non-self-intersecting cells, coverage ranking, fragment shrink/fill, independent Fill/BG colors and 2 px seam-overlap compensation.
 
 ## Known limitations
 

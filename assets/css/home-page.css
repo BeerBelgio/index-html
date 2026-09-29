@@ -26,6 +26,19 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; }
+
+.hero-platform-link,
+.info-card-platform-link {
+  position: relative;
+  z-index: 3;
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .16em;
+}
+.hero-platform-link:hover,
+.hero-platform-link:focus-visible,
+.info-card-platform-link:hover,
+.info-card-platform-link:focus-visible { color: var(--orange); }
 code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .shell { width: var(--page); margin-inline: auto; }
 
@@ -139,8 +152,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   overflow: hidden;
   opacity: 0;
   background: var(--ink);
-  -webkit-mask: url("../branding/wordmark-claim.svg?v=0160") center / 100% 100% no-repeat;
-  mask: url("../branding/wordmark-claim.svg?v=0160") center / 100% 100% no-repeat;
+  -webkit-mask: url("../branding/wordmark-claim.svg?v=0161") center / 100% 100% no-repeat;
+  mask: url("../branding/wordmark-claim.svg?v=0161") center / 100% 100% no-repeat;
 }
 .hero-brand.is-rendered .hero-tool-mask { opacity: 1; }
 .hero-brand.is-rendered .hero-brand-fallback { opacity: 0; }
@@ -324,6 +337,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   gap: 12px;
 }
 .info-card {
+  position: relative;
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -335,14 +349,22 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   text-decoration: none;
   transition: transform 140ms ease, background 140ms ease;
 }
+.info-card-main-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
 .info-card-link:hover { transform: translateY(-2px); background: #F4F4F0; }
 .info-card-link:hover h2,
-.info-card-link:focus-visible h2,
+.info-card-link:focus-within h2,
 .info-card-link:hover .arrow-icon,
-.info-card-link:focus-visible .arrow-icon { color: var(--orange); }
-.info-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-.info-card .mapping-title { align-items: flex-start; }
-.info-card p { margin: 18px 0 0; font-size: 15px; line-height: 1.55; }
+.info-card-link:focus-within .arrow-icon { color: var(--orange); }
+.info-card-main-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.info-card-head { position: relative; z-index: 2; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; pointer-events: none; }
+.info-card .mapping-title { align-items: center; transform: translateY(-0.31em); }
+.info-card p { position: relative; z-index: 2; margin: 18px 0 0; font-size: 15px; line-height: 1.55; pointer-events: none; }
+.info-card p .info-card-platform-link { pointer-events: auto; }
 
 .tool-grid {
   display: grid;
@@ -352,6 +374,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .tool-card {
   min-width: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
@@ -389,7 +413,12 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   letter-spacing: .08em;
   opacity: .45;
 }
-.tool-card-copy { padding: 17px 18px 19px; }
+.tool-card-copy {
+  padding: 17px 18px 19px;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
 .tool-card-meta {
   min-height: 22px;
   display: flex;
@@ -418,7 +447,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 }
 .tool-card p { margin: 12px 0 0; font-size: 13px; line-height: 1.48; }
 .tool-card-open {
-  margin-top: 18px;
+  margin-top: auto;
+  padding-top: 18px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -592,6 +622,16 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   opacity: 1;
 }
 .privacy-stack p + p { margin-top: 10px; }
+
+.privacy-contact-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .35em; }
+.privacy-beerbelgio-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.privacy-beerbelgio-link img { width: 22px; height: 22px; display: block; flex: 0 0 auto; }
 .privacy-updated {
   margin: 5px 0 0;
   padding-top: 5px;

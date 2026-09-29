@@ -14,9 +14,9 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.16**
+**Current staging UI build → V0.16.1**
 
-**V0.16 content + preview pass:** the V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. Catalogue and hero now use one shared per-tool motion recipe, with hero eligibility stored in catalogue metadata. Tool copy, lineage, parameter notes and HTML defaults have been synchronized with the V8.6 content inventory.
+**V0.16.1 preview + UI correction pass:** the V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. Catalogue and hero now use one shared per-tool motion recipe, with hero eligibility stored in catalogue metadata. Tool copy, lineage, parameter notes and HTML defaults are synchronized with the V8.6.2 content inventory. Scatter Front adds Particle Size, Fractured Mask restores independent Fill/BG colors, and Caustic Stitch now fits its long-axis modes to wide render surfaces.
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
 
@@ -112,12 +112,12 @@ The current set contains **no `adapted-from` tools**. Topographic Mask is the on
 |---|---:|---|---|---|
 | [Linking Nodes](linking-nodes/) | v2.0 | Canvas 2D | particles · lines | `Linking_Nodes-v2.0.html` |
 | [Cassini Flow](cassini-flow/) | v1.6 | Canvas 2D | field · stripes | `Cassini_Flow-v1.6.html` |
-| [Caustic Stitch](caustic-stitch/) | v1.7 | Canvas 2D | lines · shapes | `Caustic_Stitch-v1.7.html` |
+| [Caustic Stitch](caustic-stitch/) | v1.8 | Canvas 2D | lines · shapes | `Caustic_Stitch-v1.8.html` |
 | [Cellular Field](cellular-field/) | v1.4 | WebGL | field · shapes | `Cellular_Field-v1.4.html` |
 | [Nodal Morph](nodal-morph/) | v1.8 | WebGL | field · stripes | `Nodal_Morph-v1.8.html` |
 | [FormCutter](form-cutter/) | v1.3 | Canvas 2D | mask-cut · transition | `FormCutter-v1.3.html` |
-| [Fractured Mask](fractured-mask/) | v1.4 | Canvas 2D | mask-cut | `Fractured_Mask-v1.4.html` |
-| [Scatter Front](scatter-front/) | v1.5 | Canvas 2D | particles · transition | `Scatter_Front-v1.5.html` |
+| [Fractured Mask](fractured-mask/) | v1.5 | Canvas 2D | mask-cut | `Fractured_Mask-v1.5.html` |
+| [Scatter Front](scatter-front/) | v1.6 | Canvas 2D | particles · transition | `Scatter_Front-v1.6.html` |
 | [Topographic](topographic/) | v1.3 | Canvas 2D | field · lines | `Topographic-v1.3.html` |
 | [Topographic Mask](topographic-mask/) | v1.9 | Canvas 2D | field · shapes | `Topographic_Mask-v1.9.html` |
 | [FormShift](formshift/) | v1.7 | Canvas 2D | transition · shapes | `FormShift-v1.7.html` |

@@ -269,8 +269,8 @@
     {
       "name": "Caustic Stitch",
       "slug": "caustic-stitch",
-      "version": "v1.7",
-      "file": "caustic-stitch/Caustic_Stitch-v1.7.html",
+      "version": "v1.8",
+      "file": "caustic-stitch/Caustic_Stitch-v1.8.html",
       "renderer": "Canvas 2D",
       "conceptTags": [
         "lines",
@@ -283,7 +283,7 @@
       "copy": {
         "short": "Points, two-color lines and basic forms. Then a multi-force warp makes the lines move fluidly and unpredictably.",
         "about": "Creates string-art style line fields across several geometric boundary families, with an independently controlled accent group and optional multi-force line warping derived from the Linking Nodes deformation logic.",
-        "implementation": "Canvas2D; nine endpoint/boundary families, explicit chord drawing, independent accent group and an internal multi-force Bézier Warp system."
+        "implementation": "Canvas2D; nine endpoint/boundary families, explicit chord drawing, independent accent group, an internal multi-force Bézier Warp system and aspect-aware long-axis fitting for Loom/Fissure layouts."
       },
       "parameters": [
         {
@@ -763,8 +763,8 @@
     {
       "name": "Fractured Mask",
       "slug": "fractured-mask",
-      "version": "v1.4",
-      "file": "fractured-mask/Fractured_Mask-v1.4.html",
+      "version": "v1.5",
+      "file": "fractured-mask/Fractured_Mask-v1.5.html",
       "renderer": "Canvas 2D",
       "conceptTags": [
         "mask-cut"
@@ -774,8 +774,8 @@
       ],
       "copy": {
         "short": "Random, irregular and warped fragments for multilayer masking.",
-        "about": "Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled and how opaque the result is. ",
-        "implementation": "Canvas2D; ordered weighted grid cuts, strongly asymmetric but non-self-intersecting cells, coverage ranking, fragment shrink/fill and 2 px seam-overlap compensation."
+        "about": "Builds a grid of irregular polygonal fragments and controls which cells are visible, how much of each cell is filled, how opaque the result is and the two-color fragment/BG palette.",
+        "implementation": "Canvas2D; ordered weighted grid cuts, strongly asymmetric but non-self-intersecting cells, coverage ranking, fragment shrink/fill, independent Fill/BG colors and 2 px seam-overlap compensation."
       },
       "parameters": [
         {
@@ -833,6 +833,13 @@
           "behaviour": "Sets the mask fill color.",
           "explanation": null,
           "mapping": null
+        },
+        {
+          "key": "bg_color",
+          "label": "BG Color",
+          "behaviour": "Sets the background color behind the fragment field.",
+          "explanation": null,
+          "mapping": null
         }
       ],
       "lineage": [
@@ -861,8 +868,8 @@
     {
       "name": "Scatter Front",
       "slug": "scatter-front",
-      "version": "v1.5",
-      "file": "scatter-front/Scatter_Front-v1.5.html",
+      "version": "v1.6",
+      "file": "scatter-front/Scatter_Front-v1.6.html",
       "renderer": "Canvas 2D",
       "conceptTags": [
         "particles",
@@ -874,8 +881,8 @@
       ],
       "copy": {
         "short": "A flow of particles in basic shapes, ready to be unleashed.",
-        "about": "Generates a dense moving particle front with directional progression, scatter, turbulence, trailing dust and grain.",
-        "implementation": "Canvas2D; generated particle lattice driven by a Progress front, ten metric/direction patterns, scatter, turbulence, trail, grain and two-colour mixing; no upstream-content sampling."
+        "about": "Generates a dense moving particle front with directional progression, independently scalable particles, scatter, turbulence, trailing dust and grain.",
+        "implementation": "Canvas2D; generated particle lattice driven by a Progress front, ten metric/direction patterns, independent particle sizing, scatter, turbulence, trail, grain and two-colour mixing; no upstream-content sampling."
       },
       "parameters": [
         {
@@ -897,6 +904,13 @@
           "label": "Amount",
           "behaviour": "Controls particle density.",
           "explanation": "How many particles",
+          "mapping": null
+        },
+        {
+          "key": "particle_size",
+          "label": "Particle Size",
+          "behaviour": "Scales the radius of each particle independently of particle density.",
+          "explanation": "Make the particles smaller or larger without changing how many are generated.",
           "mapping": null
         },
         {

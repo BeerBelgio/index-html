@@ -1,8 +1,8 @@
 # Scatter Front
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Scatter_Front-v1.5.html`  
-**Version:** v1.5  
+**Current file:** `Scatter_Front-v1.6.html`  
+**Version:** v1.6  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `particles`, `transition`
@@ -11,11 +11,11 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 ## What it does
 
-Generates a dense moving particle front with directional progression, scatter, turbulence, trailing dust and grain.
+Generates a dense moving particle front with directional progression, independently scalable particles, scatter, turbulence, trailing dust and grain.
 
 ## Behavior
 
-Progress moves the active particle front; Direction selects ten directional/radial metrics; Amount sets density; Edge Width defines the active front; Scatter pushes particles along the selected direction; Turbulence adds organic displacement; Motion BPM drives temporal motion; Trail leaves dust behind the front; Grain adds positional/alpha irregularity. Particle Color and Accent Color define the palette.
+Progress moves the active particle front; Direction selects ten directional/radial metrics; Amount sets density; Particle Size scales each particle independently; Edge Width defines the active front; Scatter pushes particles along the selected direction; Turbulence adds organic displacement; Motion BPM drives temporal motion; Trail leaves dust behind the front; Grain adds positional/alpha irregularity. Particle Color and Accent Color define the palette.
 
 ## Current controls
 
@@ -24,6 +24,7 @@ Progress moves the active particle front; Direction selects ten directional/radi
 | Progress | `progress` | 0–100 | 1 | 42 | Yes |
 | Direction | `direction` | 0–9 | 1 | 5 | Yes |
 | Amount | `amount` | 0–100 | 1 | 70 | Yes |
+| Particle Size | `particle_size` | 25–300 | 1 | 100 | Yes |
 | Edge Width | `edge_width` | 0–100 | 1 | 34 | Yes |
 | Scatter | `scatter` | 0–200 | 1 | 95 | Yes |
 | Turbulence | `turbulence` | 0–200 | 1 | 80 | Yes |
@@ -50,7 +51,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Canvas2D; generated particle lattice driven by a Progress front, ten metric/direction patterns, scatter, turbulence, trail, grain and two-colour mixing; no upstream-content sampling.
+Canvas2D; generated particle lattice driven by a Progress front, ten metric/direction patterns, independent particle sizing, scatter, turbulence, trail, grain and two-colour mixing; no upstream-content sampling.
 
 ## Known limitations
 

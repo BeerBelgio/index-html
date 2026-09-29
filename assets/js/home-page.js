@@ -96,7 +96,7 @@
         break;
       case 'form-cutter': {
         const beat = (state.time * 2.5) % 1;
-        state.trigger = beat < 0.065 ? 100 * (1 - beat / 0.065) : 0;
+        state.trigger = beat < 0.5 ? 100 * (1 - beat / 0.5) : 0;
         break;
       }
       case 'formshift': {
@@ -113,7 +113,8 @@
         state.warp = 50;
         break;
       case 'scatter-front':
-        // The renderer already uses state.time: no control override is needed.
+        // Keep the particle front alive while making the particles legible at preview scale.
+        state.particle_size = 220;
         break;
       case 'topographic':
         state.drift = 40;

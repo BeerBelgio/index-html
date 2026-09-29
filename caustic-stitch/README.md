@@ -1,8 +1,8 @@
 # Caustic Stitch
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Caustic_Stitch-v1.7.html`  
-**Version:** v1.7  
+**Current file:** `Caustic_Stitch-v1.8.html`  
+**Version:** v1.8  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `lines`, `shapes`
@@ -52,7 +52,7 @@ Inside Sketch, the host controls the output size through `sketchResize()`.
 
 ## Development notes
 
-Canvas2D; nine endpoint/boundary families, explicit chord drawing, independent accent group and an internal multi-force Bézier Warp system.
+Canvas2D; nine endpoint/boundary families, explicit chord drawing, independent accent group, an internal multi-force Bézier Warp system and aspect-aware long-axis fitting for Loom/Fissure layouts.
 
 ## Known limitations
 
