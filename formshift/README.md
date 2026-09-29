@@ -21,8 +21,8 @@ FX Type selects one of six transition families; Shape selects one of six generat
 
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
-| FX Type | `scene` | 0–5 | 1 | 2 | Yes |
-| Shape | `shape` | 0–5 | 1 | 5 | Yes |
+| FX Type | `scene` | 0–5 | 1 | 3 | Yes |
+| Shape | `shape` | 0–5 | 1 | 4 | Yes |
 | Trigger | `trigger` | 0–100 | 1 | 0 | Yes |
 | Impact | `impact` | 0–100 | 1 | 70 | Yes |
 | Scale | `scale` | 0–100 | 1 | 70 | Yes |

@@ -101,7 +101,7 @@
       }
       case 'formshift': {
         const beat = (state.time * 2) % 1;
-        state.trigger = beat < 0.08 ? 100 * (1 - beat / 0.08) : 0;
+        state.trigger = beat < 0.5 ? 100 * (1 - beat / 0.5) : 0;
         break;
       }
       case 'fractured-mask':
