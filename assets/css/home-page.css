@@ -152,8 +152,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   overflow: hidden;
   opacity: 0;
   background: var(--ink);
-  -webkit-mask: url("../branding/wordmark-claim.svg?v=0165") center / 100% 100% no-repeat;
-  mask: url("../branding/wordmark-claim.svg?v=0165") center / 100% 100% no-repeat;
+  -webkit-mask: url("../branding/wordmark-claim.svg?v=0166") center / 100% 100% no-repeat;
+  mask: url("../branding/wordmark-claim.svg?v=0166") center / 100% 100% no-repeat;
 }
 .hero-brand.is-rendered .hero-tool-mask { opacity: 1; }
 .hero-brand.is-rendered .hero-brand-fallback { opacity: 0; }
@@ -295,7 +295,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   display: flex;
   flex-wrap: nowrap;
   justify-content: flex-end;
-  gap: 5px;
+  gap: 8px;
 }
 .tool-tag-filter {
   flex: 0 0 auto;
@@ -469,7 +469,16 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   font-weight: 700;
   letter-spacing: .04em;
 }
-.footer-signature { flex: 0 0 auto; }
+.footer-signature {
+  flex: 0 0 auto;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 7px;
+}
+.footer-signature-left,
+.footer-signature-right { white-space: nowrap; }
+.footer-signature-dot { text-align: center; }
 .footer-links { justify-content: flex-end; flex-wrap: wrap; }
 .footer-links .github-icon,
 .footer-links .hub-link img { width: 24px; height: 24px; display: block; flex: 0 0 auto; }
@@ -642,12 +651,35 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   .hero-tool-mask { transition: none; }
 }
 
+@media (max-width: 1080px) {
+  .home-footer {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 22px 0;
+    gap: 18px;
+  }
+  .footer-signature {
+    width: 100%;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+  }
+  .footer-signature-left { text-align: left; }
+  .footer-signature-right { text-align: right; }
+  .footer-links { width: 100%; justify-content: space-between; gap: 14px; }
+}
+
 @media (max-width: 1050px) {
   :root { --page: 86vw; }
   .tool-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .entry-grid { grid-template-columns: 1fr; }
-  .catalogue-filters { width: 100%; }
-  .footer-links { gap: 14px; }
+  .catalogue-filters {
+    width: 100%;
+    align-items: flex-start;
+    overflow-x: auto;
+    gap: 16px;
+    padding: 0 14px 5px 0;
+  }
+  .tool-tag-filters { justify-content: flex-start; }
 }
 
 @media (max-width: 700px) {
@@ -657,21 +689,24 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   :root { --page: 88vw; }
   .home-header {
     min-height: 78px;
-    align-items: flex-start;
-    padding: 20px 0;
-    flex-direction: column;
-    gap: 18px;
+    align-items: center;
+    flex-direction: row;
+    gap: 12px;
   }
-  .home-nav { width: 100%; justify-content: space-between; }
+  .home-nav {
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
+    gap: 14px;
+    flex: 0 0 auto;
+  }
   .home-main { padding-top: 36px; }
   .home-hero { padding-bottom: 50px; }
   .home-hero h1 { white-space: normal; }
   .section-heading { align-items: flex-start; flex-direction: column; }
   .section-heading p { text-align: left; }
-  .catalogue-filters { width: 100%; align-items: flex-start; overflow-x: auto; padding-bottom: 3px; }
   .tool-search { flex: 0 0 auto; }
   .tool-search.is-open { width: 168px; }
-  .tool-tag-filters { justify-content: flex-start; }
   .home-brand-sticky { gap: 8px; }
   .home-brand-wordmark { width: 108px; }
   .home-brand-claim { display: none; }
@@ -679,9 +714,6 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   .about-two-col,
   .mapping-grid { grid-template-columns: 1fr; }
   .mapping-grid article:nth-last-child(2) { border-bottom: 1px solid var(--soft-line); }
-  .home-footer { align-items: flex-start; flex-direction: column; padding: 22px 0; }
-  .footer-links { width: 100%; justify-content: flex-start; }
-  .privacy-link { width: 100%; }
 }
 
 

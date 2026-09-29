@@ -511,8 +511,9 @@ input[type="color"] {
 .parameter-description { font-size: 14px; }
 .parameter-mapping {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   font-size: 13px;
   font-weight: 400;
   opacity: 0.62;
@@ -641,6 +642,16 @@ input[type="color"] {
   font-weight: 700;
   letter-spacing: 0.04em;
 }
+.footer-signature {
+  flex: 0 0 auto;
+  display: inline-grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 7px;
+}
+.footer-signature-left,
+.footer-signature-right { white-space: nowrap; }
+.footer-signature-dot { text-align: center; }
 .footer-links { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 18px; }
 .footer-links a { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }
 .github-icon,
@@ -677,7 +688,20 @@ body.is-standalone #standalone-page { display: block !important; }
   .controls-panel { height: auto; }
   .controls-body { overflow: visible; }
   .parameter-item { grid-template-columns: 1fr; gap: 7px; }
-  .site-footer { align-items: flex-start; flex-direction: column; padding: 22px 0; }
+  .site-footer {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 22px 0;
+    gap: 18px;
+  }
+  .footer-signature {
+    width: 100%;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+  }
+  .footer-signature-left { text-align: left; }
+  .footer-signature-right { text-align: right; }
+  .footer-links { width: 100%; justify-content: space-between; }
 }
 
 @media (max-width: 700px) {
@@ -700,7 +724,6 @@ body.is-standalone #standalone-page { display: block !important; }
   .color-row + .color-row { margin-left: 0; padding-left: 0; border-left: 0; border-top: 1px solid var(--soft-line); }
   .development-contact { align-items: flex-start; flex-direction: column; }
   .write-me-button { min-width: min(100%, 260px); }
-  .footer-links { width: 100%; justify-content: space-between; }
 }
 
 
