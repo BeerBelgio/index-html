@@ -1,8 +1,8 @@
 # Linking Nodes
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Linking_Nodes-v2.0.html`  
-**Version:** v2.0  
+**Current file:** `Linking_Nodes-v2.1.html`  
+**Version:** v2.1  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `particles`, `lines`

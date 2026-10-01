@@ -1,8 +1,8 @@
 # Caustic Stitch
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Caustic_Stitch-v1.8.html`  
-**Version:** v1.8  
+**Current file:** `Caustic_Stitch-v1.9.html`  
+**Version:** v1.9  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `lines`, `shapes`

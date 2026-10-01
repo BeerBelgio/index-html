@@ -1,8 +1,8 @@
 # FormShift
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `FormShift-v1.7.html`  
-**Version:** v1.7  
+**Current file:** `FormShift-v1.8.html`  
+**Version:** v1.8  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `transition`, `shapes`

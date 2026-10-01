@@ -1,8 +1,8 @@
 # Topographic
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Topographic-v1.3.html`  
-**Version:** v1.3  
+**Current file:** `Topographic-v1.4.html`  
+**Version:** v1.4  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `field`, `lines`

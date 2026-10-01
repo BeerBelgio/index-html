@@ -1,8 +1,8 @@
 # Topographic Mask
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Topographic_Mask-v1.9.html`  
-**Version:** v1.9  
+**Current file:** `Topographic_Mask-v1.10.html`  
+**Version:** v1.10  
 **Renderer:** Canvas 2D  
 **Provenance:** `derived-from · inspired-by`  
 **Concept tags:** `field`, `shapes`

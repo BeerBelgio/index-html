@@ -1,8 +1,8 @@
 # Cassini Flow
 Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
-**Current file:** `Cassini_Flow-v1.6.html`  
-**Version:** v1.6  
+**Current file:** `Cassini_Flow-v1.7.html`  
+**Version:** v1.7  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `field`, `stripes`
