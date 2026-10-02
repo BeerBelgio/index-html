@@ -116,10 +116,10 @@ The current set contains **no `adapted-from` tools**. Topographic Mask is the on
 | [Cellular Field](cellular-field/) | v1.5 | WebGL | field · shapes | `Cellular_Field-v1.5.html` |
 | [Nodal Morph](nodal-morph/) | v1.9 | WebGL | field · stripes | `Nodal_Morph-v1.9.html` |
 | [FormCutter](form-cutter/) | v1.4 | Canvas 2D | mask-cut · transition | `FormCutter-v1.4.html` |
-| [Fractured Mask](fractured-mask/) | v1.6 | Canvas 2D | mask-cut | `Fractured_Mask-v1.6.html` |
+| [Fractured Mask](fractured-mask/) | v1.7 | Canvas 2D | mask-cut | `Fractured_Mask-v1.7.html` |
 | [Scatter Front](scatter-front/) | v1.7 | Canvas 2D | particles · transition | `Scatter_Front-v1.7.html` |
 | [Topographic](topographic/) | v1.4 | Canvas 2D | field · lines | `Topographic-v1.4.html` |
-| [Topographic Mask](topographic-mask/) | v1.10 | Canvas 2D | field · shapes | `Topographic_Mask-v1.10.html` |
+| [Topographic Mask](topographic-mask/) | v1.11 | Canvas 2D | field · shapes | `Topographic_Mask-v1.11.html` |
 | [FormShift](formshift/) | v1.8 | Canvas 2D | transition · shapes | `FormShift-v1.8.html` |
 
 ## Validation

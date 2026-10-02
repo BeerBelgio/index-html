@@ -763,8 +763,8 @@
     {
       "name": "Fractured Mask",
       "slug": "fractured-mask",
-      "version": "v1.6",
-      "file": "fractured-mask/Fractured_Mask-v1.6.html",
+      "version": "v1.7",
+      "file": "fractured-mask/Fractured_Mask-v1.7.html",
       "renderer": "Canvas 2D",
       "conceptTags": [
         "mask-cut"
@@ -1122,8 +1122,8 @@
     {
       "name": "Topographic Mask",
       "slug": "topographic-mask",
-      "version": "v1.10",
-      "file": "topographic-mask/Topographic_Mask-v1.10.html",
+      "version": "v1.11",
+      "file": "topographic-mask/Topographic_Mask-v1.11.html",
       "renderer": "Canvas 2D",
       "conceptTags": [
         "field",
