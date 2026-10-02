@@ -6,9 +6,9 @@
     "repository": "https://github.com/BeerBelgio/index-html",
     "dataset": "staging",
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
-    "editorialSourceOfTruth": "index-html_content-inventory_v8.6.xlsx",
-    "notes": "Technical controls, ranges, defaults, colors and Sketch Audio Sync exposure live in each tool manifest. Public editorial copy and preview behaviour are synchronized from the V8.6 content inventory.",
-    "stagingBuild": "v0.16"
+    "editorialSourceOfTruth": "index-html_content-inventory_v9.xlsx",
+    "notes": "Technical controls, ranges, defaults, colors, Sketch Audio Sync exposure and native host color-opacity support live in each tool manifest. Public editorial copy and preview behaviour are synchronized from the V9 content inventory.",
+    "stagingBuild": "v0.17"
   },
   "tools": [
     {
@@ -100,20 +100,6 @@
           "behaviour": "Controls the opacity of the blob fill.",
           "explanation": null,
           "mapping": null
-        },
-        {
-          "key": "blob_color",
-          "label": "Blob Color",
-          "behaviour": "Sets the blob fill color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "link_color",
-          "label": "Link Color",
-          "behaviour": "Sets the connection / link color.",
-          "explanation": null,
-          "mapping": null
         }
       ],
       "lineage": [
@@ -133,7 +119,7 @@
       "development": {
         "limitations": "No underlying image refraction is performed; the current tool is a generated flat-blob field.",
         "nextIdeas": [
-          "change the order of the blob's layers: fill then core center and linking."
+          "Change the blob layer order: fill, then core, then linking."
         ]
       },
       "hero": {
@@ -156,7 +142,7 @@
       ],
       "copy": {
         "short": "Cassini-like shapes, two cores and a whole lot of membrane-like layers.",
-        "about": "Builds filled orbital slices from Cassini-oval / lemniscate-like fields. It create something between nested loops, stretched orbits and more unstable warped orbital structures.",
+        "about": "Builds filled orbital slices from Cassini-oval / lemniscate-like fields. It creates something between nested loops, stretched orbits and more unstable warped orbital structures.",
         "implementation": "Canvas2D; two-focus product-distance Cassini field, six modes, clipped filled slices, continuous integrated Drift and independent BG controls."
       },
       "parameters": [
@@ -164,7 +150,7 @@
           "key": "mode",
           "label": "Mode",
           "behaviour": "Selects one of the orbital field families.",
-          "explanation": "How the field's force affect the field itself",
+          "explanation": "Changes how the field's force shapes the field itself.",
           "mapping": "usually I don't map it, but go wild"
         },
         {
@@ -229,20 +215,6 @@
           "behaviour": "Rotates the entire field.",
           "explanation": null,
           "mapping": null
-        },
-        {
-          "key": "slice_color",
-          "label": "Slice Color",
-          "behaviour": "Sets the base slice color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "accent_color",
-          "label": "Accent Color",
-          "behaviour": "Sets the highlighted slice color.",
-          "explanation": null,
-          "mapping": null
         }
       ],
       "lineage": [
@@ -297,7 +269,7 @@
           "key": "points",
           "label": "Points",
           "behaviour": "Sets how many points are distributed along the selected base form.",
-          "explanation": "They will be disposed along the main form",
+          "explanation": "They are distributed along the main form.",
           "mapping": null
         },
         {
@@ -318,7 +290,7 @@
           "key": "spread",
           "label": "Spread",
           "behaviour": "Controls how far the line network expands beyond the base form.",
-          "explanation": "How much the lineas will break the basic form limit and go over it",
+          "explanation": "How far the lines can extend beyond the basic form boundary.",
           "mapping": null
         },
         {
@@ -362,20 +334,6 @@
           "behaviour": "Bends straight stitch connections into fluid, asymmetric curves through the internal multi-force deformation system.",
           "explanation": "Turns straight connections into fluid, asymmetric curves driven by independent forces.",
           "mapping": null
-        },
-        {
-          "key": "line_color",
-          "label": "Line Color",
-          "behaviour": "Sets the base line color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "accent_color",
-          "label": "Accent Color",
-          "behaviour": "Sets the highlighted line color.",
-          "explanation": null,
-          "mapping": null
         }
       ],
       "lineage": [
@@ -394,7 +352,7 @@
       "development": {
         "limitations": "Generated line construction only; it does not trace an underlying image.",
         "nextIdeas": [
-          "Improve life of wires during warp."
+          "Make the wires feel more alive during Warp."
         ]
       },
       "hero": {
@@ -439,7 +397,7 @@
           "key": "core",
           "label": "Core Size",
           "behaviour": "Controls the size of each cellular core relative to the available cell area.",
-          "explanation": "Depending on the Cell Count parameter, the cellular core will grow until it occupy al of the space available and the it will shrink according to the celluar morph",
+          "explanation": "Depending on Cell Count, the cellular core grows until it occupies all available space, then shrinks according to the cellular morph.",
           "mapping": null
         },
         {
@@ -450,7 +408,7 @@
           "mapping": null
         },
         {
-          "key": "membrane",
+          "key": "edge",
           "label": "Membrane",
           "behaviour": "Controls the thickness of the cellular membranes.",
           "explanation": "How thick the membrane is. Attention though: they will cover up the entire space!",
@@ -474,7 +432,7 @@
           "key": "warp_drift",
           "label": "Warp Drift",
           "behaviour": "Controls how quickly the warp deformation moves through the field.",
-          "explanation": "Linked t BPM control, how much do you want the ecosystem to flow",
+          "explanation": "Linked to the BPM control; sets how much the ecosystem flows.",
           "mapping": null
         },
         {
@@ -482,20 +440,6 @@
           "label": "Warp Complexity",
           "behaviour": "Controls the number and intensity of secondary folds in the deformation.",
           "explanation": "Bring the distortion to a whole new level",
-          "mapping": null
-        },
-        {
-          "key": "core_color",
-          "label": "Core",
-          "behaviour": "Sets the cellular core color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "edge",
-          "label": "Membrane",
-          "behaviour": "Sets the membrane color.",
-          "explanation": null,
           "mapping": null
         }
       ],
@@ -595,27 +539,6 @@
           "behaviour": "Controls the opacity of the BG layer.",
           "explanation": null,
           "mapping": null
-        },
-        {
-          "key": "line_color",
-          "label": "Line Color",
-          "behaviour": "Sets the primary nodal-line color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "accent_color",
-          "label": "Accent Color",
-          "behaviour": "Sets the accent color used in the nodal composition.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "bg_color",
-          "label": "BG Color",
-          "behaviour": "Sets the BG color.",
-          "explanation": null,
-          "mapping": null
         }
       ],
       "lineage": [
@@ -634,7 +557,7 @@
       "development": {
         "limitations": "The visual system is mathematically inspired by Chladni figures but is not intended as a scientific simulator.",
         "nextIdeas": [
-          "explore a genuinely audio-derived nodal response rather than only mapping controls onto a mathematical Chladni construction"
+          "Explore a genuinely audio-derived nodal response rather than only mapping controls onto a mathematical Chladni construction."
         ]
       },
       "hero": {
@@ -656,7 +579,7 @@
         "inspired-by"
       ],
       "copy": {
-        "short": "Basic forms, cut into slices. Main composition object or just layering mask is up to you, go wild.",
+        "short": "Basic forms, cut into slices. Whether it becomes the main composition object or just a layering mask is up to you, go wild.",
         "about": "Generates a simple source shape, keeps a stable base copy visible, then fragments and displaces a second copy when Trigger fires. It is a shape-decomposition tool built for punchy, event-like cuts.",
         "implementation": "Canvas2D; internally generated circles/rectangles/stripes, stable base plus fragmented copy, six cut modes using rectangle/wedge clipping, displacement, rotation and echoes."
       },
@@ -723,20 +646,6 @@
           "behaviour": "Controls the rotational component of the cut / displaced pieces.",
           "explanation": null,
           "mapping": null
-        },
-        {
-          "key": "main_color",
-          "label": "Main Color",
-          "behaviour": "Sets the main source color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "base_color",
-          "label": "Base Color",
-          "behaviour": "Sets the base / secondary source color.",
-          "explanation": null,
-          "mapping": null
         }
       ],
       "lineage": [
@@ -745,7 +654,7 @@
           "project": "Typoman",
           "author": "markdo27",
           "sourceLicence": "MIT",
-          "publicText": "FormCutter grew from a broader study of markdo27's previous version of Typoman and Flash-style kinetic visual grammar. The implementation was independently built for this project.",
+          "publicText": "FormCutter grew from a broader study of markdo27's previous version of Typoman and Flash-style kinetic visual grammar. All code was independently built for this project.",
           "authorUrl": "https://github.com/markdo27",
           "projectUrl": "https://github.com/markdo27/typoman",
           "specificReference": null,
@@ -810,34 +719,20 @@
           "key": "coverage_distribution",
           "label": "Coverage Distribution",
           "behaviour": "Controls which fragments are active and therefore how coverage is distributed.",
-          "explanation": "Quanta copertura vuoi?",
+          "explanation": "How much coverage do you want?",
           "mapping": "Another trigger-like component --> Map it to a point-like element so that it acts as a near-instantaneous trigger."
         },
         {
           "key": "fragment_fill",
           "label": "Fragment Fill",
           "behaviour": "Controls how much of each active fragment is filled from its centre toward its edges.",
-          "explanation": "quanta superficie del frammento viene coperta partendo dal centro verso i bordi",
+          "explanation": "How much of each fragment is filled, from the center toward the edges.",
           "mapping": null
         },
         {
           "key": "fill_opacity",
           "label": "Fill Opacity",
           "behaviour": "Controls the overall opacity of the rendered mask.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "fill_color",
-          "label": "Fill Color",
-          "behaviour": "Sets the mask fill color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "bg_color",
-          "label": "BG Color",
-          "behaviour": "Sets the background color behind the fragment field.",
           "explanation": null,
           "mapping": null
         }
@@ -858,7 +753,7 @@
       "development": {
         "limitations": "It generates its own mask polygons; it does not fracture the pixels of the layer below by itself.",
         "nextIdeas": [
-          "use the generated fracture as a true interactive mask between upstream/downstream visual layers once the browser host can expose source content"
+          "Use the generated fracture as a true interactive mask between upstream / downstream visual layers once the browser host can expose source content."
         ]
       },
       "hero": {
@@ -910,21 +805,21 @@
           "key": "particle_size",
           "label": "Particle Size",
           "behaviour": "Scales the radius of each particle independently of particle density.",
-          "explanation": "Make the particles smaller or larger without changing how many are generated.",
+          "explanation": null,
           "mapping": null
         },
         {
           "key": "edge_width",
           "label": "Edge Width",
           "behaviour": "Controls the width of the active particle front.",
-          "explanation": "the width of the main shape",
+          "explanation": "The width of the main shape",
           "mapping": null
         },
         {
           "key": "scatter",
           "label": "Scatter",
           "behaviour": "Pushes particles away from their original positions along the selected directional logic.",
-          "explanation": "scatter the particles in the direction of the direction of the particles",
+          "explanation": "Scatters particles along the selected Direction.",
           "mapping": null
         },
         {
@@ -938,14 +833,14 @@
           "key": "motion_bpm",
           "label": "Motion BPM",
           "behaviour": "Sets the temporal clock for particle turbulence / motion.",
-          "explanation": "internal turbolence clock, match it with yours",
+          "explanation": "internal turbulence clock, match it with yours",
           "mapping": null
         },
         {
           "key": "trail",
           "label": "Trail",
           "behaviour": "Extends particle freedom and residue behind the moving front.",
-          "explanation": "give more freedom to the particles at the opposite side of the direction of the direction of the particle",
+          "explanation": "Gives more freedom to particles on the trailing side of the selected Direction.",
           "mapping": null
         },
         {
@@ -953,20 +848,6 @@
           "label": "Grain",
           "behaviour": "Adds positional and opacity irregularity across the particle field.",
           "explanation": "position and color variation, treat it like adding a new color and multiply all the above parameters",
-          "mapping": null
-        },
-        {
-          "key": "particle_color",
-          "label": "Particle Color",
-          "behaviour": "Sets the primary particle color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "accent_color",
-          "label": "Accent Color",
-          "behaviour": "Sets the accent particle color.",
-          "explanation": null,
           "mapping": null
         }
       ],
@@ -986,7 +867,7 @@
       "development": {
         "limitations": "This file does not capture or dissolve arbitrary HTML/image content underneath it; it generates the particle field itself.",
         "nextIdeas": [
-          "allow the particle system to process an upstream visual source in the future browser pipeline"
+          "Allow the particle system to process an upstream visual source in the future browser pipeline."
         ]
       },
       "hero": {
@@ -1059,7 +940,7 @@
           "key": "drift",
           "label": "Drift",
           "behaviour": "Animates the procedural field continuously, making the contour shapes move and melt.",
-          "explanation": "Everything just turn a liquid turn: shapes are melting and moving around",
+          "explanation": "Turns the whole field liquid: shapes melt and move around.",
           "mapping": null
         },
         {
@@ -1080,20 +961,6 @@
           "key": "rotation",
           "label": "Rotation",
           "behaviour": "Rotates the sampled field.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "line_color",
-          "label": "Line Color",
-          "behaviour": "Sets the base contour-line color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "accent_color",
-          "label": "Accent Color",
-          "behaviour": "Sets the highlighted contour color.",
           "explanation": null,
           "mapping": null
         }
@@ -1201,20 +1068,6 @@
           "behaviour": "Controls the opacity of the BG layer.",
           "explanation": null,
           "mapping": null
-        },
-        {
-          "key": "fill_color",
-          "label": "Fill Color",
-          "behaviour": "Sets the filled-mask color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "bg_color",
-          "label": "BG Color",
-          "behaviour": "Sets the BG color.",
-          "explanation": null,
-          "mapping": null
         }
       ],
       "lineage": [
@@ -1225,7 +1078,7 @@
           "sourceLicence": "Internal — PolyForm Noncommercial 1.0.0",
           "publicText": "Derived internally from Topographic, reworking the same procedural field into a filled-mask system.",
           "authorUrl": "https://github.com/BeerBelgio",
-          "projectUrl": "https://github.com/BeerBelgio/visual-lab",
+          "projectUrl": "https://github.com/BeerBelgio/index-html",
           "specificReference": "Topographic",
           "specificReferenceUrl": "https://beerbelgio.github.io/index-html/tool.html?tool=topographic"
         },
@@ -1265,7 +1118,7 @@
       ],
       "copy": {
         "short": "Basic shapes, photography concepts and middle-school geometry: can something go wrong?",
-        "about": "Generates a basic geometric source and applies trigger-driven Flash-style cuts, slotting, wedge splits, echoes and radial copy movements. ",
+        "about": "Generates a basic geometric source and applies trigger-driven Flash-style cuts, slotting, wedge splits, echoes and radial copy movements.",
         "implementation": "Canvas2D; offscreen generated geometric shapes and six direct-Trigger scene families using rectangular/wedge clipping, slotting, echoes and radial copies; independent X/Y stretch; no text engine or p5 dependency."
       },
       "parameters": [
@@ -1287,15 +1140,15 @@
           "key": "trigger",
           "label": "Trigger",
           "behaviour": "Acts as the direct FX envelope, controlling how much of the selected effect is applied.",
-          "explanation": "It's the main event, treat it as such. It act like a dry/wet (quantity) for the FX ",
+          "explanation": "It's the main event, treat it as such. It acts like a dry/wet control for the FX amount.",
           "mapping": "Map it along or in contrast with 'impact'"
         },
         {
           "key": "impact",
           "label": "Impact",
           "behaviour": "Controls the displacement strength / intensity of the triggered effect.",
-          "explanation": "How much the transition (new 'trigger') is affected and effective",
-          "mapping": "Map it along or in contrast with 'transition' (that will soon be 'trigger')"
+          "explanation": "How strongly the selected FX responds once Trigger is active.",
+          "mapping": "Map it along or in contrast with 'Trigger'."
         },
         {
           "key": "scale",
@@ -1329,28 +1182,14 @@
           "key": "split",
           "label": "Split",
           "behaviour": "Controls how strongly the source is divided into separated regions.",
-          "explanation": "Set boundaries for impact (and consequentially transition) parameters",
+          "explanation": "Sets the boundaries for Impact and Trigger.",
           "mapping": null
         },
         {
           "key": "shutter",
           "label": "Shutter",
           "behaviour": "Further segments / opens the split effect around the focal structure.",
-          "explanation": "enhance the split parameters splitting the focus",
-          "mapping": null
-        },
-        {
-          "key": "shape_color",
-          "label": "Shape Color",
-          "behaviour": "Sets the main source-shape color.",
-          "explanation": null,
-          "mapping": null
-        },
-        {
-          "key": "accent_color",
-          "label": "Accent Color",
-          "behaviour": "Sets the accent color.",
-          "explanation": null,
+          "explanation": "Further splits the focus, enhancing the Split effect.",
           "mapping": null
         }
       ],
@@ -1373,6 +1212,1116 @@
       },
       "hero": {
         "enabled": false
+      }
+    },
+    {
+      "name": "Kinda Flower",
+      "slug": "kinda-flower",
+      "version": "v1.0",
+      "file": "kinda-flower/Kinda_Flower-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "lines",
+        "flow"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "\"Flowers are blooming everywhere\"",
+        "about": "Generates a layered radial system of dashed trajectories that behaves like a synthetic flowerish shape.",
+        "implementation": "Canvas2D; deterministic three-layer radial field; curved multi-sample ray paths; segmented dash/gap stroke system; per-ray irregularity; moving accent beads fixed at 125% of line width; extended off-axis center positioning; full-range layer spread up to a 360° relationship; transparent output."
+      },
+      "parameters": [
+        {
+          "key": "rays",
+          "label": "Rays",
+          "behaviour": "Controls how many radial trajectories are generated around the system.",
+          "explanation": "Exponential petals",
+          "mapping": null
+        },
+        {
+          "key": "size",
+          "label": "Size",
+          "behaviour": "Sets the overall radius of the flower structure.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "ragged",
+          "label": "Ragged",
+          "behaviour": "Introduces per-ray irregularity in angle, length and micro-deformation.",
+          "explanation": "Make the flower more organic and unstable.",
+          "mapping": "Works well with moderate motion and width changes."
+        },
+        {
+          "key": "center_x",
+          "label": "Center X",
+          "behaviour": "Moves the system center horizontally, including beyond the canvas midpoint range.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "center_y",
+          "label": "Center Y",
+          "behaviour": "Moves the system center vertically, including beyond the canvas midpoint range.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "behaviour": "Controls the stroke width of all rays.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "dash",
+          "label": "Dash",
+          "behaviour": "Sets the visible dash length of the segmented lines.",
+          "explanation": "Lines or Dots?",
+          "mapping": "Try to map it to a point-like element so that it acts as a near-instantaneous trigger."
+        },
+        {
+          "key": "gap",
+          "label": "Gap",
+          "behaviour": "Sets the distance between line segments.",
+          "explanation": null,
+          "mapping": "Map it along or in contrast with 'Dash'"
+        },
+        {
+          "key": "bend",
+          "label": "Bend",
+          "behaviour": "Curves the rays into petal-like arcs instead of keeping them strictly radial.",
+          "explanation": "Expand the geometry behind the flower",
+          "mapping": null
+        },
+        {
+          "key": "beads",
+          "label": "Beads",
+          "behaviour": "Controls how many accent markers appear along the rays.",
+          "explanation": "Roller coaster on a flower",
+          "mapping": null
+        },
+        {
+          "key": "layer_spread",
+          "label": "Layer Spread",
+          "behaviour": "Controls the angular separation between the three fixed radial strata.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets the internal motion clock for drift, bead travel and breathing.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "PLAYGRND",
+          "author": "PLAYGRND / PlayLab",
+          "sourceLicence": "No code or licence reuse; reference-only visual research",
+          "publicText": "Inspired by the Dahlia generator on PLAYGRND. Kinda Flower is an independently implemented standalone Canvas2D radial system focused on segmented lines, layered spread and bead accents.",
+          "authorUrl": "https://www.playgrnd.tools/",
+          "projectUrl": "https://www.playgrnd.tools/dahlia",
+          "specificReference": "Dahlia",
+          "specificReferenceUrl": "https://www.playgrnd.tools/dahlia"
+        }
+      ],
+      "development": {
+        "limitations": null,
+        "nextIdeas": []
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "Syn Division",
+      "slug": "syn-division",
+      "version": "v1.0",
+      "file": "syn-division/Syn_Division-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "lines",
+        "field"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "A [syn] approach to Joy Division",
+        "about": "Generates a repeated interlocking line field built from synchronized rows. Row count, spacing, tooth geometry and stagger define the base system, while bipolar Warp and Ripple engines can reinforce, counter or aggressively cross-couple through three vector modes.",
+        "implementation": "Canvas2D; interlock-only line motor; permanently rounded joins/caps; independent row count and row spacing; horizontally overscanned lines for effectively infinite continuation; bipolar Warp and Ripple engines; three discrete vector relationships (Flow, Counter, Clash); deterministic row variation; transparent output."
+      },
+      "parameters": [
+        {
+          "key": "stripes",
+          "label": "Stripes",
+          "behaviour": "Sets the number of interlocking rows generated.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "spacing",
+          "label": "Spacing",
+          "behaviour": "Sets the physical distance between neighboring rows.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "weight",
+          "label": "Weight",
+          "behaviour": "Controls the stroke thickness of all rows.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "tooth_depth",
+          "label": "Tooth Depth",
+          "behaviour": "Controls the vertical amplitude of the interlocking teeth.",
+          "explanation": null,
+          "mapping": "Try mapping it along or in contrast with 'Tooth Length'."
+        },
+        {
+          "key": "tooth_length",
+          "label": "Tooth Length",
+          "behaviour": "Sets the horizontal period/length of each tooth cycle.",
+          "explanation": null,
+          "mapping": "Try mapping it along or in contrast with 'Tooth Depth'."
+        },
+        {
+          "key": "stagger",
+          "label": "Stagger",
+          "behaviour": "Offsets neighboring rows in phase.",
+          "explanation": "A different kind of flow",
+          "mapping": null
+        },
+        {
+          "key": "warp",
+          "label": "Warp",
+          "behaviour": "Applies a bipolar multi-frequency deformation field to the rows.",
+          "explanation": "Primary high-energy deformation control.",
+          "mapping": "Try mapping it along or in contrast with 'Ripple'."
+        },
+        {
+          "key": "ripple",
+          "label": "Ripple",
+          "behaviour": "Applies a bipolar travelling wave across the field.",
+          "explanation": null,
+          "mapping": "Try mapping it along or in contrast with 'Warp'."
+        },
+        {
+          "key": "vector_mode",
+          "label": "Vector Mode",
+          "behaviour": "Selects how Warp and Ripple vectors interact.",
+          "explanation": "Increasing amount of conflict between the two parameters",
+          "mapping": null
+        },
+        {
+          "key": "phase",
+          "label": "Phase",
+          "behaviour": "Offsets the pattern and deformation phase.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets the internal movement rate for phase, Warp and Ripple motion.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "PLAYGRND",
+          "author": "PLAYGRND / PlayLab",
+          "sourceLicence": "No code or licence reuse; reference-only visual research",
+          "publicText": "Inspired by the Zig generator on PLAYGRND. Syn Division is an independently implemented standalone Canvas2D interlocking-line system focused on bipolar deformation and vector relationships.",
+          "authorUrl": "https://www.playgrnd.tools/",
+          "projectUrl": "https://www.playgrnd.tools/zig",
+          "specificReference": "Zig",
+          "specificReferenceUrl": "https://www.playgrnd.tools/zig"
+        }
+      ],
+      "development": {
+        "limitations": null,
+        "nextIdeas": [
+          "Let the lines be driven directly by the audio input."
+        ]
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "DNA Filament",
+      "slug": "dna-filament",
+      "version": "v1.0",
+      "file": "dna-filament/DNA_Filament-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "lines",
+        "field"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "Angel hair is a type of pasta. I loved it as a child.",
+        "about": "Generates a colony of line filaments traced through a multi-scale vector field. Four structural modes reorganize the whole system, while Bundle groups strands into shared cohorts and Curl, Twist and DNA Maker push them from smooth streams toward dense fibrous or rope-like forms.",
+        "implementation": "Canvas2D; deterministic grouped streamlines; four structural modes; multi-scale trigonometric vector field; cohort-based Bundle system with shared trajectory identity; accumulated bipolar Curl; harmonic bipolar Twist; normal-offset bipolar DNA Maker around the underlying trajectory; per-bundle accent strands; transparent output."
+      },
+      "parameters": [
+        {
+          "key": "mode",
+          "label": "Mode",
+          "behaviour": "Selects the global structural organization of the filament system.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "lines",
+          "label": "Lines",
+          "behaviour": "Sets the number of filament strands generated.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "length",
+          "label": "Length",
+          "behaviour": "Controls how long each filament is traced through the field.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "spread",
+          "label": "Spread",
+          "behaviour": "Controls the spatial envelope used to distribute filament origins and structural targets.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "bundle",
+          "label": "Bundle",
+          "behaviour": "Groups individual strands into shared cohorts with increasingly similar origins and trajectories.",
+          "explanation": "Low values keep filaments more independent; high values collapse them into a few strong rope-like families.",
+          "mapping": null
+        },
+        {
+          "key": "field",
+          "label": "Field",
+          "behaviour": "Sets how strongly the multi-scale vector field influences each filament trajectory.",
+          "explanation": "Low values preserve the structural mode more clearly; high values pull strands into stronger field deformation.",
+          "mapping": null
+        },
+        {
+          "key": "curl",
+          "label": "Curl",
+          "behaviour": "Applies strong bipolar accumulated curvature along each trajectory.",
+          "explanation": "Positive and negative values bend filaments in opposite directions, with a non-linear response",
+          "mapping": null
+        },
+        {
+          "key": "twist",
+          "label": "Twist",
+          "behaviour": "Adds strong bipolar alternating torsion with a secondary harmonic along each filament.",
+          "explanation": "Repeatedly reverses local turning along the path; the sign flips the torsion direction.",
+          "mapping": null
+        },
+        {
+          "key": "weave",
+          "label": "DNA Maker",
+          "behaviour": "Braids filaments around the shared trajectory of their bundle.",
+          "explanation": "Turn everything into DNA instantly!",
+          "mapping": null
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "behaviour": "Controls the stroke thickness of the filaments.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "drift",
+          "label": "Drift",
+          "behaviour": "Adds a slower line-specific instability on top of the structural field.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets the internal animation clock used by the vector field, Twist, DNA Maker and Drift.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "PLAYGRND",
+          "author": "PLAYGRND / PlayLab",
+          "sourceLicence": "No code or licence reuse; reference-only visual research",
+          "publicText": "Inspired by the Filament generator on PLAYGRND. DNA Filament is an independently implemented standalone Canvas2D system focused on bundled streamlines, structural flow modes and braided fiber behavior.",
+          "authorUrl": "https://www.playgrnd.tools/",
+          "projectUrl": "https://www.playgrnd.tools/filament",
+          "specificReference": "Filament",
+          "specificReferenceUrl": "https://www.playgrnd.tools/filament"
+        }
+      ],
+      "development": {
+        "limitations": null,
+        "nextIdeas": [
+          "A future branch could explore attraction / repulsion between bundles driven by input frequencies."
+        ]
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "Scan Accumulator",
+      "slug": "scan-accumulator",
+      "version": "v1.0",
+      "file": "scan-accumulator/Scan_Accumulator-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "lines",
+        "transition"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "Try to scan something while someone messes with the time machine next to it.",
+        "about": "Generates an internal line source and reconstructs it progressively along vertical, horizontal or diagonal scan axes. Each acquired strip has its own age, allowing precise hold times, temporal offset, drift and smear to turn the reconstructed frame into a layered time-based image.",
+        "implementation": "Canvas2D; offscreen procedural source buffer; offscreen accumulation buffer; generic clipped scan bands on four unique axes; temporal slit-scan sampling; per-strip age tracking with hard expiry; smear trail; rising-edge reset; transparent output."
+      },
+      "parameters": [
+        {
+          "key": "scan_position",
+          "label": "Scan Position",
+          "behaviour": "Offsets the scan head through its current direction.",
+          "explanation": "At Motion BPM 0 it becomes a direct manual scan-position control; with motion running it offsets the automatic scan phase.",
+          "mapping": null
+        },
+        {
+          "key": "direction",
+          "label": "Direction",
+          "behaviour": "Selects one of four scan axes.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "scan_width",
+          "label": "Scan Width",
+          "behaviour": "Sets the thickness of the acquisition band.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "temporal_offset",
+          "label": "Temporal Offset",
+          "behaviour": "Offsets source time across scan position.",
+          "explanation": "Creates slit-scan temporal displacement: different areas of the reconstructed frame can come from different moments of the generated source.",
+          "mapping": null
+        },
+        {
+          "key": "drift",
+          "label": "Drift",
+          "behaviour": "Moves the internally generated source while it is being scanned.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "hold",
+          "label": "Hold Time (0.01s)",
+          "behaviour": "Sets the lifetime of each acquired strip in hundredths of a second.",
+          "explanation": "100 = 1s - Persistence is age-based per scan strip and expires to a hard clear.",
+          "mapping": null
+        },
+        {
+          "key": "smear",
+          "label": "Smear",
+          "behaviour": "Trails translucent copies behind the active scan band.",
+          "explanation": "Extends the acquisition spatially along the scan direction",
+          "mapping": "Pairs well with narrow Scan Width and short Hold times."
+        },
+        {
+          "key": "trigger",
+          "label": "HARD RESET",
+          "behaviour": "Clears the accumulation buffer on a rising edge.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "source_type",
+          "label": "Source Type",
+          "behaviour": "Selects the procedural source that is scanned.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "source_detail",
+          "label": "Source Detail",
+          "behaviour": "Controls structural density of the selected source.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "source_scale",
+          "label": "Source Scale",
+          "behaviour": "Scales the generated source before acquisition.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets automatic scan speed.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "Glitch Scanner / Scanner Simulator",
+          "author": "stihilus",
+          "sourceLicence": "No licence file identified during reference review",
+          "publicText": "Inspired by the progressive scanner-acquisition principle of stihilus' Glitch Scanner / Scanner Simulator. Scan Accumulator replaces user-image input with internally generated procedural sources and adds temporal accumulation, age-based hold, smear and multi-axis scanning.",
+          "authorUrl": null,
+          "projectUrl": "https://github.com/stihilus/glitch-scanner",
+          "specificReference": "Progressive scanner acquisition",
+          "specificReferenceUrl": "https://github.com/stihilus/glitch-scanner"
+        }
+      ],
+      "development": {
+        "limitations": "Hold values shorter than a display frame cannot be visually distinguished continuously at normal frame rates. Direction and Source Type are discrete manual switches.",
+        "nextIdeas": []
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "Orbital Geometry",
+      "slug": "orbital-geometry",
+      "version": "v1.0",
+      "file": "orbital-geometry/Orbital_Geometry-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "lines",
+        "shapes"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "Looking at the stars above us is always amazing",
+        "about": "Generates three related geometric systems around a shared language of harmonic Ratio, Phase, Eccentricity and Drift. True path intersections can be detected and marked independently, turning crossings into a second graphic layer.",
+        "implementation": "Canvas2D; three shared-parameter geometric systems; discrete harmonic-ratio table; orbital harmonic displacement; closed Lissajous cycles at full Arc Length; ratio-driven constellation links; exact segment intersection tests with centered circular markers; transparent output; independent marker radius and line/marker stroke width."
+      },
+      "parameters": [
+        {
+          "key": "system",
+          "label": "System",
+          "behaviour": "Switches between Orbital / Arcs, Lissajous and Constellation geometries.",
+          "explanation": "Chooses the geometric system",
+          "mapping": null
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": "Sets the number of trajectories or constellation nodes generated by the active system.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "scale",
+          "label": "Scale",
+          "behaviour": "Scales the complete geometric system relative to the canvas.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "ratio",
+          "label": "Ratio",
+          "behaviour": "Selects one of nine harmonic ratios (1:1, 1:2, 2:3, 3:4, 3:5, 4:5, 5:6, 5:8, 8:13) and applies that relationship to the geometry of every System.",
+          "explanation": "Controls the harmonic relationship used ",
+          "mapping": null
+        },
+        {
+          "key": "phase",
+          "label": "Phase",
+          "behaviour": "Offsets the angular / harmonic phase of the active geometry.",
+          "explanation": "Shifts the internal relationship between repeated curves and oscillations.",
+          "mapping": null
+        },
+        {
+          "key": "eccentricity",
+          "label": "Eccentricity",
+          "behaviour": "Pushes circular relationships toward elliptical / stretched forms.",
+          "explanation": "Controls the asymmetry between the geometry's main axes.",
+          "mapping": null
+        },
+        {
+          "key": "arc_length",
+          "label": "Arc Length",
+          "behaviour": "Controls how much of each trajectory is drawn.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "drift",
+          "label": "Drift",
+          "behaviour": "Adds continuous harmonic displacement and orbital wandering",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "intersection",
+          "label": "Intersection",
+          "behaviour": "Controls how many true segment crossings are marked.",
+          "explanation": "Reveals calculated intersections between independent trajectories ",
+          "mapping": null
+        },
+        {
+          "key": "intersection_size",
+          "label": "Intersection Size",
+          "behaviour": "Controls only the radius of the circular intersection markers.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "line_width",
+          "label": "Line Width",
+          "behaviour": "Controls the stroke thickness of trajectories and the outline thickness of intersection circles.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets the internal motion clock. At 0 BPM the geometry is static.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "Brand Assets Generator",
+          "author": "Yordan Stoyanov",
+          "sourceLicence": "No public repository / licence identified during reference review",
+          "publicText": "Inspired by selected geometry experiments in Yordan Stoyanov's Brand Assets Generator. Orbital Geometry is an independently implemented standalone Canvas2D tool for this project.",
+          "authorUrl": "https://stoyanov.works/",
+          "projectUrl": "https://brand-generator.stoyanov.works/",
+          "specificReference": "Circle mapping · intersections · geo tool",
+          "specificReferenceUrl": "https://brand-generator.stoyanov.works/"
+        }
+      ],
+      "development": {
+        "limitations": "Intersection detection is intentionally bounded for realtime use. High Amount with dense crossing structures can increase CPU cost. System is a discrete manual switch.",
+        "nextIdeas": []
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "Lava Lamp",
+      "slug": "lava-lamp",
+      "version": "v1.0",
+      "file": "lava-lamp/Lava_Lamp-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "field",
+        "shapes"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "I've loved them for as long as I can remember; there's something sloth-like and peaceful about them.",
+        "about": "Generates a bounded population of morphing zero-gravity blobs. Viscosity and Wandering shape their motion; Merge moves same-color families from separation toward shared liquid masses; Turbulence warps the field; up to three controllable color groups interact and create mixed-color zones only where different blobs genuinely overlap.",
+        "implementation": "Canvas2D; deterministic bounded blob pool; continuously morphing implicit masses; zero-gravity 2D wandering; soft containment; same-color merge / exclusion physics; transient cross-color pass-through; local mixed-color contact rendering; progressive multi-scale turbulence; smooth high-Merge family seal underlay; optional transparent background."
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": "Sets the active number of autonomous blobs in the field.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "size",
+          "label": "Size",
+          "behaviour": "Controls the base radius of the blobs before deterministic per-blob size variation.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "viscosity",
+          "label": "Viscosity",
+          "behaviour": "Controls mobility and damping of the blob simulation.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "merge",
+          "label": "Merge",
+          "behaviour": "Moves same-color interaction from exclusion toward overlap, shared-field influence and visible fusion.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "wandering",
+          "label": "Wandering",
+          "behaviour": "Controls the strength of organic zero-gravity roaming in two dimensions.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "turbulence",
+          "label": "Turbulence",
+          "behaviour": "Warps the blob field through several animated spatial frequencies.",
+          "explanation": "The first half increases broad deformation; above the midpoint additional higher-frequency warp enters progressively rather than switching modes.",
+          "mapping": null
+        },
+        {
+          "key": "color_groups",
+          "label": "Color Groups",
+          "behaviour": "Chooses how many color families are assigned cyclically across the active blob population.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "behaviour": "Regenerates deterministic initial blob positions, sizes, phases and drift characteristics.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets the global internal motion clock.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "BeerBelgio Lava Engine / beerbelgio.github.io",
+          "author": "BeerBelgio",
+          "sourceLicence": "User-authored source; same project owner",
+          "publicText": "Inspired by BeerBelgio's own interactive Lava Engine used on beerbelgio.github.io. Lava Lamp is an independently implemented standalone Canvas2D tool with Sketch-compatible controls, zero-gravity roaming, merge / fusion and local cross-color blending.",
+          "authorUrl": "https://github.com/BeerBelgio",
+          "projectUrl": "https://github.com/BeerBelgio/beerbelgio.github.io",
+          "specificReference": "BeerBelgio Lava Engine",
+          "specificReferenceUrl": "https://github.com/BeerBelgio/beerbelgio.github.io/blob/main/lava.js"
+        }
+      ],
+      "development": {
+        "limitations": "No shader/gradient-like coloring where blobs overlap. I'll stick with the '70s vibe.",
+        "nextIdeas": []
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "Electrostatic Field",
+      "slug": "electrostatic-field",
+      "version": "v1.0",
+      "file": "electrostatic-field/Electrostatic_Field-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "flow",
+        "lines"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "Imagine seeing an electrostatic energy field in a couple of colors, maybe across a couple of materials too.",
+        "about": "Generates a field of animated trajectories driven by four structural modes. Lines respond to vector flow, local wave warp and attract/repel poles; increasing Pole Count disperses those deformation centres across the canvas and weakens their individual pull, while Spread lets paths peel away from the shared field.",
+        "implementation": "Canvas2D; deterministic emitter families; four vector-field topologies; localized attract/repel pole field with count-dependent spatial dispersion and force attenuation; per-line dual-frequency local warp; progressive per-line spread; deterministic accent subset; transparent output."
+      },
+      "parameters": [
+        {
+          "key": "system_shape",
+          "label": "System Shape",
+          "behaviour": "Switches between four flow-field topologies: concentric/orbital, parallel, converging and resonance.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "density",
+          "label": "Density",
+          "behaviour": "Sets the number of animated paths generated in the field.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "scale",
+          "label": "Scale",
+          "behaviour": "Scales the overall field radius / spatial extent.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "flow",
+          "label": "Flow",
+          "behaviour": "Strengthens the underlying vector-field motion and exaggerates each System Shape's directional behaviour.",
+          "explanation": "Controls how strongly the lines follow the system's flow logic.",
+          "mapping": null
+        },
+        {
+          "key": "warp",
+          "label": "Warp",
+          "behaviour": "Adds local dual-wave distortion along each individual line as well as field-level curvature.",
+          "explanation": "Distorts the geometry of the lines",
+          "mapping": null
+        },
+        {
+          "key": "pole_force",
+          "label": "Pole Force",
+          "behaviour": "Controls how strongly the attract/repel poles bend nearby trajectories.",
+          "explanation": null,
+          "mapping": "Map it along or in contrast with 'Pole Count'"
+        },
+        {
+          "key": "pole_count",
+          "label": "Pole Count",
+          "behaviour": "Sets the actual number of deformation poles. Higher counts disperse them farther across the canvas, reduce each pole's individual pull and increase effective line dispersion.",
+          "explanation": null,
+          "mapping": "Map it along or in contrast with 'Pole Force'"
+        },
+        {
+          "key": "path_length",
+          "label": "Path Length",
+          "behaviour": "Controls how many integration steps are used to extend each trajectory.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "spread",
+          "label": "Spread",
+          "behaviour": "Separates emitters and progressively disperses individual paths, while relaxing the system's containment at high values.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "line_width",
+          "label": "Line Width",
+          "behaviour": "Sets the stroke width of the generated paths.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "accent",
+          "label": "Accent",
+          "behaviour": "Sets the proportion of paths redrawn with the Accent Color.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets the internal speed of the continuous field motion.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "Book of Shapes",
+          "author": "Nikolaj Sokolowski",
+          "sourceLicence": "Restricted reference source — no redistribution of patterns, node graphs or generators",
+          "publicText": "Inspired by selected flow / physics studies from Book of Shapes. Electrostatic Field is an independently implemented standalone Canvas2D field system for this project.",
+          "authorUrl": null,
+          "projectUrl": "https://bookofshapes.com/",
+          "specificReference": "Flow Poles · Wavy Lines Converging · Resonance Field",
+          "specificReferenceUrl": "https://bookofshapes.com/"
+        }
+      ],
+      "development": {
+        "limitations": "High Density, Pole Count and Path Length combinations increase CPU cost. Poles are invisible force centres rather than rendered objects.",
+        "nextIdeas": []
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "Homer's Hair",
+      "slug": "homers-hair",
+      "version": "v1.0",
+      "file": "homers-hair/Homers_Hair-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "lines",
+        "flow"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "The first time I tried it, it just looked like Homer Simpson's two lonely hairs.",
+        "about": "Builds a repeated family from one source curve then transforms each copy through spacing, displacement, phase offset, scale, rotation, warp and travelling propagation.",
+        "implementation": "Canvas2D; four base-curve systems; progressive repetition engine; normal-based displacement; secondary warp layer; scale and rotation steps; propagation-based cascading deformation with speed decoupled from playback BPM; transparent output."
+      },
+      "parameters": [
+        {
+          "key": "system",
+          "label": "Base Curve",
+          "behaviour": "Switches between Arc, Sine, Bezier and Loop as the source curve family.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "repetitions",
+          "label": "Repetitions",
+          "behaviour": "Sets how many copies of the base curve are generated.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "spacing",
+          "label": "Spacing",
+          "behaviour": "Controls how far the repeated copies spread across the family envelope.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "displacement",
+          "label": "Displacement",
+          "behaviour": "Controls the main deformation amount applied along the normal of each curve copy.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "phase_offset",
+          "label": "Phase Offset",
+          "behaviour": "Offsets phase from one copy to the next.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "scale_step",
+          "label": "Scale Step",
+          "behaviour": "Applies a progressive scale difference across the repetition family.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "rotation_step",
+          "label": "Rotation Step",
+          "behaviour": "Applies a progressive rotation difference across the repetition family.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "curve_tension",
+          "label": "Curve Tension",
+          "behaviour": "Controls how strongly the base curve bends or lobes. Higher values now mean stronger tension / deformation.",
+          "explanation": "Sets the intrinsic curvature intensity of the mother curve.",
+          "mapping": null
+        },
+        {
+          "key": "warp",
+          "label": "Warp",
+          "behaviour": "Adds a second deformation layer with different frequency behaviour.",
+          "explanation": "Acts as a secondary warping component beyond the main displacement.",
+          "mapping": "Pairs well with Displacement for richer motion."
+        },
+        {
+          "key": "propagation",
+          "label": "Propagation",
+          "behaviour": "Controls how deformation phase cascades across the repetition family. Internal gain is intentionally extreme (x5)",
+          "explanation": "Changes the delay / travel logic of the transformation from one copy to another without changing Motion BPM.",
+          "mapping": null
+        },
+        {
+          "key": "line_width",
+          "label": "Line Width",
+          "behaviour": "Controls the stroke thickness of all repeated curves.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "motion_bpm",
+          "label": "Motion BPM",
+          "behaviour": "Sets the internal motion clock. At 0 BPM the system is static.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "Brand Assets Generator",
+          "author": "Yordan Stoyanov",
+          "sourceLicence": "No public repository / licence identified during reference review",
+          "publicText": "Inspired by selected curve-repetition studies in Yordan Stoyanov's Brand Assets Generator. Homer's Hair is an independently implemented standalone Canvas2D tool for this project.",
+          "authorUrl": "https://stoyanov.works/",
+          "projectUrl": "https://brand-generator.stoyanov.works/",
+          "specificReference": "Tracery lines · curve repetition · geometric displacement",
+          "specificReferenceUrl": "https://brand-generator.stoyanov.works/"
+        }
+      ],
+      "development": {
+        "limitations": null,
+        "nextIdeas": []
+      },
+      "hero": {
+        "enabled": true
+      }
+    },
+    {
+      "name": "Sticky Plants",
+      "slug": "sticky-plants",
+      "version": "v1.0",
+      "file": "sticky-plants/Sticky_Plants-v1.0.html",
+      "renderer": "Canvas 2D",
+      "conceptTags": [
+        "lines",
+        "field"
+      ],
+      "provenanceTags": [
+        "original",
+        "inspired-by"
+      ],
+      "copy": {
+        "short": "They do seem like sticky plants, but they were actually a branching coral system.",
+        "about": "Generates a family of coral-like line structures that branch, fork and build ribbed fan patterns across the canvas. The system can grow inward from each edge or appear at random in-canvas origins, shifting between tidy formations and more irregular, asymmetrical growth.",
+        "implementation": "Canvas2D; deterministic procedural branching system; inward edge-growth and in-canvas random modes; rib generation tied to main branches; spread used as spatial dispersion rather than bouquet opening; asymmetry influences both growth path and origin placement; transparent output."
+      },
+      "parameters": [
+        {
+          "key": "mode",
+          "label": "Mode",
+          "behaviour": "Selects the coral spawning mode.",
+          "explanation": "Modes 0–3 grow inward from a specific edge; mode 4 places corals randomly in the canvas",
+          "mapping": null
+        },
+        {
+          "key": "branches",
+          "label": "Branches",
+          "behaviour": "Controls how many coral organisms are generated.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "forking",
+          "label": "Forking",
+          "behaviour": "Controls the strength and frequency of branching within each coral.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "spacing",
+          "label": "Spacing",
+          "behaviour": "Controls the base separation between neighboring corals.",
+          "explanation": null,
+          "mapping": "Useful against Spread for compression/expansion gestures."
+        },
+        {
+          "key": "spread",
+          "label": "Spread",
+          "behaviour": "Expands the colony across the canvas.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "behaviour": "Sets the line width of both the main branches and the ribs.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "wobble",
+          "label": "Wobble",
+          "behaviour": "Adds waviness and irregular bending to the lines.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "growth",
+          "label": "Growth",
+          "behaviour": "Controls how much of the coral is drawn.",
+          "explanation": "Acts like a reveal/progression parameter for the colony.",
+          "mapping": null
+        },
+        {
+          "key": "rib_density",
+          "label": "Rib Density",
+          "behaviour": "Sets how many lateral ribs appear along the coral branches.",
+          "explanation": "Spikes on cactus or leaves on a plant?",
+          "mapping": null
+        },
+        {
+          "key": "rib_length",
+          "label": "Rib Length",
+          "behaviour": "Controls how far the ribs extend from the main branches.",
+          "explanation": null,
+          "mapping": null
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "behaviour": "Changes the deterministic arrangement of the coral colony.",
+          "explanation": "A new seed changes origin positions, directional variance and branching distribution",
+          "mapping": null
+        },
+        {
+          "key": "asymmetry",
+          "label": "Asymmetry",
+          "behaviour": "Introduces irregularity to both origin placement and coral growth.",
+          "explanation": null,
+          "mapping": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "inspired-by",
+          "project": "PLAYGRND",
+          "author": "PLAYGRND / PlayLab",
+          "sourceLicence": "No code or licence reuse; reference-only visual research",
+          "publicText": "Inspired by the Coral generator on PLAYGRND. Sticky Plants is an independently implemented standalone Canvas2D branching system focused on coral-like growth, ribs and colony distribution.",
+          "authorUrl": "https://www.playgrnd.tools/",
+          "projectUrl": "https://www.playgrnd.tools/coral",
+          "specificReference": "Coral",
+          "specificReferenceUrl": "https://www.playgrnd.tools/coral"
+        }
+      ],
+      "development": {
+        "limitations": null,
+        "nextIdeas": []
+      },
+      "hero": {
+        "enabled": true
       }
     }
   ]

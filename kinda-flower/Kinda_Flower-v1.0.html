@@ -1,0 +1,352 @@
+<!--
+INDEX HTML — HTML Tool
+Project: https://github.com/BeerBelgio/index-html
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kinda Flower v1.0</title>
+  <style>
+    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#111; }
+    body { display:flex; align-items:center; justify-content:center; }
+    canvas { display:block; background:transparent; }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+/*
+  Kinda Flower v1.0
+  Original INDEX HTML implementation.
+  Creative reference: PLAYGRND / Dahlia — radial segmented rays, curvature and bead accents.
+  No third-party implementation code is incorporated here.
+*/
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Kinda Flower v1.0",
+  params: [
+    { key: "rays", label: "Rays", min: 6, max: 180, step: 1, default: 48 },
+    { key: "size", label: "Size", min: 20, max: 180, step: 1, default: 100 },
+    { key: "ragged", label: "Ragged", min: 0, max: 200, step: 1, default: 62 },
+    { key: "center_x", label: "Center X", min: -200, max: 200, step: 1, default: 0 },
+    { key: "center_y", label: "Center Y", min: -200, max: 200, step: 1, default: 0 },
+    { key: "width", label: "Width", min: 0.5, max: 50, step: 0.1, default: 3 },
+    { key: "dash", label: "Dash", min: 1, max: 80, step: 1, default: 18 },
+    { key: "gap", label: "Gap", min: 0, max: 80, step: 1, default: 12 },
+    { key: "bend", label: "Bend", min: -200, max: 200, step: 1, default: 42 },
+    { key: "beads", label: "Beads", min: 0, max: 100, step: 1, default: 28 },
+    { key: "layer_spread", label: "Layer Spread", min: 0, max: 200, step: 1, default: 42 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "line_color", label: "Line Color", default: "#E8DDC8" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "rays", "size", "ragged", "width",
+    "dash", "gap", "bend", "beads",
+    "layer_spread"
+  ]
+};
+
+const canvas = document.getElementById("sketch-canvas");
+const ctx = canvas.getContext("2d", { alpha:true });
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function clamp01(v){ return clamp(v,0,1); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function fract(v){ return v-Math.floor(v); }
+function readVal(obj,key,fallback){
+  return (obj && Object.prototype.hasOwnProperty.call(obj,key) && obj[key] !== undefined && obj[key] !== null)
+    ? obj[key] : fallback;
+}
+function hash01(n){ return fract(Math.sin(n*127.1+311.7)*43758.5453123); }
+
+
+function indexColorOpacity(hostContext, key){
+  if (!hostContext || !hostContext.colorOpacity) return 1;
+  const value = Number(hostContext.colorOpacity[key]);
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
+}
+
+window.sketchResize=function(width,height){
+  width=Math.max(1,Math.floor(width));
+  height=Math.max(1,Math.floor(height));
+  if(canvas.width!==width || canvas.height!==height){
+    canvas.width=width;
+    canvas.height=height;
+  }
+};
+
+function buildRayPath(cx,cy,angle,startR,endR,bendArc,raggedN,seed,phase){
+  const pts=[];
+  const samples=110;
+  const waveFreq=1.05+hash01(seed*4.31)*1.95;
+  const wavePhase=hash01(seed*8.73)*Math.PI*2;
+  const innerR=Math.max(0.6,startR*0.12);
+  const sweep=bendArc;
+  const drift=(hash01(seed*12.7)-0.5) * 0.16 * raggedN;
+  const skew=(hash01(seed*15.9)-0.5) * 0.22 * raggedN;
+  const profilePow=lerp(1.30,0.82,Math.min(1,Math.abs(sweep)/(Math.PI*1.35)));
+
+  for(let s=0;s<=samples;s++){
+    const u=s/samples;
+    const p=Math.sin(Math.PI*u);
+    const profile=Math.pow(Math.max(0,p),profilePow);
+    const rr=lerp(innerR,endR,profile);
+
+    // Core behaviour: the path starts near the nucleus, opens outward,
+    // then returns toward the nucleus from another angle.
+    // This creates a petal / spherical wrap rather than a lateral side-bend.
+    const sweepTheta=angle + sweep*(u-0.5);
+    const localWave=Math.sin(u*Math.PI*2*waveFreq + wavePhase + phase*0.17) * 0.070 * raggedN * profile;
+    const pinch=(u-0.5)*(u-0.5);
+    const theta=sweepTheta + drift*(1-profile) + skew*pinch + localWave;
+
+    pts.push({
+      x:cx+Math.cos(theta)*rr,
+      y:cy+Math.sin(theta)*rr
+    });
+  }
+  return pts;
+}
+
+function drawDashedPolyline(points,dashPx,gapPx,offsetPx,lineWidth,alpha){
+  if(points.length<2) return;
+  const dash=Math.max(0.5,dashPx);
+  const gap=Math.max(0,gapPx);
+  const cycle=Math.max(0.5,dash+gap);
+  let cursor=((offsetPx%cycle)+cycle)%cycle;
+  let drawing=cursor<dash;
+  let remain=drawing ? dash-cursor : cycle-cursor;
+
+  ctx.globalAlpha=alpha;
+  ctx.lineWidth=lineWidth;
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+
+  let a=points[0];
+  for(let i=1;i<points.length;i++){
+    const b=points[i];
+    let sx=a.x, sy=a.y;
+    const dx=b.x-a.x, dy=b.y-a.y;
+    const segLen=Math.hypot(dx,dy);
+    if(segLen<1e-6){ a=b; continue; }
+
+    let used=0;
+    while(used<segLen-1e-6){
+      const take=Math.min(remain,segLen-used);
+      const t0=used/segLen;
+      const t1=(used+take)/segLen;
+      const x0=a.x+dx*t0, y0=a.y+dy*t0;
+      const x1=a.x+dx*t1, y1=a.y+dy*t1;
+
+      if(drawing && take>0.05){
+        ctx.beginPath();
+        ctx.moveTo(x0,y0);
+        ctx.lineTo(x1,y1);
+        ctx.stroke();
+      }
+
+      used+=take;
+      remain-=take;
+      if(remain<=1e-6){
+        drawing=!drawing;
+        remain=drawing ? dash : Math.max(0.0001,gap);
+      }
+    }
+    a=b;
+  }
+}
+
+function pointOnPath(points,u){
+  u=clamp01(u);
+  const lengths=[0];
+  let total=0;
+  for(let i=1;i<points.length;i++){
+    total+=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);
+    lengths.push(total);
+  }
+  if(total<1e-6) return points[0];
+  const target=u*total;
+  for(let i=1;i<lengths.length;i++){
+    if(lengths[i]>=target){
+      const span=Math.max(1e-6,lengths[i]-lengths[i-1]);
+      const t=(target-lengths[i-1])/span;
+      return {
+        x:lerp(points[i-1].x,points[i].x,t),
+        y:lerp(points[i-1].y,points[i].y,t)
+      };
+    }
+  }
+  return points[points.length-1];
+}
+
+window.sketchDraw = function(state, hostContext){
+  const w=canvas.width,h=canvas.height;
+  if(w<2||h<2) return;
+
+  const rays=Math.round(clamp(readVal(state,"rays",48),6,180));
+  const size=clamp(readVal(state,"size",100),20,180)/100;
+  const raggedN=clamp(readVal(state,"ragged",62),0,200)/100;
+  const centerX=clamp(readVal(state,"center_x",0),-200,200)/100;
+  const centerY=clamp(readVal(state,"center_y",0),-200,200)/100;
+  const width=clamp(readVal(state,"width",3.0),0.5,50);
+  const dashV=clamp(readVal(state,"dash",18),1,80)/80;
+  const gapV=clamp(readVal(state,"gap",12),0,80)/80;
+  const bend=clamp(readVal(state,"bend",42),-200,200)/200;
+  const beadsN=clamp01(readVal(state,"beads",28)/100);
+  const spreadN=clamp(readVal(state,"layer_spread",42),0,200)/200;
+  const bpm=clamp(readVal(state,"motion_bpm",72),0,260);
+  const t=Number(readVal(state,"time",0))||0;
+  const phase=bpm<=0 ? 0 : t*(bpm/60)*Math.PI*2;
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalCompositeOperation="source-over";
+  ctx.globalAlpha=1;
+  ctx.clearRect(0,0,w,h);
+
+  const minSide=Math.min(w,h);
+  const cx=w*(0.5+centerX*0.5);
+  const cy=h*(0.5+centerY*0.5);
+  const baseR=minSide*0.43*size;
+  const startR=Math.max(1.5,baseR*0.055);
+
+  const dashPx=1.5+dashV*minSide*0.047;
+  const gapPx=gapV*minSide*0.043;
+  const cycle=dashPx+gapPx;
+  const bendArc=bend*Math.PI*1.45;
+  const globalRotation=phase*0.018;
+  const angularStep=(Math.PI*2)/rays;
+
+  ctx.strokeStyle=readVal(state,"line_color","#E8DDC8");
+  const accent=readVal(state,"accent_color","#EC6B2D");
+  const lineColorOpacity=indexColorOpacity(hostContext,"line_color");
+  const accentColorOpacity=indexColorOpacity(hostContext,"accent_color");
+
+  const layers=[-1,0,1];
+  const layerAlpha=[0.36,0.96,0.36];
+  const layerWidth=[0.72,1.0,0.72];
+
+  // Rays: three fixed strata whose angular separation is controlled by Layer Spread; at max the outer layers complete a full 360° spread between them.
+  for(let li=0;li<layers.length;li++){
+    const l=layers[li];
+    for(let i=0;i<rays;i++){
+      const seed=i+1.137;
+      const h1=hash01(seed*1.91);
+      const h2=hash01(seed*3.73);
+      const h3=hash01(seed*7.17);
+
+      const angleJitter=(h1-0.5)*0.070*raggedN;
+      const layerOffset=l*Math.PI*spreadN;
+      const angle=i*angularStep+globalRotation+angleJitter+layerOffset;
+
+      const lenVariation=1+(h2-0.5)*0.34*raggedN;
+      const pulse=1+Math.sin(phase*0.11+h3*Math.PI*2)*0.035*raggedN;
+      const endR=baseR*lenVariation*pulse*(1+l*0.025*spreadN);
+
+      const rayBend=
+        bendArc*(0.92+0.22*h3) +
+        Math.sin(phase*0.21+h1*Math.PI*2)*0.10*raggedN;
+
+      const path=buildRayPath(
+        cx,cy,angle,startR,endR,rayBend,raggedN,seed+l*17.0,phase
+      );
+
+      const dashVariation=1+(h3-0.5)*0.26*raggedN;
+      const localDash=Math.max(0.7,dashPx*dashVariation);
+      const localGap=Math.max(0,gapPx*(1+(h1-0.5)*0.24*raggedN));
+      const dashOffset=(h2*cycle)+(phase/(Math.PI*2))*cycle*0.42*(0.7+0.6*h1);
+
+      drawDashedPolyline(
+        path,
+        localDash,
+        localGap,
+        dashOffset,
+        width*layerWidth[li],
+        layerAlpha[li]*lineColorOpacity
+      );
+    }
+  }
+
+  // Beads: accent markers travel slowly along selected centre-layer rays.
+  if(beadsN>0.001){
+    ctx.fillStyle=accent;
+    ctx.globalAlpha=0.95*accentColorOpacity;
+
+    for(let i=0;i<rays;i++){
+      const seed=i+1.137;
+      const select=hash01(seed*11.31);
+      if(select>beadsN) continue;
+
+      const h1=hash01(seed*1.91);
+      const h2=hash01(seed*3.73);
+      const h3=hash01(seed*7.17);
+      const angle=i*angularStep+globalRotation+(h1-0.5)*0.070*raggedN;
+      const endR=baseR*(1+(h2-0.5)*0.34*raggedN)*
+        (1+Math.sin(phase*0.11+h3*Math.PI*2)*0.035*raggedN);
+      const rayBend=
+        bendArc*(0.92+0.22*h3) +
+        Math.sin(phase*0.21+h1*Math.PI*2)*0.10*raggedN;
+
+      const path=buildRayPath(cx,cy,angle,startR,endR,rayBend,raggedN,seed,phase);
+      const copies=1+Math.floor(beadsN*4.999);
+      for(let b=0;b<copies;b++){
+        const shift=hash01(seed*19.37 + b*7.13);
+        const speed=0.040 + 0.030*hash01(seed*23.11+b*5.77);
+        const travel=bpm<=0
+          ? fract(hash01(seed*14.17+b*3.21))
+          : fract(hash01(seed*14.17+b*3.21)+phase/(Math.PI*2)*speed+shift*0.35);
+        const u=lerp(0.10,0.98,travel);
+        const p=pointOnPath(path,u);
+        const r=width*1.25;
+
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,Math.max(1,r),0,Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+
+  ctx.globalAlpha=1;
+};
+</script>
+<script>
+(function localPreview(){
+  if(window.parent!==window) return;
+  const manifest=window.SKETCH_TOOL,state={time:0};
+  for(const p of manifest.params) state[p.key]=p.default;
+  for(const c of manifest.colors) state[c.key]=c.default;
+
+  function fit(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
+    canvas.style.width=side+"px";
+    canvas.style.height=side+"px";
+    window.sketchResize(
+      Math.max(1,Math.floor(side*dpr)),
+      Math.max(1,Math.floor(side*dpr))
+    );
+  }
+
+  fit();
+  window.addEventListener("resize",fit);
+  let last=performance.now();
+
+  function tick(now){
+    state.time+=Math.min(0.05,(now-last)/1000);
+    last=now;
+    try{ window.sketchDraw(state); }
+    catch(err){ console.error("[sketch] draw threw:",err); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,993 @@
+<!--
+INDEX HTML — HTML Tool
+Project: https://github.com/BeerBelgio/index-html
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lava Lamp v1.0</title>
+  <style>
+    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#111; }
+    body { display:flex; align-items:center; justify-content:center; }
+    canvas { display:block; background:transparent; }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+/*
+  INDEX HTML — Lava Lamp v1.0
+  Code provenance: original implementation.
+  Creative lineage: BeerBelgio Lava Engine / beerbelgio.github.io lava behavior
+  (user-authored reference; morphology, wandering, same/different-color interaction).
+  Renderer: Canvas2D. Self-contained; no external assets or libraries.
+*/
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Lava Lamp v1.0",
+  params: [
+    { key: "amount", label: "Amount", min: 2, max: 18, step: 1, default: 7 },
+    { key: "size", label: "Size", min: 20, max: 180, step: 1, default: 92 },
+    { key: "viscosity", label: "Viscosity", min: 0, max: 200, step: 1, default: 112 },
+    { key: "merge", label: "Merge", min: 0, max: 200, step: 1, default: 112 },
+    { key: "wandering", label: "Wandering", min: 0, max: 200, step: 1, default: 62 },
+    { key: "turbulence", label: "Turbulence", min: 0, max: 200, step: 1, default: 34 },
+    { key: "color_groups", label: "Color Groups", min: 1, max: 3, step: 1, default: 1 },
+    { key: "seed", label: "Seed", min: 0, max: 999, step: 1, default: 137 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "color_a", label: "Color A", default: "#EC6B2D" },
+    { key: "color_b", label: "Color B", default: "#E8DDC8" },
+    { key: "color_c", label: "Color C", default: "#6A9E5D" },
+    { key: "bg_color", label: "BG Color", default: "#1C1713" }
+  ],
+  audio: [
+    "amount", "size", "viscosity", "merge",
+    "wandering", "turbulence"
+  ]
+};
+
+const canvas = document.getElementById("sketch-canvas");
+const ctx = canvas.getContext("2d", { alpha:true });
+let blobs = [];
+let activeSeed = null;
+let lastStateTime = null;
+let motionPhase = 0;
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function clamp01(v){ return clamp(v,0,1); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function fract(v){ return v-Math.floor(v); }
+function readVal(obj,key,fallback){
+  return (obj && Object.prototype.hasOwnProperty.call(obj,key) && obj[key] !== undefined && obj[key] !== null) ? obj[key] : fallback;
+}
+function hash01(n){ return fract(Math.sin(n*12.9898+78.233)*43758.5453123); }
+function hexToRgb(hex){
+  const h = typeof hex === "string" && hex[0] === "#" ? hex.slice(1) : "";
+  if(h.length !== 6) return [255,255,255];
+  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+}
+function rgba(rgb,a){ return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`; }
+function mixRgb(a,b,t){
+  return [
+    Math.round(lerp(a[0],b[0],t)),
+    Math.round(lerp(a[1],b[1],t)),
+    Math.round(lerp(a[2],b[2],t))
+  ];
+}
+
+function makeBlob(i,seed){
+  const s = seed*0.173+i*19.19;
+  return {
+    x:0.12+hash01(s*1.13)*0.76,
+    y:0.08+hash01(s*1.91)*0.84,
+    vx:(hash01(s*3.41)*2-1)*0.008,
+    vy:(hash01(s*4.07)*2-1)*0.006,
+    sizeRnd:0.72+hash01(s*5.17)*0.56,
+    phase:hash01(s*6.31)*Math.PI*2,
+    phase2:hash01(s*7.49)*Math.PI*2,
+    driftGain:0.72+hash01(s*8.57)*0.62
+  };
+}
+function ensureBlobPool(seed,count){
+  if(activeSeed !== seed){ blobs=[]; activeSeed=seed; }
+  while(blobs.length<count) blobs.push(makeBlob(blobs.length,seed));
+}
+
+
+function indexColorOpacity(hostContext, key){
+  if (!hostContext || !hostContext.colorOpacity) return 1;
+  const value = Number(hostContext.colorOpacity[key]);
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
+}
+
+window.sketchResize=function(width,height){
+  width=Math.max(1,Math.floor(width)); height=Math.max(1,Math.floor(height));
+  if(canvas.width!==width || canvas.height!==height){ canvas.width=width; canvas.height=height; }
+};
+
+function advanceSimulation(state,activeBlobs){
+  const stateTime=Number(readVal(state,"time",0))||0;
+  const bpm=clamp(readVal(state,"motion_bpm",72),0,260);
+
+  if(lastStateTime===null || stateTime<lastStateTime || stateTime-lastStateTime>0.5){
+    lastStateTime=stateTime;
+    return;
+  }
+
+  const rawDt=clamp(stateTime-lastStateTime,0,0.05);
+  lastStateTime=stateTime;
+  if(bpm<=0 || rawDt<=0) return;
+
+  const dt=rawDt*(bpm/72);
+  motionPhase+=dt;
+
+  const viscInput=clamp(readVal(state,"viscosity",112)/100,0,2);
+  const visc=viscInput*1.45;
+  const wander=clamp(readVal(state,"wandering",62)/100,0,2);
+  const mergeNorm=clamp01(readVal(state,"merge",112)/200);
+  const groups=Math.round(clamp(readVal(state,"color_groups",1),1,3));
+  const sizeNorm=clamp(readVal(state,"size",92)/100,0.20,1.80);
+
+  const mobility=1/(0.58+visc*0.90);
+  const pairMobility=1/(0.78+visc*0.18);
+  const damping=Math.exp(-dt*(0.34+visc*0.70));
+  const nominalR=0.065+sizeNorm*0.062;
+  const mergeBlend=Math.pow(mergeNorm,1.8);
+  const frameScale=clamp(dt*60,0,2.0);
+
+  for(let i=0;i<activeBlobs.length;i++){
+    activeBlobs[i].colorId=i%groups;
+  }
+
+  for(let i=0;i<activeBlobs.length;i++){
+    const a=activeBlobs[i];
+    const ra=nominalR*a.sizeRnd;
+
+    for(let j=i+1;j<activeBlobs.length;j++){
+      const b=activeBlobs[j];
+      const rb=nominalR*b.sizeRnd;
+
+      let dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy);
+      if(d<1e-5){ dx=0.001; dy=0; d=0.001; }
+
+      const nx=dx/d, ny=dy/d;
+      const contact=ra+rb;
+
+      if(a.colorId===b.colorId){
+        // Same color:
+        // Merge now changes the actual pair physics instead of drawing a fake bridge.
+        // Low Merge = exclusion / repulsion.
+        // High Merge = blobs are allowed (and gently encouraged) to overlap,
+        // so two same-color silhouettes genuinely become one visible mass.
+        const m=Math.pow(mergeBlend,1.15);
+
+        const desired=
+          contact * lerp(1.16,0.58,m);
+
+        const range=
+          Math.min(
+            0.50,
+            Math.max(contact*1.62,desired*1.36,0.22)
+          );
+
+        if(d<desired){
+          const error=desired-d;
+          const repelStrength=(1-m)*0.95 + 0.05;
+
+          const impulse=
+            (0.055 + 0.22*clamp01(error/Math.max(1e-6,desired))) *
+            repelStrength *
+            pairMobility *
+            dt;
+
+          a.vx-=nx*impulse; a.vy-=ny*impulse;
+          b.vx+=nx*impulse; b.vy+=ny*impulse;
+
+          if(m<0.82){
+            const corr=
+              Math.min(0.0045,error*0.038) *
+              (1-m) *
+              frameScale;
+
+            a.x-=nx*corr*0.5; a.y-=ny*corr*0.5;
+            b.x+=nx*corr*0.5; b.y+=ny*corr*0.5;
+          }
+
+        }else if(m>0.34 && d<range){
+          // Once Merge passes roughly one third, compatible blobs begin
+          // seeking one another. The pull grows continuously with Merge.
+          const q=clamp01((d-desired)/Math.max(1e-6,range-desired));
+          const pull=
+            (0.010 + 0.075*q*q) *
+            Math.pow((m-0.34)/0.66,1.25) *
+            pairMobility *
+            dt;
+
+          a.vx+=nx*pull; a.vy+=ny*pull;
+          b.vx-=nx*pull; b.vy-=ny*pull;
+        }
+      }else{
+        // Different colors: allow a deeper, more transient overlap.
+        // They should genuinely pass through each other instead of behaving
+        // like two shells that stop as soon as their visible contours meet.
+        const desired=Math.min(0.24,Math.max(0.040,contact*0.48));
+        const range=Math.min(0.46,Math.max(contact*1.48,desired*1.90,0.22));
+        const deepLimit=Math.max(0.022,contact*0.18);
+
+        if(d>desired && d<range){
+          const q=clamp01((d-desired)/Math.max(1e-6,range-desired));
+          const impulse=(0.020+0.080*q*q)*pairMobility*dt;
+          a.vx+=nx*impulse; a.vy+=ny*impulse;
+          b.vx-=nx*impulse; b.vy-=ny*impulse;
+        }else if(d>deepLimit && d<=desired){
+          // Keep the crossing alive once contact has begun, so they can
+          // interpenetrate and continue past one another instead of sticking.
+          const q=clamp01((desired-d)/Math.max(1e-6,desired-deepLimit));
+          const glide=(0.007+0.028*q)*pairMobility*dt;
+          a.vx+=nx*glide; a.vy+=ny*glide;
+          b.vx-=nx*glide; b.vy-=ny*glide;
+        }else if(d<=deepLimit){
+          // Only resist the very deepest penetration.
+          const q=clamp01((deepLimit-d)/Math.max(1e-6,deepLimit));
+          const impulse=(0.012+0.040*q)*pairMobility*dt;
+          a.vx-=nx*impulse; a.vy-=ny*impulse;
+          b.vx+=nx*impulse; b.vy+=ny*impulse;
+        }
+      }
+    }
+  }
+
+  let centroidX=0, centroidY=0;
+  for(const b of activeBlobs){
+    centroidX+=b.x;
+    centroidY+=b.y;
+  }
+  centroidX/=Math.max(1,activeBlobs.length);
+  centroidY/=Math.max(1,activeBlobs.length);
+
+  const cloudDx=0.5-centroidX;
+  const cloudDy=0.5-centroidY;
+  const cloudDist=Math.hypot(cloudDx,cloudDy);
+  let cloudFx=0, cloudFy=0;
+
+  if(cloudDist>0.05){
+    const q=clamp01((cloudDist-0.05)/0.32);
+    const strength=(0.014+0.070*q*q)*mobility*dt;
+    cloudFx=(cloudDx/cloudDist)*strength;
+    cloudFy=(cloudDy/cloudDist)*strength;
+  }
+
+  for(const b of activeBlobs){
+    const wn=clamp01(wander/2);
+
+    const dir=
+      b.phase +
+      2.35*Math.sin(motionPhase*(0.061+b.driftGain*0.017)+b.phase2) +
+      1.55*Math.sin(motionPhase*(0.117+b.driftGain*0.029)+b.phase*0.51) +
+      0.85*Math.cos(motionPhase*(0.203+b.driftGain*0.038)-b.phase2*0.63);
+
+    const dir2=
+      b.phase2 +
+      1.45*Math.sin(motionPhase*(0.083+b.driftGain*0.021)+b.phase*0.91) -
+      0.75*Math.cos(motionPhase*(0.171+b.driftGain*0.033)+b.phase2*1.11);
+
+    const roamStrength=
+      0.020*wn +
+      0.185*wn*wn;
+
+    b.vx += (
+      Math.cos(dir)*roamStrength +
+      Math.cos(dir2)*roamStrength*0.42
+    ) * mobility * dt;
+
+    b.vy += (
+      Math.sin(dir)*roamStrength +
+      Math.sin(dir2)*roamStrength*0.42
+    ) * mobility * dt;
+
+    b.vx += Math.cos(b.phase + motionPhase*(0.031+b.driftGain*0.012))*0.0032*mobility*dt;
+    b.vy += Math.sin(b.phase2 + motionPhase*(0.027+b.driftGain*0.010))*0.0032*mobility*dt;
+
+    b.vx+=cloudFx;
+    b.vy+=cloudFy;
+
+    const dxGroup=centroidX-b.x;
+    const dyGroup=centroidY-b.y;
+    const groupDist=Math.hypot(dxGroup,dyGroup);
+
+    if(groupDist>0.46){
+      const q=clamp01((groupDist-0.46)/0.30);
+      const strength=(0.008+0.040*q*q)*mobility*dt;
+      b.vx+=(dxGroup/groupDist)*strength;
+      b.vy+=(dyGroup/groupDist)*strength;
+    }
+
+    const wallStart=0.22;
+
+    if(b.x<wallStart){
+      const q=clamp01((wallStart-b.x)/wallStart);
+      b.vx+=(0.035+0.180*q*q*q)*mobility*dt;
+    }else if(b.x>1-wallStart){
+      const q=clamp01((b.x-(1-wallStart))/wallStart);
+      b.vx-=(0.035+0.180*q*q*q)*mobility*dt;
+    }
+
+    if(b.y<wallStart){
+      const q=clamp01((wallStart-b.y)/wallStart);
+      b.vy+=(0.035+0.180*q*q*q)*mobility*dt;
+    }else if(b.y>1-wallStart){
+      const q=clamp01((b.y-(1-wallStart))/wallStart);
+      b.vy-=(0.035+0.180*q*q*q)*mobility*dt;
+    }
+
+    const cornerDx=0.5-b.x;
+    const cornerDy=0.5-b.y;
+    const cornerLen=Math.hypot(cornerDx,cornerDy)||1;
+
+    const edgeQ=Math.max(
+      Math.max(0,(wallStart-b.x)/wallStart),
+      Math.max(0,(b.x-(1-wallStart))/wallStart),
+      Math.max(0,(wallStart-b.y)/wallStart),
+      Math.max(0,(b.y-(1-wallStart))/wallStart)
+    );
+
+    if(edgeQ>0){
+      const q=clamp01(edgeQ);
+      const sign=Math.sin(b.phase*2.17)>0?1:-1;
+      const swirl=0.045*q*q*mobility*dt;
+      b.vx+=(-cornerDy/cornerLen)*swirl*sign;
+      b.vy+=( cornerDx/cornerLen)*swirl*sign;
+    }
+
+    b.vx*=damping;
+    b.vy*=damping;
+
+    const maxV=0.18/(0.72+visc*0.30);
+    const speed=Math.hypot(b.vx,b.vy);
+
+    if(speed>maxV){
+      const k=maxV/speed;
+      b.vx*=k;
+      b.vy*=k;
+    }
+
+    b.x+=b.vx*dt;
+    b.y+=b.vy*dt;
+
+    if(b.x<-0.03){
+      b.x=-0.03;
+      b.vx=Math.abs(b.vx)*0.45;
+    }else if(b.x>1.03){
+      b.x=1.03;
+      b.vx=-Math.abs(b.vx)*0.45;
+    }
+
+    if(b.y<-0.03){
+      b.y=-0.03;
+      b.vy=Math.abs(b.vy)*0.45;
+    }else if(b.y>1.03){
+      b.y=1.03;
+      b.vy=-Math.abs(b.vy)*0.45;
+    }
+  }
+}
+
+function warpPoint(nx,ny,state){
+  const turbulence=clamp(readVal(state,"turbulence",34)/100,0,2);
+  if(turbulence<=0.001) return [nx,ny];
+
+  const t=motionPhase;
+
+  // Base distortion grows continuously across the whole 0..200 range.
+  const gain=turbulence;
+
+  let x=nx;
+  let y=ny;
+
+  const a1=0.010*gain;
+  const a2=0.0075*gain*gain;
+  const a3=0.0048*gain*gain;
+  const a4=0.0031*gain*gain;
+
+  const w1x=
+    Math.sin((y*1.55+x*0.31)*Math.PI*2+t*0.61)+
+    0.55*Math.cos((x-y*0.42)*Math.PI*2-t*0.37);
+
+  const w1y=
+    Math.cos((x*1.38-y*0.27)*Math.PI*2-t*0.53)+
+    0.48*Math.sin((x+y*0.51)*Math.PI*2+t*0.29);
+
+  x+=w1x*a1;
+  y+=w1y*a1;
+
+  const w2x=
+    Math.sin((y*3.10+x*0.73)*Math.PI*2-t*0.42)+
+    0.45*Math.cos((x*2.65+y*0.37)*Math.PI*2+t*0.76);
+
+  const w2y=
+    Math.cos((x*2.90-y*0.58)*Math.PI*2+t*0.49)+
+    0.42*Math.sin((y*3.45+x*0.49)*Math.PI*2-t*0.68);
+
+  x+=w2x*a2;
+  y+=w2y*a2;
+
+  const w3x=
+    Math.sin((y*5.9-x*1.1)*Math.PI*2+t*0.91)+
+    0.35*Math.cos((x*6.4+y*0.8)*Math.PI*2-t*0.57);
+
+  const w3y=
+    Math.cos((x*5.4+y*1.3)*Math.PI*2-t*0.83)+
+    0.33*Math.sin((y*6.8-x*0.9)*Math.PI*2+t*0.71);
+
+  x+=w3x*a3;
+  y+=w3y*a3;
+
+  const w4x=
+    Math.sin((y*11.3+x*2.1)*Math.PI*2-t*1.17);
+
+  const w4y=
+    Math.cos((x*10.6-y*2.4)*Math.PI*2+t*1.03);
+
+  x+=w4x*a4;
+  y+=w4y*a4;
+
+  const cross=0.0065*gain*gain;
+
+  const cx=
+    Math.sin((x+y)*Math.PI*3.7+t*0.33)*
+    Math.cos((y-x*0.6)*Math.PI*2.3-t*0.46);
+
+  const cy=
+    Math.cos((x-y)*Math.PI*3.1-t*0.39)*
+    Math.sin((x+y*0.7)*Math.PI*2.7+t*0.52);
+
+  x+=cx*cross;
+  y+=cy*cross;
+
+  // From the midpoint upward, distortion becomes progressively more complex.
+  // No mode switch: this layer fades in smoothly from zero at 100 to full at 200.
+  const upper=clamp01(turbulence-1.0);
+  const upperEase=upper*upper*(3-2*upper);
+
+  if(upperEase>0.0001){
+    const hi1=0.0060*upperEase;
+    const hi2=0.0042*upperEase*upperEase;
+
+    const hx1=
+      Math.sin((y*8.3+x*2.7)*Math.PI*2+t*0.83)+
+      0.42*Math.cos((x*7.1-y*1.9)*Math.PI*2-t*0.69);
+
+    const hy1=
+      Math.cos((x*8.8-y*2.4)*Math.PI*2-t*0.77)+
+      0.38*Math.sin((y*7.6+x*2.1)*Math.PI*2+t*0.64);
+
+    x+=hx1*hi1;
+    y+=hy1*hi1;
+
+    const hx2=
+      Math.sin((y*14.4+x*4.2)*Math.PI*2-t*1.07)*
+      Math.cos((x*5.3-y*3.1)*Math.PI*2+t*0.48);
+
+    const hy2=
+      Math.cos((x*13.6-y*4.6)*Math.PI*2+t*0.96)*
+      Math.sin((y*5.8+x*3.4)*Math.PI*2-t*0.55);
+
+    x+=hx2*hi2;
+    y+=hy2*hi2;
+  }
+
+  return [x,y];
+}
+
+function blobContributionAt(px,py,blob,state,aspect){
+  const size=clamp(readVal(state,"size",92)/100,0.20,1.80);
+
+  const baseR=(0.065+size*0.062)*blob.sizeRnd;
+  const dx=(px-blob.x)*aspect;
+  const dy=py-blob.y;
+
+  function gaussian(ox,oy,rx,ry){
+    const q=
+      ((dx-ox)*(dx-ox))/Math.max(1e-6,rx*rx) +
+      ((dy-oy)*(dy-oy))/Math.max(1e-6,ry*ry);
+    return Math.exp(-q*1.42);
+  }
+
+  // Smooth amorphous morphology:
+  // one soft core plus four small moving sub-masses.
+  // Their weights sum to ~1, so the blob changes shape instead of simply growing.
+  const t=motionPhase;
+  const g=blob.driftGain;
+
+  const a1=blob.phase  + t*(0.16+g*0.035);
+  const a2=blob.phase2 - t*(0.12+g*0.030);
+  const a3=blob.phase*0.61 + t*(0.085+g*0.021);
+  const a4=blob.phase2*0.73 - t*(0.061+g*0.017);
+
+  const d1=baseR*(0.20+0.035*Math.sin(t*0.19+blob.phase2));
+  const d2=baseR*(0.17+0.030*Math.cos(t*0.14+blob.phase));
+  const d3=baseR*(0.13+0.025*Math.sin(t*0.11+blob.phase*0.7));
+  const d4=baseR*(0.11+0.020*Math.cos(t*0.09+blob.phase2*0.8));
+
+  const o1x=Math.cos(a1)*d1, o1y=Math.sin(a1)*d1;
+  const o2x=Math.cos(a2)*d2, o2y=Math.sin(a2)*d2;
+  const o3x=Math.cos(a3)*d3, o3y=Math.sin(a3)*d3;
+  const o4x=Math.cos(a4)*d4, o4y=Math.sin(a4)*d4;
+
+  const breathe=
+    1+
+    0.025*Math.sin(t*(0.13+g*0.028)+blob.phase*1.17);
+
+  const coreR=baseR*breathe;
+
+  const value=
+      gaussian(0,0,coreR,coreR)*0.58
+    + gaussian(o1x,o1y,baseR*0.78,baseR*0.78)*0.15
+    + gaussian(o2x,o2y,baseR*0.72,baseR*0.72)*0.12
+    + gaussian(o3x,o3y,baseR*0.62,baseR*0.62)*0.085
+    + gaussian(o4x,o4y,baseR*0.56,baseR*0.56)*0.065;
+
+  // Normalization keeps the perceived area close to the old blob size.
+  return value*1.36;
+}
+
+function clipPoly(poly,threshold,keepAbove){
+  if(!poly.length) return [];
+  const out=[];
+  for(let i=0;i<poly.length;i++){
+    const a=poly[i], b=poly[(i+1)%poly.length];
+    const ain=keepAbove?a.v>=threshold:a.v<=threshold;
+    const bin=keepAbove?b.v>=threshold:b.v<=threshold;
+    if(ain&&bin) out.push(b);
+    else if(ain&&!bin){
+      const t=(threshold-a.v)/((b.v-a.v)||1e-6);
+      out.push({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),v:threshold});
+    } else if(!ain&&bin){
+      const t=(threshold-a.v)/((b.v-a.v)||1e-6);
+      out.push({x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),v:threshold});
+      out.push(b);
+    }
+  }
+  return out;
+}
+
+function appendExpandedPoly(targetCtx,poly,overlapPx){
+  if(poly.length<3) return false;
+  let cx=0,cy=0;
+  for(const p of poly){ cx+=p.x; cy+=p.y; }
+  cx/=poly.length; cy/=poly.length;
+  function ep(p){
+    const vx=p.x-cx, vy=p.y-cy, len=Math.hypot(vx,vy);
+    if(len<1e-6) return [p.x,p.y];
+    const k=overlapPx/len; return [p.x+vx*k,p.y+vy*k];
+  }
+  let q=ep(poly[0]); targetCtx.moveTo(q[0],q[1]);
+  for(let i=1;i<poly.length;i++){ q=ep(poly[i]); targetCtx.lineTo(q[0],q[1]); }
+  targetCtx.closePath(); return true;
+}
+
+
+window.sketchDraw = function(state, hostContext){
+  const w=canvas.width,h=canvas.height;
+  if(w<2||h<2) return;
+
+  const amount=Math.round(clamp(readVal(state,"amount",7),2,18));
+  const seed=Math.round(clamp(readVal(state,"seed",137),0,999));
+  const groups=Math.round(clamp(readVal(state,"color_groups",1),1,3));
+
+  ensureBlobPool(seed,amount);
+  const activeBlobs=blobs.slice(0,amount);
+  for(let i=0;i<activeBlobs.length;i++) activeBlobs[i].colorId=i%groups;
+
+  advanceSimulation(state,activeBlobs);
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalAlpha=1;
+  ctx.globalCompositeOperation="source-over";
+  ctx.clearRect(0,0,w,h);
+
+  // BG opacity is host-native: standalone / Sketch implicitly render it at 100%.
+  const bgOpacity=indexColorOpacity(hostContext,"bg_color");
+  const bgRgb=hexToRgb(readVal(state,"bg_color","#1C1713"));
+  if(bgOpacity>0){
+    ctx.fillStyle=rgba(bgRgb,bgOpacity);
+    ctx.fillRect(0,0,w,h);
+  }
+
+  const palette=[
+    readVal(state,"color_a","#EC6B2D"),
+    readVal(state,"color_b","#E8DDC8"),
+    readVal(state,"color_c","#6A9E5D")
+  ];
+  const paletteRgb=palette.map(hexToRgb);
+  const paletteOpacity=[
+    indexColorOpacity(hostContext,"color_a"),
+    indexColorOpacity(hostContext,"color_b"),
+    indexColorOpacity(hostContext,"color_c")
+  ];
+
+  const threshold=0.50;
+  const minSide=Math.min(w,h);
+  const aspect=w/Math.max(1,h);
+  const target=Math.round(Math.min(168,Math.max(88,minSide*0.19)));
+  const cols=Math.max(64,Math.round(target*Math.sqrt(aspect)));
+  const rows=Math.max(64,Math.round(target/Math.sqrt(aspect)));
+  const dx=w/cols;
+  const dy=h/rows;
+  const overlapPx=0.82;
+  const MAX_BATCH_POLYS=256;
+
+  const vertexCount=(cols+1)*(rows+1);
+  const warpedX=new Float32Array(vertexCount);
+  const warpedY=new Float32Array(vertexCount);
+  for(let gy=0;gy<=rows;gy++){
+    const ny=gy/rows;
+    for(let gx=0;gx<=cols;gx++){
+      const nx=gx/cols;
+      const idx=gy*(cols+1)+gx;
+      const p=warpPoint(nx,ny,state);
+      warpedX[idx]=p[0];
+      warpedY[idx]=p[1];
+    }
+  }
+
+  // Pre-v0.3 morphology was not only the single-blob function:
+  // it also came from the soft implicit influence of neighbouring same-color blobs.
+  //
+  // v0.3.6 keeps each blob as an individual physical/color entity, but restores
+  // that local same-color field influence. So we recover the old continuously
+  // morphing silhouette without going back to "one color = one render layer".
+
+  const blobFields=activeBlobs.map(()=>new Float32Array(vertexCount));
+  const familySums=Array.from(
+    {length:groups},
+    ()=>new Float32Array(vertexCount)
+  );
+  const renderedFields=activeBlobs.map(()=>null);
+
+  for(let bi=0;bi<activeBlobs.length;bi++){
+    const blob=activeBlobs[bi];
+    const field=blobFields[bi];
+
+    for(let idx=0;idx<vertexCount;idx++){
+      const v=blobContributionAt(
+        warpedX[idx],
+        warpedY[idx],
+        blob,
+        state,
+        aspect
+      );
+
+      field[idx]=v;
+      familySums[blob.colorId][idx]+=v;
+    }
+  }
+
+  const mergeNorm=clamp01(readVal(state,"merge",112)/200);
+
+  // Even at low Merge there is a small amount of same-family field influence:
+  // this is what gave the pre-v0.3 blobs their organic, constantly changing
+  // morphology. As Merge rises, the influence becomes progressively strong
+  // enough to form genuine shared masses.
+  const neighbourInfluence=
+    0.10 +
+    0.90*Math.pow(mergeNorm,1.55);
+
+  for(let bi=0;bi<activeBlobs.length;bi++){
+    const blob=activeBlobs[bi];
+    const own=blobFields[bi];
+    const family=familySums[blob.colorId];
+    const vals=new Float32Array(vertexCount);
+
+    for(let idx=0;idx<vertexCount;idx++){
+      const other=Math.max(0,family[idx]-own[idx]);
+
+      // At low merge, only the local tails affect morphology.
+      // At high merge, full neighbour contribution is admitted.
+      const localCap=
+        own[idx] *
+        lerp(0.42,2.20,mergeNorm);
+
+      vals[idx]=
+        own[idx] +
+        Math.min(other,localCap)*neighbourInfluence;
+    }
+
+    renderedFields[bi]=vals;
+  }
+
+  // Keep the main blob rendering topology identical across the ENTIRE Merge range.
+  // The old hard switch at mergeNorm >= 0.78 (~Merge 156) changed layer topology
+  // and caused the visible layer-order jump between 155 and 156.
+  //
+  // Instead, use a smooth family "seal" UNDERLAY at high Merge to fill only the
+  // large-mass contour gaps, then always render the individual blobs in their
+  // stable original order on top.
+
+  const sealT=clamp01((mergeNorm-0.60)/0.40);
+  const sealBlend=sealT*sealT*(3-2*sealT);
+
+  if(sealBlend>0.0001){
+    ctx.save();
+
+    for(let groupId=0;groupId<groups;groupId++){
+      ctx.globalAlpha=sealBlend*paletteOpacity[groupId];
+      let hasBlob=false;
+      for(let bi=0;bi<activeBlobs.length;bi++){
+        if(activeBlobs[bi].colorId===groupId){
+          hasBlob=true;
+          break;
+        }
+      }
+      if(!hasBlob) continue;
+
+      const src=familySums[groupId];
+      const vals=new Float32Array(vertexCount);
+      const sealGain=lerp(0.96,1.10,sealBlend);
+
+      for(let idx=0;idx<vertexCount;idx++){
+        vals[idx]=src[idx]*sealGain;
+      }
+
+      ctx.fillStyle=palette[groupId];
+      let batchPolys=0;
+
+      function flushSealBatch(){
+        if(batchPolys===0) return;
+        ctx.fill();
+        ctx.beginPath();
+        batchPolys=0;
+      }
+
+      ctx.beginPath();
+
+      for(let gy=0;gy<rows;gy++){
+        const y0=gy*dy;
+        const y1=(gy+1)*dy;
+
+        for(let gx=0;gx<cols;gx++){
+          const x0=gx*dx;
+          const x1=(gx+1)*dx;
+          const idx=gy*(cols+1)+gx;
+
+          const v0=vals[idx];
+          const v1=vals[idx+1];
+          const v2=vals[idx+cols+2];
+          const v3=vals[idx+cols+1];
+
+          const minV=Math.min(v0,v1,v2,v3);
+          const maxV=Math.max(v0,v1,v2,v3);
+          if(maxV<threshold) continue;
+
+          const basePoly=[
+            {x:x0,y:y0,v:v0},
+            {x:x1,y:y0,v:v1},
+            {x:x1,y:y1,v:v2},
+            {x:x0,y:y1,v:v3}
+          ];
+
+          const poly=
+            minV>=threshold
+              ? basePoly
+              : clipPoly(basePoly,threshold,true);
+
+          if(poly.length<3) continue;
+
+          if(appendExpandedPoly(ctx,poly,1.06)){
+            batchPolys++;
+            if(batchPolys>=MAX_BATCH_POLYS){
+              flushSealBatch();
+            }
+          }
+        }
+      }
+
+      flushSealBatch();
+    }
+
+    ctx.restore();
+  }
+
+  // Stable per-blob order — exactly the rendering topology used by v0.3.5.
+  for(let bi=0;bi<activeBlobs.length;bi++){
+    const blob=activeBlobs[bi];
+    const vals=renderedFields[bi];
+
+    ctx.fillStyle=palette[blob.colorId];
+    ctx.globalAlpha=paletteOpacity[blob.colorId];
+
+    let batchPolys=0;
+
+    function flushBatch(){
+      if(batchPolys===0) return;
+      ctx.fill();
+      ctx.beginPath();
+      batchPolys=0;
+    }
+
+    ctx.beginPath();
+
+    for(let gy=0;gy<rows;gy++){
+      const y0=gy*dy;
+      const y1=(gy+1)*dy;
+
+      for(let gx=0;gx<cols;gx++){
+        const x0=gx*dx;
+        const x1=(gx+1)*dx;
+        const idx=gy*(cols+1)+gx;
+
+        const v0=vals[idx];
+        const v1=vals[idx+1];
+        const v2=vals[idx+cols+2];
+        const v3=vals[idx+cols+1];
+
+        const minV=Math.min(v0,v1,v2,v3);
+        const maxV=Math.max(v0,v1,v2,v3);
+
+        if(maxV<threshold) continue;
+
+        const basePoly=[
+          {x:x0,y:y0,v:v0},
+          {x:x1,y:y0,v:v1},
+          {x:x1,y:y1,v:v2},
+          {x:x0,y:y1,v:v3}
+        ];
+
+        const poly=
+          minV>=threshold
+            ? basePoly
+            : clipPoly(basePoly,threshold,true);
+
+        if(poly.length<3) continue;
+
+        if(appendExpandedPoly(ctx,poly,overlapPx)){
+          batchPolys++;
+          if(batchPolys>=MAX_BATCH_POLYS){
+            flushBatch();
+          }
+        }
+      }
+    }
+
+    flushBatch();
+  }
+
+  // Cross-color contact blend — exact v0.3.5 rendering logic.
+  if(groups>1){
+    const contactThreshold=threshold;
+    const contactExpandPx=0.58;
+    const CONTACT_BATCH_POLYS=192;
+
+    for(let ai=0;ai<activeBlobs.length;ai++){
+      const blobA=activeBlobs[ai];
+      const valsA=renderedFields[ai];
+      if(!valsA) continue;
+
+      for(let bi=ai+1;bi<activeBlobs.length;bi++){
+        const blobB=activeBlobs[bi];
+        if(blobA.colorId===blobB.colorId) continue;
+
+        const valsB=renderedFields[bi];
+        if(!valsB) continue;
+
+        let batchPolys=0;
+        let activeColor=null;
+        let activeAlpha=-1;
+
+        function flushContactBatch(){
+          if(batchPolys===0) return;
+          ctx.fill();
+          ctx.beginPath();
+          batchPolys=0;
+          activeColor=null;
+          activeAlpha=-1;
+        }
+
+        ctx.beginPath();
+
+        for(let gy=0;gy<rows;gy++){
+          const y0=gy*dy;
+          const y1=(gy+1)*dy;
+
+          for(let gx=0;gx<cols;gx++){
+            const x0=gx*dx;
+            const x1=(gx+1)*dx;
+            const idx=gy*(cols+1)+gx;
+
+            const a0=valsA[idx],           b0=valsB[idx];
+            const a1=valsA[idx+1],         b1=valsB[idx+1];
+            const a2=valsA[idx+cols+2],    b2=valsB[idx+cols+2];
+            const a3=valsA[idx+cols+1],    b3=valsB[idx+cols+1];
+
+            const q0=Math.min(a0,b0);
+            const q1=Math.min(a1,b1);
+            const q2=Math.min(a2,b2);
+            const q3=Math.min(a3,b3);
+
+            const minQ=Math.min(q0,q1,q2,q3);
+            const maxQ=Math.max(q0,q1,q2,q3);
+            if(maxQ<contactThreshold) continue;
+
+            const basePoly=[
+              {x:x0,y:y0,v:q0},
+              {x:x1,y:y0,v:q1},
+              {x:x1,y:y1,v:q2},
+              {x:x0,y:y1,v:q3}
+            ];
+
+            const poly=
+              minQ>=contactThreshold
+                ? basePoly
+                : clipPoly(basePoly,contactThreshold,true);
+
+            if(poly.length<3) continue;
+
+            const w0=a0/(a0+b0+1e-6);
+            const w1=a1/(a1+b1+1e-6);
+            const w2=a2/(a2+b2+1e-6);
+            const w3=a3/(a3+b3+1e-6);
+            const t=clamp01((w0+w1+w2+w3)*0.25);
+            const alphaA=paletteOpacity[blobA.colorId];
+            const alphaB=paletteOpacity[blobB.colorId];
+            const visibleA=t*alphaA;
+            const visibleB=(1-t)*alphaB;
+            const mixedAlpha=clamp01(visibleA+visibleB);
+            if(mixedAlpha<=0.0001) continue;
+            const visibleT=visibleA/(visibleA+visibleB+1e-6);
+            const mixed=mixRgb(paletteRgb[blobB.colorId],paletteRgb[blobA.colorId],visibleT);
+            const mixedCss=`rgb(${mixed[0]},${mixed[1]},${mixed[2]})`;
+            const quantAlpha=Math.round(mixedAlpha*255)/255;
+
+            if(activeColor!==mixedCss || activeAlpha!==quantAlpha){
+              flushContactBatch();
+              ctx.fillStyle=mixedCss;
+              ctx.globalAlpha=quantAlpha;
+              activeColor=mixedCss;
+              activeAlpha=quantAlpha;
+            }
+
+            if(appendExpandedPoly(ctx,poly,contactExpandPx)){
+              batchPolys++;
+              if(batchPolys>=CONTACT_BATCH_POLYS) flushContactBatch();
+            }
+          }
+        }
+
+        flushContactBatch();
+      }
+    }
+  }
+  ctx.globalAlpha=1;
+};
+</script>
+<script>
+(function localPreview(){
+  if(window.parent!==window) return;
+  const manifest=window.SKETCH_TOOL,state={time:0};
+  for(const p of manifest.params) state[p.key]=p.default;
+  for(const c of manifest.colors) state[c.key]=c.default;
+  function fit(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const side=Math.max(64,Math.min(window.innerWidth,window.innerHeight)-40);
+    canvas.style.width=side+"px"; canvas.style.height=side+"px";
+    window.sketchResize(Math.max(1,Math.floor(side*dpr)),Math.max(1,Math.floor(side*dpr)));
+  }
+  fit(); window.addEventListener("resize",fit);
+  let last=performance.now();
+  function tick(now){
+    state.time+=Math.min(0.05,(now-last)/1000); last=now;
+    try{ window.sketchDraw(state); }catch(err){ console.error("[sketch] draw threw:",err); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

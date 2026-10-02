@@ -1,0 +1,560 @@
+<!--
+INDEX HTML — HTML Tool
+Project: https://github.com/BeerBelgio/index-html
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<!--
+INDEX HTML freeze — Orbital Geometry v1.0
+Code provenance: original implementation.
+Creative reference: Brand Assets Generator by Yordan Stoyanov — conceptual / visual research only.
+No source implementation, generator code, or assets are incorporated or redistributed here.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orbital Geometry v1.0</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      display: block;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sketch-canvas"></canvas>
+
+  <script>
+    window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Orbital Geometry v1.0",
+  params: [
+    { key: "system", label: "System", min: 0, max: 2, step: 1, default: 2 },
+    { key: "amount", label: "Amount", min: 2, max: 24, step: 1, default: 9 },
+    { key: "scale", label: "Scale", min: 30, max: 220, step: 1, default: 100 },
+    { key: "ratio", label: "Ratio", min: 0, max: 8, step: 1, default: 3 },
+    { key: "phase", label: "Phase", min: 0, max: 360, step: 1, default: 35 },
+    { key: "eccentricity", label: "Eccentricity", min: 0, max: 100, step: 1, default: 28 },
+    { key: "arc_length", label: "Arc Length", min: 5, max: 100, step: 1, default: 72 },
+    { key: "drift", label: "Drift", min: 0, max: 100, step: 1, default: 36 },
+    { key: "intersection", label: "Intersection", min: 0, max: 100, step: 1, default: 24 },
+    { key: "intersection_size", label: "Intersection Size", min: 0, max: 300, step: 1, default: 28 },
+    { key: "line_width", label: "Line Width", min: 0.5, max: 6, step: 0.1, default: 1.2 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "line_color", label: "Line Color", default: "#E8DDC8" },
+    { key: "intersection_color", label: "Intersection Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "amount", "scale", "ratio", "phase",
+    "eccentricity", "arc_length", "drift", "intersection",
+    "intersection_size", "line_width"
+  ]
+};
+
+    const canvas = document.getElementById("sketch-canvas");
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    function clamp01(v) { return clamp(v, 0, 1); }
+    function fract(v) { return v - Math.floor(v); }
+
+    function hash1(n) {
+      return fract(Math.sin(n * 127.1 + 311.7) * 43758.5453123);
+    }
+
+    function readVal(obj, key, fallback) {
+      return (obj &&
+        Object.prototype.hasOwnProperty.call(obj, key) &&
+        obj[key] !== undefined &&
+        obj[key] !== null)
+        ? obj[key]
+        : fallback;
+    }
+
+    function driftAmount(state) {
+      const n = clamp01(readVal(state, "drift", 36) / 100);
+      return n * (1 + 3 * n * n);
+    }
+
+    function ratioPair(state) {
+      const index = Math.round(clamp(readVal(state, "ratio", 3), 0, RATIOS.length - 1));
+      return RATIOS[index];
+    }
+
+    
+function indexColorOpacity(hostContext, key){
+  if (!hostContext || !hostContext.colorOpacity) return 1;
+  const value = Number(hostContext.colorOpacity[key]);
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
+}
+
+window.sketchResize = function(width, height) {
+      width = Math.max(1, Math.floor(width));
+      height = Math.max(1, Math.floor(height));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+    };
+
+    const RATIOS = [
+      [1, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+      [3, 5],
+      [4, 5],
+      [5, 6],
+      [5, 8],
+      [8, 13]
+    ];
+
+    function rotatePoint(x, y, a) {
+      const c = Math.cos(a);
+      const s = Math.sin(a);
+      return { x: x * c - y * s, y: x * s + y * c };
+    }
+
+    function buildOrbitalPath(index, amount, state, radius, phaseTime, samples) {
+      const pair = ratioPair(state);
+      const phaseDeg = readVal(state, "phase", 35);
+      const phase = phaseDeg * Math.PI / 180;
+      const ecc = clamp01(readVal(state, "eccentricity", 28) / 100);
+      const arcNorm = clamp01(readVal(state, "arc_length", 72) / 100);
+      const drift = driftAmount(state);
+
+      const t = amount <= 1 ? 0 : index / (amount - 1);
+      const band = 0.16 + 0.84 * t;
+      const baseR = radius * band;
+
+      const rx = baseR * (1 + ecc * 0.42);
+      const ry = baseR * (1 - ecc * 0.58);
+
+      const rot =
+        (index / Math.max(1, amount)) * Math.PI * 1.2 +
+        phase * 0.35 +
+        Math.sin(phaseTime * 0.17 + index * 0.61) * 0.22 * drift;
+
+      const start =
+        phase * (0.55 + 0.07 * index) +
+        phaseTime * (0.08 + 0.006 * index) * drift +
+        hash1(index * 5.13) * Math.PI * 2;
+
+      const span = Math.PI * 2 * Math.max(0.05, arcNorm);
+
+      const pts = [];
+      for (let i = 0; i < samples; i++) {
+        const u = samples <= 1 ? 0 : i / (samples - 1);
+        const a = start + u * span;
+
+        // Ratio drives the two harmonic components of the orbit.
+        const ripple =
+          1 +
+          Math.sin(a * pair[0] + phaseTime * 0.19 + index) * 0.060 * drift +
+          Math.cos(a * pair[1] - phaseTime * 0.13 + index * 0.7) * 0.040 * drift;
+
+        const hx = Math.sin(a * pair[0] + phase) * radius * 0.035 * drift;
+        const hy = Math.sin(a * pair[1] - phase) * radius * 0.035 * drift;
+
+        const p = rotatePoint(
+          Math.cos(a) * rx * ripple + hx,
+          Math.sin(a) * ry * ripple + hy,
+          rot
+        );
+        pts.push(p);
+      }
+
+      return pts;
+    }
+
+    function buildLissajousPath(index, amount, state, radius, phaseTime, samples) {
+      const pair = ratioPair(state);
+      const phase = readVal(state, "phase", 35) * Math.PI / 180;
+      const ecc = clamp01(readVal(state, "eccentricity", 28) / 100);
+      const arcNorm = clamp01(readVal(state, "arc_length", 72) / 100);
+      const drift = driftAmount(state);
+
+      const spread = amount <= 1 ? 0 : (index / (amount - 1) - 0.5);
+      const localPhase =
+        phase +
+        index * (Math.PI / Math.max(2, amount)) +
+        phaseTime * (0.10 + index * 0.003) * drift;
+
+      const ax = radius * (0.76 + spread * 0.28) * (1 + ecc * 0.30);
+      const ay = radius * (0.70 - spread * 0.20) * (1 - ecc * 0.34);
+
+      const isClosed = arcNorm >= 0.999;
+      const span = Math.PI * 2 * Math.max(0.05, arcNorm);
+      const pts = [];
+
+      for (let i = 0; i < samples; i++) {
+        const u = samples <= 1 ? 0 : i / (samples - 1);
+        const tt = u * span + index * 0.035;
+
+        let x = Math.sin(pair[0] * tt + localPhase) * ax;
+        let y = Math.sin(pair[1] * tt) * ay;
+
+        const wobble =
+          Math.sin(tt * 3 + index * 0.7 + phaseTime * 0.23) *
+          radius * 0.028 * drift;
+
+        x += Math.cos(tt + index) * wobble;
+        y += Math.sin(tt * 0.7 - index) * wobble;
+
+        pts.push(rotatePoint(x, y, spread * 0.7 + phase * 0.15));
+      }
+
+      if (isClosed && pts.length > 1) {
+        pts[pts.length - 1] = { x: pts[0].x, y: pts[0].y };
+      }
+
+      return pts;
+    }
+
+    function buildConstellation(state, radius, phaseTime) {
+      const amount = Math.round(clamp(readVal(state, "amount", 9), 2, 24));
+      const pair = ratioPair(state);
+      const phase = readVal(state, "phase", 35) * Math.PI / 180;
+      const ecc = clamp01(readVal(state, "eccentricity", 28) / 100);
+      const drift = driftAmount(state);
+
+      const pts = [];
+      for (let i = 0; i < amount; i++) {
+        const a = (i / amount) * Math.PI * 2;
+        const ring = 0.30 + 0.62 * hash1(i * 5.31 + 1.2);
+
+        const harmonic =
+          Math.sin(a * pair[0] + phase + phaseTime * 0.08 * drift) * 0.16 +
+          Math.cos(a * pair[1] - phaseTime * 0.06 * drift) * 0.12;
+
+        const rr = radius * ring * (1 + harmonic);
+        let x = Math.cos(a + phase * 0.35) * rr * (1 + ecc * 0.26);
+        let y = Math.sin(a - phase * 0.18) * rr * (1 - ecc * 0.22);
+
+        x += Math.sin(phaseTime * 0.13 + i * 1.7) * radius * 0.04 * drift;
+        y += Math.cos(phaseTime * 0.11 + i * 1.3) * radius * 0.04 * drift;
+
+        pts.push({ x, y, id: i });
+      }
+
+      return pts;
+    }
+
+    function drawSmoothPath(points, cx, cy, color, width, alpha) {
+      if (!points || points.length < 2) return;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.moveTo(cx + points[0].x, cy + points[0].y);
+
+      for (let i = 1; i < points.length - 1; i++) {
+        const mx = (points[i].x + points[i + 1].x) * 0.5;
+        const my = (points[i].y + points[i + 1].y) * 0.5;
+        ctx.quadraticCurveTo(cx + points[i].x, cy + points[i].y, cx + mx, cy + my);
+      }
+
+      const last = points[points.length - 1];
+      ctx.lineTo(cx + last.x, cy + last.y);
+      ctx.stroke();
+    }
+
+    function buildConstellationEdges(points, state) {
+      const pair = ratioPair(state);
+      const edges = [];
+      const used = new Set();
+      const n = points.length;
+      if (n < 2) return edges;
+
+      // The same Ratio pair that drives the other systems determines
+      // the two connection intervals of the constellation.
+      const steps = [
+        Math.max(1, pair[0] % n),
+        Math.max(1, pair[1] % n)
+      ];
+
+      for (let i = 0; i < n; i++) {
+        for (const step of steps) {
+          const j = (i + step) % n;
+          if (j === i) continue;
+          const a = Math.min(i, j);
+          const b = Math.max(i, j);
+          const key = a + ":" + b;
+          if (used.has(key)) continue;
+          used.add(key);
+          edges.push([points[i], points[j]]);
+        }
+      }
+      return edges;
+    }
+
+    function drawConstellation(points, edges, cx, cy, color, width, alpha) {
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = 0.74 * alpha;
+      ctx.lineWidth = width;
+
+      for (const edge of edges) {
+        ctx.beginPath();
+        ctx.moveTo(cx + edge[0].x, cy + edge[0].y);
+        ctx.lineTo(cx + edge[1].x, cy + edge[1].y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.90 * alpha;
+      for (const p of points) {
+        ctx.beginPath();
+        ctx.arc(cx + p.x, cy + p.y, Math.max(1.2, width * 1.55), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function segmentIntersection(a, b, c, d) {
+      const rX = b.x - a.x;
+      const rY = b.y - a.y;
+      const sX = d.x - c.x;
+      const sY = d.y - c.y;
+
+      const den = rX * sY - rY * sX;
+      if (Math.abs(den) < 1e-8) return null;
+
+      const qpx = c.x - a.x;
+      const qpy = c.y - a.y;
+      const t = (qpx * sY - qpy * sX) / den;
+      const u = (qpx * rY - qpy * rX) / den;
+
+      // Ignore endpoints so adjacent/connected segments don't count as intersections.
+      const eps = 1e-4;
+      if (t <= eps || t >= 1 - eps || u <= eps || u >= 1 - eps) return null;
+
+      return {
+        x: a.x + t * rX,
+        y: a.y + t * rY
+      };
+    }
+
+    function collectSegmentIntersections(segments, maxMarkers) {
+      const hits = [];
+
+      for (let i = 0; i < segments.length; i++) {
+        const A = segments[i];
+        for (let j = i + 1; j < segments.length; j++) {
+          const B = segments[j];
+
+          // Skip segments from the same source path / edge.
+          if (A.group === B.group) continue;
+
+          // Cheap bounding-box rejection.
+          if (
+            Math.max(A.a.x, A.b.x) < Math.min(B.a.x, B.b.x) ||
+            Math.max(B.a.x, B.b.x) < Math.min(A.a.x, A.b.x) ||
+            Math.max(A.a.y, A.b.y) < Math.min(B.a.y, B.b.y) ||
+            Math.max(B.a.y, B.b.y) < Math.min(A.a.y, A.b.y)
+          ) continue;
+
+          const hit = segmentIntersection(A.a, A.b, B.a, B.b);
+          if (!hit) continue;
+
+          // De-duplicate nearby hits.
+          let duplicate = false;
+          for (let k = Math.max(0, hits.length - 24); k < hits.length; k++) {
+            const dx = hits[k].x - hit.x;
+            const dy = hits[k].y - hit.y;
+            if (dx * dx + dy * dy < 9) {
+              duplicate = true;
+              break;
+            }
+          }
+          if (!duplicate) hits.push(hit);
+          if (hits.length >= maxMarkers) return hits;
+        }
+      }
+
+      return hits;
+    }
+
+    function pathsToSegments(paths) {
+      const segments = [];
+      for (let p = 0; p < paths.length; p++) {
+        const pts = paths[p];
+        const stride = Math.max(1, Math.floor(pts.length / 42));
+        for (let i = 0; i + stride < pts.length; i += stride) {
+          segments.push({
+            a: pts[i],
+            b: pts[Math.min(i + stride, pts.length - 1)],
+            group: p
+          });
+        }
+      }
+      return segments;
+    }
+
+    function collectIntersections(paths, maxMarkers) {
+      return collectSegmentIntersections(pathsToSegments(paths), maxMarkers);
+    }
+
+    function drawIntersectionMarkers(hits, cx, cy, color, lineWidth, strength, sizeNorm, alpha) {
+      const minSide = Math.min(canvas.width, canvas.height);
+
+      // Intersection Size controls only the marker radius.
+      // Line Width controls the stroke thickness of both paths and intersection rings.
+      // sizeNorm is 0..3 because the UI range is 0..300.
+      const r = minSide * (0.0012 + sizeNorm * 0.0048);
+      const markerStroke = Math.max(0.5, lineWidth);
+
+      for (let i = 0; i < hits.length; i++) {
+        const h = hits[i];
+
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = (0.45 + strength * 0.55) * alpha;
+        ctx.lineWidth = markerStroke;
+        ctx.beginPath();
+        ctx.arc(cx + h.x, cy + h.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    window.sketchDraw = function(state, hostContext) {
+      const w = canvas.width;
+      const h = canvas.height;
+      if (w < 1 || h < 1) return;
+
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const minSide = Math.min(w, h);
+
+      const system = Math.round(clamp(readVal(state, "system", 2), 0, 2));
+      const amount = Math.round(clamp(readVal(state, "amount", 9), 2, 24));
+      const scale = Math.max(0.1, readVal(state, "scale", 100) / 100);
+      const intersectionNorm = clamp01(readVal(state, "intersection", 24) / 100);
+      const intersectionSize = Math.max(0, readVal(state, "intersection_size", 28) / 100);
+      const lineWidth = Math.max(0.1, readVal(state, "line_width", 1.2));
+      const bpm = clamp(readVal(state, "motion_bpm", 72), 0, 260);
+      const phaseTime = readVal(state, "time", 0) * (bpm / 60) * Math.PI * 0.42;
+
+      const lineColor = readVal(state, "line_color", "#e8ddc8");
+      const intersectionColor = readVal(state, "intersection_color", "#ec6b2d");
+      const lineColorOpacity = indexColorOpacity(hostContext, "line_color");
+      const intersectionColorOpacity = indexColorOpacity(hostContext, "intersection_color");
+      const radius = minSide * 0.38 * scale;
+
+      if (system === 2) {
+        const nodes = buildConstellation(state, radius, phaseTime);
+        const edges = buildConstellationEdges(nodes, state);
+        drawConstellation(nodes, edges, cx, cy, lineColor, lineWidth, lineColorOpacity);
+
+        if (intersectionNorm > 0.001 && edges.length > 1) {
+          const segments = edges.map((edge, i) => ({ a: edge[0], b: edge[1], group: i }));
+          const maxMarkers = Math.round(4 + intersectionNorm * 116);
+          const hits = collectSegmentIntersections(segments, maxMarkers);
+          drawIntersectionMarkers(
+            hits, cx, cy, intersectionColor, lineWidth,
+            intersectionNorm, intersectionSize, intersectionColorOpacity
+          );
+        }
+
+        ctx.globalAlpha = 1;
+        return;
+      }
+
+      const samples = 92;
+      const paths = [];
+
+      for (let i = 0; i < amount; i++) {
+        if (system === 0) {
+          paths.push(buildOrbitalPath(i, amount, state, radius, phaseTime, samples));
+        } else {
+          paths.push(buildLissajousPath(i, amount, state, radius, phaseTime, samples));
+        }
+      }
+
+      // Base trajectories.
+      for (let i = 0; i < paths.length; i++) {
+        drawSmoothPath(paths[i], cx, cy, lineColor, lineWidth, 0.82 * lineColorOpacity);
+      }
+
+      // Intersection controls how many true path crossings are shown.
+      // The marker is centered on the calculated crossing point.
+      if (intersectionNorm > 0.001 && paths.length > 1) {
+        const maxMarkers = Math.round(8 + intersectionNorm * 112);
+        const hits = collectIntersections(paths, maxMarkers);
+        drawIntersectionMarkers(
+          hits, cx, cy, intersectionColor, lineWidth,
+          intersectionNorm, intersectionSize, intersectionColorOpacity
+        );
+      }
+
+      ctx.globalAlpha = 1;
+    };
+  </script>
+
+  <script>
+    (function localPreview() {
+      if (window.parent !== window) return;
+
+      const manifest = window.SKETCH_TOOL;
+      const state = { time: 0 };
+
+      for (const p of manifest.params) state[p.key] = p.default;
+      for (const c of manifest.colors) state[c.key] = c.default;
+
+      function fit() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const side = Math.max(96, Math.min(window.innerWidth, window.innerHeight) - 40);
+
+        canvas.style.width = side + "px";
+        canvas.style.height = side + "px";
+
+        window.sketchResize(
+          Math.max(1, Math.floor(side * dpr)),
+          Math.max(1, Math.floor(side * dpr))
+        );
+      }
+
+      fit();
+      window.addEventListener("resize", fit);
+
+      let last = performance.now();
+
+      function tick(now) {
+        state.time += Math.min(0.05, (now - last) / 1000);
+        last = now;
+
+        try {
+          window.sketchDraw(state);
+        } catch (err) {
+          console.error("[sketch] draw threw:", err);
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

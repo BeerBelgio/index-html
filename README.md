@@ -4,25 +4,29 @@
 
 A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio / Matteo Belgiovine**.
 
-The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are currently compatible with **[Sketch](https://tools.sketchdesign.club/)**, while remaining self-contained browser files designed to evolve beyond a single host.
+The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are compatible with **[Sketch](https://tools.sketchdesign.club/)**, standalone modern browsers and the native **INDEX Browser Host** contract, while remaining self-contained HTML files rather than belonging to a single host.
 
 **Project → INDEX HTML**  
-**Current host compatibility → [Sketch](https://tools.sketchdesign.club/) + standalone browser**  
+**Current host compatibility → [Sketch](https://tools.sketchdesign.club/) + standalone browser + INDEX Browser Host**  
 **Creative lineage → credited per tool and in `THIRD_PARTY_NOTICES.md`**
 
 In this repository, **BG** is shorthand for **background**. After this note, documentation uses **BG** consistently.
 
 ## Project status
 
-**Current staging UI build → V0.16.6**
+**Current staging UI build → V0.17**
 
-**V0.16.1 preview + UI correction pass:** the V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. Catalogue and hero now use one shared per-tool motion recipe, with hero eligibility stored in catalogue metadata. Tool copy, lineage, parameter notes and HTML defaults are synchronized with the V8.6.2 content inventory. Scatter Front adds Particle Size, Fractured Mask restores independent Fill/BG colors, and Caustic Stitch now fits its long-axis modes to wide render surfaces.
+**V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool; the nine new recipes remain intentionally **DRAFT** until they are tuned from the live staging previews.
+
+The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. Existing rendering behaviour, manifests and the existing 11 motion recipes are unchanged; V0.17 adds the nine new tools and their host-compatible contracts without creatively revising the original set.
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
 
-**INDEX HTML is currently in active staging.** The 11 standalone tool HTML files are the stable code baseline; the GitHub Pages interface, catalogue copy and supporting metadata are being reorganised and may change frequently while the public structure is being tested.
+**INDEX HTML is currently in active staging.** The 20 standalone tool HTML files are the current code baseline; the GitHub Pages interface, catalogue copy and host contracts may continue to evolve while the public system is tested.
 
-The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and host exposure.
+The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and Sketch Audio Sync exposure. The optional second `sketchDraw(state, hostContext)` argument extends the same files with host-only context without changing the Sketch/standalone contract.
+
+For INDEX Browser Host, declared manifest colors can receive independent normalized opacity through `hostContext.colorOpacity`. Missing host context, missing opacity data or missing color keys resolve to full opacity, so legacy `sketchDraw(state)` calls remain unchanged. This host-side opacity does **not** consume any of the numeric Sketch parameter slots.
 
 The homepage queues real tool previews as they approach the viewport, initialises at most two catalogue previews in parallel, retries a failed runtime once, keeps catalogue previews frozen by default and animates them only while hovered on fine-pointer devices. The homepage hero loads one random eligible real tool and animates it continuously whenever the hero is on screen. Both surfaces use the same per-tool motion recipe. The catalogue can be filtered by tool name or concept tag.
 
@@ -35,10 +39,11 @@ INDEX HTML is a collection of visual generators, masks, transitions and procedur
 - standalone and inspectable;
 - usable directly in a modern browser;
 - compatible with [Sketch](https://tools.sketchdesign.club/) through its exposed manifest;
+- compatible with INDEX Browser Host through an optional host-context layer;
 - built without a project-wide build system or external runtime dependency;
 - documented with its own controls, lineage and licence notes.
 
-Sketch is a supported host, not the identity of the project. The longer-term architecture is intended to remain portable enough for future browser, MIDI, Max/Ableton and compositing workflows.
+Sketch is a supported host, not the identity of the project. INDEX Browser Host follows the same principle: the HTML visual engine stays portable while Max/Ableton, browser, MIDI, OSC or other systems can supply control data through a host layer.
 
 ## Repository structure
 
@@ -55,18 +60,9 @@ index-html/
 ├── tool.html
 ├── assets/
 │   ├── branding/
-│   │   ├── favicon.svg
-│   │   ├── wordmark.svg
-│   │   ├── wordmark-claim.svg
-│   │   └── about.svg
 │   ├── css/
-│   │   ├── home-page.css
-│   │   └── tool-page.css
 │   ├── fonts/
-│   │   └── barlow-condensed/
 │   └── js/
-│       ├── home-page.js
-│       └── tool-page.js
 ├── data/
 │   └── tools.json
 ├── linking-nodes/
@@ -79,10 +75,19 @@ index-html/
 ├── scatter-front/
 ├── topographic/
 ├── topographic-mask/
-└── formshift/
+├── formshift/
+├── kinda-flower/
+├── syn-division/
+├── dna-filament/
+├── scan-accumulator/
+├── orbital-geometry/
+├── lava-lamp/
+├── electrostatic-field/
+├── homers-hair/
+└── sticky-plants/
 ```
 
-Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The staging Pages layer now includes a catalogue homepage (`index.html`), an `about.html` page and one generic `tool.html` page. The homepage builds the 11 catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The hero independently selects one real tool at random on each page load and renders it continuously through the vector wordmark + claim mask on an 831 × 211 logical surface. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
+Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The Pages layer includes the catalogue homepage (`index.html`), the `about.html` page and one generic `tool.html` page. The homepage builds all **20** catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The hero independently selects one eligible real tool at random on each page load and renders it continuously through the vector wordmark + claim mask on an 831 × 211 logical surface. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
 
 ## How to use a tool
 
@@ -95,7 +100,11 @@ Each tool folder contains the current standalone HTML file and its tool-specific
 
 ### In a browser
 
-Open the same HTML file directly. Its local preview follows the browser viewport; inside Sketch, the host controls render size through `sketchResize()`.
+Open the same HTML file directly. Its local preview follows the browser viewport; inside a compatible host, render size can be supplied through `sketchResize()`.
+
+### In INDEX Browser Host
+
+Call the same visual contract with `sketchDraw(state, hostContext)`. The optional `hostContext.colorOpacity` object can control the alpha of each color declared in `window.SKETCH_TOOL.colors` independently. Omitting `hostContext` preserves the normal standalone/Sketch rendering.
 
 ## Provenance labels
 
@@ -121,20 +130,32 @@ The current set contains **no `adapted-from` tools**. Topographic Mask is the on
 | [Topographic](topographic/) | v1.4 | Canvas 2D | field · lines | `Topographic-v1.4.html` |
 | [Topographic Mask](topographic-mask/) | v1.11 | Canvas 2D | field · shapes | `Topographic_Mask-v1.11.html` |
 | [FormShift](formshift/) | v1.8 | Canvas 2D | transition · shapes | `FormShift-v1.8.html` |
+| [Kinda Flower](kinda-flower/) | v1.0 | Canvas 2D | lines · flow | `Kinda_Flower-v1.0.html` |
+| [Syn Division](syn-division/) | v1.0 | Canvas 2D | lines · field | `Syn_Division-v1.0.html` |
+| [DNA Filament](dna-filament/) | v1.0 | Canvas 2D | lines · field | `DNA_Filament-v1.0.html` |
+| [Scan Accumulator](scan-accumulator/) | v1.0 | Canvas 2D | lines · transition | `Scan_Accumulator-v1.0.html` |
+| [Orbital Geometry](orbital-geometry/) | v1.0 | Canvas 2D | lines · shapes | `Orbital_Geometry-v1.0.html` |
+| [Lava Lamp](lava-lamp/) | v1.0 | Canvas 2D | field · shapes | `Lava_Lamp-v1.0.html` |
+| [Electrostatic Field](electrostatic-field/) | v1.0 | Canvas 2D | flow · lines | `Electrostatic_Field-v1.0.html` |
+| [Homer's Hair](homers-hair/) | v1.0 | Canvas 2D | lines · flow | `Homers_Hair-v1.0.html` |
+| [Sticky Plants](sticky-plants/) | v1.0 | Canvas 2D | lines · field | `Sticky_Plants-v1.0.html` |
+
 
 ## Validation
 
-The current 11-tool set has been checked for:
+The current 20-tool set is checked for:
 
 - JavaScript syntax;
 - manifest limits and key integrity;
-- missing runtime helpers/references through Canvas/WebGL smoke testing;
-- host-style execution and standalone-preview execution;
-- viewport-responsive local previews;
 - consistent tool name, version, manifest name, `<title>` and filename;
-- the standard project licence notice in every distributed HTML file.
+- standard project licence notice in every distributed HTML file;
+- numeric defaults inside declared ranges;
+- Audio Sync destinations that resolve to existing numeric parameter keys;
+- native host color-opacity coverage for every declared manifest color;
+- preservation of the existing 11 rendering/default behaviour and motion recipes while integrating the new nine;
+- coherent catalogue metadata, lineage and file references in `data/tools.json`.
 
-Real Sketch remains the authoritative host/performance test, especially for WebGL and high-resolution output.
+Static contract and syntax checks are included in this RC. **Real Sketch and the INDEX Browser Host / Max device remain the authoritative runtime/integration tests**, especially for multilayer composition, WebGL and high-resolution output.
 
 ## Credits and lineage
 

@@ -1,0 +1,428 @@
+<!--
+INDEX HTML — HTML Tool
+Project: https://github.com/BeerBelgio/index-html
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sticky Plants v1.0</title>
+  <style>
+    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#111; }
+    body { display:flex; align-items:center; justify-content:center; }
+    canvas { display:block; background:transparent; }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+/*
+  Sticky Plants v1.0
+  Original INDEX HTML implementation.
+  Creative reference: PLAYGRND / Coral — sea-fan branching, ribbed coral structure.
+  No third-party implementation code is incorporated here.
+*/
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Sticky Plants v1.0",
+  params: [
+    { key: "mode", label: "Mode", min: 0, max: 4, step: 1, default: 4 },
+    { key: "branches", label: "Branches", min: 2, max: 72, step: 1, default: 6 },
+    { key: "forking", label: "Forking", min: 0, max: 300, step: 1, default: 112 },
+    { key: "spacing", label: "Spacing", min: 0, max: 300, step: 1, default: 78 },
+    { key: "spread", label: "Spread", min: 0, max: 200, step: 1, default: 118 },
+    { key: "width", label: "Width", min: 0.5, max: 25, step: 0.1, default: 4.2 },
+    { key: "wobble", label: "Wobble", min: 0, max: 200, step: 1, default: 54 },
+    { key: "growth", label: "Growth", min: 0, max: 100, step: 1, default: 100 },
+    { key: "rib_density", label: "Rib Density", min: 0, max: 100, step: 1, default: 56 },
+    { key: "rib_length", label: "Rib Length", min: 0, max: 200, step: 1, default: 72 },
+    { key: "seed", label: "Seed", min: 0, max: 999, step: 1, default: 137 },
+    { key: "asymmetry", label: "Asymmetry", min: 0, max: 200, step: 1, default: 68 }
+  ],
+  colors: [
+    { key: "branch_color", label: "Branch Color", default: "#E8DDC8" },
+    { key: "rib_color", label: "Rib Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "branches", "forking", "spacing", "spread",
+    "width", "wobble", "growth", "rib_density",
+    "rib_length", "seed", "asymmetry"
+  ]
+};
+
+const canvas = document.getElementById("sketch-canvas");
+const ctx = canvas.getContext("2d", { alpha:true });
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function clamp01(v){ return clamp(v,0,1); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function fract(v){ return v-Math.floor(v); }
+function smoothstep(a,b,v){ const t=clamp01((v-a)/Math.max(1e-6,b-a)); return t*t*(3-2*t); }
+function readVal(obj,key,fallback){
+  return (obj && Object.prototype.hasOwnProperty.call(obj,key) && obj[key] !== undefined && obj[key] !== null)
+    ? obj[key] : fallback;
+}
+function hash01(n){ return fract(Math.sin(n*127.1+311.7)*43758.5453123); }
+
+
+function indexColorOpacity(hostContext, key){
+  if (!hostContext || !hostContext.colorOpacity) return 1;
+  const value = Number(hostContext.colorOpacity[key]);
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
+}
+
+window.sketchResize=function(width,height){
+  width=Math.max(1,Math.floor(width));
+  height=Math.max(1,Math.floor(height));
+  if(canvas.width!==width || canvas.height!==height){
+    canvas.width=width;
+    canvas.height=height;
+  }
+};
+
+function buildCurve(x0,y0,x1,y1,seed,wobbleN){
+  const pts=[];
+  const samples=26;
+  const dx=x1-x0, dy=y1-y0;
+  const len=Math.max(1,Math.hypot(dx,dy));
+  const nx=-dy/len, ny=dx/len;
+  const freqA=0.8+hash01(seed*3.7)*1.9;
+  const freqB=1.6+hash01(seed*5.3)*2.8;
+  const phaseA=hash01(seed*8.1)*Math.PI*2;
+  const phaseB=hash01(seed*11.4)*Math.PI*2;
+  const amp=(0.010+0.060*wobbleN)*len;
+
+  for(let i=0;i<=samples;i++){
+    const u=i/samples;
+    const env=Math.sin(Math.PI*u);
+    const waveA=Math.sin(u*Math.PI*2*freqA + phaseA);
+    const waveB=Math.sin(u*Math.PI*2*freqB + phaseB);
+    const off=(waveA*0.72 + waveB*0.28)*amp*env;
+    pts.push({x:lerp(x0,x1,u)+nx*off, y:lerp(y0,y1,u)+ny*off});
+  }
+  return pts;
+}
+
+function partialCurve(points,t){
+  t=clamp01(t);
+  if(t>=0.999) return points;
+  const out=[];
+  const target=(points.length-1)*t;
+  const whole=Math.floor(target);
+  const frac=target-whole;
+  for(let i=0;i<=whole;i++) out.push(points[i]);
+  if(whole<points.length-1){
+    const a=points[whole], b=points[whole+1];
+    out.push({x:lerp(a.x,b.x,frac), y:lerp(a.y,b.y,frac)});
+  }
+  return out;
+}
+
+function drawPolyline(points,width,color,alpha){
+  if(points.length<2) return;
+  ctx.strokeStyle=color;
+  ctx.globalAlpha=alpha;
+  ctx.lineWidth=width;
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+  ctx.beginPath();
+  ctx.moveTo(points[0].x,points[0].y);
+  for(let i=1;i<points.length;i++) ctx.lineTo(points[i].x,points[i].y);
+  ctx.stroke();
+}
+
+function pointAndTangent(points,u){
+  u=clamp01(u);
+  const pos=u*(points.length-1);
+  const i=Math.min(points.length-2,Math.floor(pos));
+  const f=pos-i;
+  const a=points[i], b=points[i+1];
+  const x=lerp(a.x,b.x,f), y=lerp(a.y,b.y,f);
+  const dx=b.x-a.x, dy=b.y-a.y;
+  const l=Math.max(1e-6,Math.hypot(dx,dy));
+  return {x,y,tx:dx/l,ty:dy/l};
+}
+
+function generateTree(rootX,rootY,rootAngle,rootLength,seed,opts){
+  const segments=[];
+  const maxDepth=4 + Math.floor(opts.forking * 1.5);
+  const queue=[{x:rootX,y:rootY,angle:rootAngle,length:rootLength,depth:0,seed}];
+
+  while(queue.length){
+    const n=queue.shift();
+    const d=n.depth;
+    const h1=hash01(n.seed*1.17+d*3.1);
+    const h2=hash01(n.seed*2.31+d*5.7);
+    const h3=hash01(n.seed*4.91+d*7.4);
+    const asym=(h1-0.5)*opts.asymmetry*0.78;
+    const branchTurn=(h2-0.5)*0.26*opts.wobble;
+    const angle=n.angle+branchTurn+asym;
+    const reachBoost=1 + opts.forking*0.28;
+    const length=n.length*(0.92+0.22*h3)*reachBoost;
+    const x1=n.x+Math.cos(angle)*length;
+    const y1=n.y+Math.sin(angle)*length;
+
+    segments.push({x0:n.x,y0:n.y,x1,y1,depth:d,seed:n.seed,angle,length});
+
+    if(d>=maxDepth-1) continue;
+    const depthFalloff=Math.pow(0.68,d+1);
+    const forkChance=clamp01(opts.forking*(1.22-0.08*d));
+    if(h1>forkChance && d>0) continue;
+
+    const childLen=length*(0.42 + 0.10*h2 + opts.forking*0.11);
+    const open=(0.16 + 0.18*opts.spread + 0.10*opts.forking)*(0.98 - 0.03*opts.forking)*depthFalloff;
+    const bias=(hash01(n.seed*6.7)-0.5)*0.38*opts.asymmetry;
+    const side=(hash01(n.seed*9.2)>0.5?1:-1);
+
+    // continuation toward the tip keeps the structure tall
+    queue.push({x:x1,y:y1,angle:angle+bias*0.18,length:childLen*(1.02 + opts.forking*0.04),depth:d+1,seed:n.seed*1.73+11.1});
+
+    // earlier fork origin makes splits happen sooner along the parent line
+    const forkT = 0.28 + (1-opts.forking)*0.28 + hash01(n.seed*14.3)*0.22;
+    const bx = lerp(n.x, x1, forkT);
+    const by = lerp(n.y, y1, forkT);
+
+    queue.push({x:bx,y:by,angle:angle+side*(open+bias),length:childLen,depth:d+1,seed:n.seed*2.17+23.9});
+
+    if(opts.forking>0.48 && hash01(n.seed*12.4+d*8.3)<(opts.forking-0.48)*1.15){
+      queue.push({x:bx,y:by,angle:angle-side*(open*0.84-bias),length:childLen*0.90,depth:d+1,seed:n.seed*2.83+37.7});
+    }
+    if(opts.forking>0.72 && hash01(n.seed*15.9+d*9.1)<(opts.forking-0.72)*1.55){
+      const bx2 = lerp(n.x, x1, Math.max(0.18, forkT-0.10));
+      const by2 = lerp(n.y, y1, Math.max(0.18, forkT-0.10));
+      queue.push({x:bx2,y:by2,angle:angle+side*(open*0.34+bias*0.5),length:childLen*0.78,depth:d+1,seed:n.seed*3.47+49.3});
+    }
+    if(opts.forking>0.88 && hash01(n.seed*21.1+d*5.4)<(opts.forking-0.88)*2.4){
+      const bx3 = lerp(n.x, x1, Math.max(0.12, forkT-0.16));
+      const by3 = lerp(n.y, y1, Math.max(0.12, forkT-0.16));
+      queue.push({x:bx3,y:by3,angle:angle-side*(open*1.18+bias*0.2),length:childLen*0.68,depth:d+1,seed:n.seed*4.19+63.5});
+    }
+  }
+  return segments;
+}
+
+function coralRoot(mode,u,branches,seed,w,h,minSide,spacing,spread,asymmetry){
+  const centerX=w*0.5, centerY=h*0.5;
+  const spacingWide=Math.min(1.85,spacing*3.2);
+  const spreadN=clamp01(spread);
+  // spacing = baseline separation, spread = expansion/distribution of the whole set
+  const rootSpan=minSide*(0.03+0.34*spacingWide) * (1 + spreadN*1.10);
+  const verticalSpan=minSide*(0.08+0.42*spacingWide) * (1 + spreadN*1.10);
+  const fanSpan=lerp(0.0,0.28,spreadN); // much smaller angular bouquet effect
+  const edgePad=minSide*0.05;
+  const asym=clamp01(asymmetry);
+
+  // asymmetry affects origin placement too, not only branch direction.
+  const uWarp=clamp01(
+    u + (hash01(seed*51.3)-0.5)*(0.75*asym) +
+    Math.sin(seed*0.73)*(0.10*asym)
+  );
+  const lateral=lerp(-rootSpan,rootSpan,uWarp) + (hash01(seed*52.7)-0.5)*minSide*0.18*asym;
+  const vertical=lerp(-verticalSpan,verticalSpan,uWarp) + (hash01(seed*53.9)-0.5)*minSide*0.18*asym;
+  const inset=(hash01(seed*54.7))*minSide*0.14*asym;
+  const angleJitter=(hash01(seed*55.9)-0.5)*(0.60*asym);
+  const localFan=(uWarp-0.5) * fanSpan;
+
+  switch(mode){
+    case 0: // bottom -> inward
+      return {
+        x:centerX+lateral,
+        y:h-edgePad-inset,
+        angle:-Math.PI/2 + localFan + angleJitter
+      };
+    case 1: // left -> inward
+      return {
+        x:edgePad+inset,
+        y:centerY+vertical,
+        angle:0 + localFan + angleJitter
+      };
+    case 2: // right -> inward
+      return {
+        x:w-edgePad-inset,
+        y:centerY+vertical,
+        angle:Math.PI + localFan + angleJitter
+      };
+    case 3: // top -> inward
+      return {
+        x:centerX+lateral,
+        y:edgePad+inset,
+        angle:Math.PI/2 + localFan + angleJitter
+      };
+    default: { // random anywhere on the canvas; spread pushes the corals farther apart
+      let rx=lerp(w*0.04,w*0.96,hash01(seed*44.1));
+      let ry=lerp(h*0.04,h*0.96,hash01(seed*45.1));
+
+      // push random origins farther from the center as spread rises
+      const dx=rx-centerX, dy=ry-centerY;
+      const spreadPush=1 + spreadN*0.55;
+      rx=centerX + dx*spreadPush;
+      ry=centerY + dy*spreadPush;
+      rx=clamp(rx,w*0.02,w*0.98);
+      ry=clamp(ry,h*0.02,h*0.98);
+
+      const dLeft=rx;
+      const dRight=w-rx;
+      const dTop=ry;
+      const dBottom=h-ry;
+      const nearest=Math.min(dLeft,dRight,dTop,dBottom);
+      let inwardAngle=0;
+      if(nearest===dLeft) inwardAngle=0;
+      else if(nearest===dRight) inwardAngle=Math.PI;
+      else if(nearest===dTop) inwardAngle=Math.PI/2;
+      else inwardAngle=-Math.PI/2;
+
+      const randomAngle=hash01(seed*48.1)*Math.PI*2;
+      const edgeBand=minSide*0.20;
+      const edgeInfluence=clamp01(1 - nearest/edgeBand);
+      const mixBias=edgeInfluence*0.92;
+      const angleA=Math.cos(inwardAngle)*(1-mixBias) + Math.cos(randomAngle)*mixBias;
+      const angleB=Math.sin(inwardAngle)*(1-mixBias) + Math.sin(randomAngle)*mixBias;
+      let angle=Math.atan2(angleB,angleA);
+
+      if(edgeInfluence>0.82){
+        const jitter=(hash01(seed*49.7)-0.5) * Math.min(Math.PI*0.35, fanSpan + 0.10) + angleJitter;
+        angle=inwardAngle + jitter;
+      } else {
+        angle += angleJitter + (hash01(seed*60.2)-0.5)*fanSpan;
+      }
+      return {x:rx,y:ry,angle};
+    }
+  }
+}
+
+window.sketchDraw = function(state, hostContext){
+  const w=canvas.width,h=canvas.height;
+  if(w<2||h<2) return;
+
+  const mode=Math.round(clamp(readVal(state,"mode",4),0,4));
+  const branches=Math.round(clamp(readVal(state,"branches",6),2,72));
+  const forking=clamp(readVal(state,"forking",112),0,300)/300;
+  const spacing=clamp(readVal(state,"spacing",78),0,300)/300;
+  const spread=clamp(readVal(state,"spread",118),0,200)/200;
+  const width=clamp(readVal(state,"width",4.2),0.5,25);
+  const wobble=clamp(readVal(state,"wobble",54),0,200)/200;
+  const growth=clamp01(readVal(state,"growth",100)/100);
+  const ribDensity=clamp01(readVal(state,"rib_density",56)/100);
+  const ribLength=clamp(readVal(state,"rib_length",72),0,200)/200;
+  const seedBase=Math.round(clamp(readVal(state,"seed",137),0,999));
+  const asymmetry=clamp(readVal(state,"asymmetry",68),0,200)/200;
+  const branchColor=readVal(state,"branch_color","#E8DDC8");
+  const ribColor=readVal(state,"rib_color","#EC6B2D");
+  const branchColorOpacity=indexColorOpacity(hostContext,"branch_color");
+  const ribColorOpacity=indexColorOpacity(hostContext,"rib_color");
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalCompositeOperation="source-over";
+  ctx.globalAlpha=1;
+  ctx.clearRect(0,0,w,h);
+
+  const minSide=Math.min(w,h);
+  const densityComp=1 - Math.min(0.42, Math.max(0, branches-6)*0.006);
+  const spacingWide = Math.min(1, spacing * 2.0);
+  const baseLength=minSide*(0.20+0.070*spacingWide)*densityComp*(1 + forking*0.18);
+  const growthEase=growth*growth*(3-2*growth);
+
+  const allSegments=[];
+  for(let i=0;i<branches;i++){
+    const u=branches===1?0.5:i/(branches-1);
+    const seed=i+1.137+seedBase*17.31;
+    const root=coralRoot(mode,u,branches,seed,w,h,minSide,spacing,spread,asymmetry);
+    const angleJitter=(hash01(seed*7.9)-0.5)*0.40*asymmetry;
+    const length=baseLength*(0.88+0.22*hash01(seed*3.3));
+    const tree=generateTree(root.x,root.y,root.angle+angleJitter,length,seed,{
+      forking,
+      spread,
+      wobble,
+      asymmetry
+    });
+    for(const seg of tree) allSegments.push(seg);
+  }
+
+  // Render order by depth so thicker trunk-like branches sit behind finer tips.
+  allSegments.sort((a,b)=>a.depth-b.depth);
+
+  const depthWidths=[1.00,0.78,0.58,0.40];
+  const depthAlpha=[0.98,0.92,0.84,0.72];
+
+  for(let si=0;si<allSegments.length;si++){
+    const seg=allSegments[si];
+    const segStart=si/Math.max(1,allSegments.length)*0.36;
+    const segGrow=clamp01((growthEase-segStart)/Math.max(0.04,1-segStart));
+    if(segGrow<=0) continue;
+
+    const pts=buildCurve(seg.x0,seg.y0,seg.x1,seg.y1,seg.seed,wobble);
+    const vis=partialCurve(pts,segGrow);
+    const sw=width*depthWidths[Math.min(depthWidths.length-1,seg.depth)];
+    drawPolyline(vis,sw,branchColor,depthAlpha[Math.min(depthAlpha.length-1,seg.depth)]*branchColorOpacity);
+
+    if(ribDensity>0.001 && segGrow>0.08){
+      const count=Math.floor(lerp(0,12,ribDensity) * (0.78+0.22*(3-seg.depth)/3));
+      if(count>0){
+        ctx.strokeStyle=ribColor;
+        ctx.lineCap="round";
+        ctx.globalAlpha=0.76*ribColorOpacity;
+        ctx.lineWidth=sw;
+
+        for(let r=0;r<count;r++){
+          const ru=(r+1)/(count+1);
+          if(ru>segGrow) continue;
+          const pt=pointAndTangent(pts,ru);
+          const nx=-pt.ty, ny=pt.tx;
+          const seed=seg.seed*13.1+r*7.7;
+          const side=hash01(seed)>0.5?1:-1;
+          const alt=(r%2===0?1:-1);
+          const len=minSide*(0.004+0.036*ribLength)*(0.65+0.55*hash01(seed*2.1));
+          const sway=(hash01(seed*5.8)-0.5)*0.18*wobble;
+          const signed=side*alt;
+          const tx=pt.x+nx*len*signed + pt.tx*len*sway;
+          const ty=pt.y+ny*len*signed + pt.ty*len*sway;
+          ctx.beginPath();
+          ctx.moveTo(pt.x,pt.y);
+          ctx.lineTo(tx,ty);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  ctx.globalAlpha=1;
+};
+</script>
+<script>
+(function localPreview(){
+  if(window.parent!==window) return;
+  const manifest=window.SKETCH_TOOL,state={time:0};
+  for(const p of manifest.params) state[p.key]=p.default;
+  for(const c of manifest.colors) state[c.key]=c.default;
+
+  function fit(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
+    canvas.style.width=side+"px";
+    canvas.style.height=side+"px";
+    window.sketchResize(
+      Math.max(1,Math.floor(side*dpr)),
+      Math.max(1,Math.floor(side*dpr))
+    );
+  }
+
+  fit();
+  window.addEventListener("resize",fit);
+  let last=performance.now();
+
+  function tick(now){
+    state.time+=Math.min(0.05,(now-last)/1000);
+    last=now;
+    try{ window.sketchDraw(state); }
+    catch(err){ console.error("[sketch] draw threw:",err); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

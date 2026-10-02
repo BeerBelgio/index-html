@@ -1,0 +1,725 @@
+<!--
+INDEX HTML — HTML Tool
+Project: https://github.com/BeerBelgio/index-html
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<!--
+INDEX HTML freeze — Scan Accumulator v1.0
+Code provenance: original implementation.
+Creative reference: Glitch Scanner / Scanner Simulator by stihilus — conceptual / visual research only.
+The useful principle carried forward is progressive line-by-line acquisition.
+No upstream source implementation, bundled code, or assets are incorporated or redistributed here.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scan Accumulator v1.0</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      display: block;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sketch-canvas"></canvas>
+
+  <script>
+    window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Scan Accumulator v1.0",
+  params: [
+    { key: "scan_position", label: "Scan Position", min: 0, max: 100, step: 1, default: 0 },
+    { key: "direction", label: "Direction", min: 0, max: 3, step: 1, default: 0 },
+    { key: "scan_width", label: "Scan Width", min: 1, max: 200, step: 1, default: 40 },
+    { key: "temporal_offset", label: "Temporal Offset", min: 0, max: 200, step: 1, default: 46 },
+    { key: "drift", label: "Drift", min: 0, max: 200, step: 1, default: 54 },
+    { key: "hold", label: "Hold Time (0.01s)", min: 0, max: 500, step: 1, default: 25 },
+    { key: "smear", label: "Smear", min: 0, max: 200, step: 1, default: 34 },
+    { key: "trigger", label: "HARD RESET", min: 0, max: 1, step: 1, default: 0 },
+    { key: "source_type", label: "Source Type", min: 0, max: 3, step: 1, default: 0 },
+    { key: "source_detail", label: "Source Detail", min: 3, max: 48, step: 1, default: 18 },
+    { key: "source_scale", label: "Source Scale", min: 20, max: 250, step: 1, default: 100 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "line_color", label: "Line Color", default: "#E8DDC8" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "scan_position", "scan_width", "temporal_offset", "drift",
+    "hold", "smear", "source_detail", "source_scale"
+  ]
+};
+
+    const canvas = document.getElementById("sketch-canvas");
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    const sourceCanvas = document.createElement("canvas");
+    const sourceCtx = sourceCanvas.getContext("2d", { alpha: true });
+
+    // Preserve the original mixed accumulator for exact legacy / 100% rendering,
+    // while maintaining separate semantic color accumulators for INDEX Host alpha.
+    const accumulatorLegacy = document.createElement("canvas");
+    const accLegacyCtx = accumulatorLegacy.getContext("2d", { alpha: true });
+    const accumulatorLine = document.createElement("canvas");
+    const accLineCtx = accumulatorLine.getContext("2d", { alpha: true });
+    const accumulatorAccent = document.createElement("canvas");
+    const accAccentCtx = accumulatorAccent.getContext("2d", { alpha: true });
+
+    let lastRawPhase = null;
+    let lastTrigger = 0;
+
+    // Exact age-based persistence.
+    // The canvas is divided into narrow strips along the active scan axis.
+    // Each strip remembers when it was last scanned, so Hold Time is measured
+    // from the actual acquisition time rather than approximated by global alpha.
+    const AGE_BIN_COUNT = 256;
+    let ageBins = [];
+    let ageDirection = -1;
+
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+    function clamp01(v) { return clamp(v, 0, 1); }
+    function fract(v) { return v - Math.floor(v); }
+
+    function readVal(obj, key, fallback) {
+      return (obj &&
+        Object.prototype.hasOwnProperty.call(obj, key) &&
+        obj[key] !== undefined &&
+        obj[key] !== null)
+        ? obj[key]
+        : fallback;
+    }
+
+    function clearAccumulator() {
+      for (const [target, targetCtx] of [
+        [accumulatorLegacy, accLegacyCtx],
+        [accumulatorLine, accLineCtx],
+        [accumulatorAccent, accAccentCtx]
+      ]) {
+        targetCtx.setTransform(1, 0, 0, 1, 0, 0);
+        targetCtx.globalAlpha = 1;
+        targetCtx.globalCompositeOperation = "source-over";
+        targetCtx.clearRect(0, 0, target.width, target.height);
+      }
+    }
+
+    
+function indexColorOpacity(hostContext, key){
+  if (!hostContext || !hostContext.colorOpacity) return 1;
+  const value = Number(hostContext.colorOpacity[key]);
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
+}
+
+window.sketchResize = function(width, height) {
+      width = Math.max(1, Math.floor(width));
+      height = Math.max(1, Math.floor(height));
+
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        sourceCanvas.width = width;
+        sourceCanvas.height = height;
+        accumulatorLegacy.width = width;
+        accumulatorLegacy.height = height;
+        accumulatorLine.width = width;
+        accumulatorLine.height = height;
+        accumulatorAccent.width = width;
+        accumulatorAccent.height = height;
+        lastRawPhase = null;
+        resetAgeBins();
+        clearAccumulator();
+      }
+    };
+
+    function sourcePassAlpha(pass, isAccent, alpha) {
+      if (pass === "all") return alpha;
+      return ((pass === "accent") === isAccent) ? alpha : 0;
+    }
+
+    function drawRibbonSource(detail, minSide, sampleTime, lineColor, accentColor, pass) {
+      const baseR = minSide * 0.11;
+      const extent = minSide * 0.92;
+
+      for (let i = 0; i < detail; i++) {
+        const rel = detail <= 1 ? 0 : i / (detail - 1);
+        const yBase = (rel - 0.5) * extent;
+        const phase = i * 0.71 + sampleTime * (0.24 + (i % 5) * 0.013);
+
+        sourceCtx.strokeStyle = (i % 7 === 0) ? accentColor : lineColor;
+        sourceCtx.globalAlpha = sourcePassAlpha(pass, i % 7 === 0, (i % 7 === 0) ? 0.95 : 0.64);
+        sourceCtx.lineWidth = Math.max(0.8, minSide * (0.0010 + (i % 4) * 0.00018));
+        sourceCtx.beginPath();
+
+        const samples = 84;
+        for (let j = 0; j < samples; j++) {
+          const t = j / (samples - 1);
+          const x = (t - 0.5) * extent * 1.60;
+
+          const wave =
+            Math.sin(t * Math.PI * (2.0 + (i % 4) * 0.7) + phase) * baseR * 0.62 +
+            Math.cos(t * Math.PI * 7.0 - phase * 0.42) * baseR * 0.20;
+
+          const pinch =
+            Math.sin((t - 0.5) * Math.PI) *
+            Math.sin(sampleTime * 0.31 + i * 0.53) *
+            baseR * 0.28;
+
+          const xWarp =
+            Math.sin(yBase * 0.011 + sampleTime * 0.19 + i) *
+            baseR * 0.18;
+
+          const px = x + xWarp;
+          const py = yBase + wave + pinch;
+
+          if (j === 0) sourceCtx.moveTo(px, py);
+          else sourceCtx.lineTo(px, py);
+        }
+        sourceCtx.stroke();
+      }
+    }
+
+    function drawRingsSource(detail, minSide, sampleTime, lineColor, accentColor, pass) {
+      const count = Math.max(3, detail);
+
+      for (let i = 0; i < count; i++) {
+        const rel = (i + 1) / count;
+        const wobble =
+          1 +
+          Math.sin(sampleTime * 0.21 + i * 0.63) * 0.12 +
+          Math.sin(sampleTime * 0.09 - i * 0.27) * 0.05;
+
+        const rx = minSide * (0.08 + rel * 0.56) * wobble;
+        const ry = rx * (0.40 + 0.42 * Math.sin(i * 0.49 + sampleTime * 0.13) ** 2);
+
+        const ox =
+          Math.sin(sampleTime * 0.17 + i * 0.41) * minSide * 0.055;
+        const oy =
+          Math.cos(sampleTime * 0.14 - i * 0.33) * minSide * 0.055;
+
+        sourceCtx.strokeStyle = (i % 6 === 0) ? accentColor : lineColor;
+        sourceCtx.globalAlpha = sourcePassAlpha(pass, i % 6 === 0, (i % 6 === 0) ? 0.96 : 0.66);
+        sourceCtx.lineWidth = Math.max(0.8, minSide * 0.00115);
+        sourceCtx.beginPath();
+        sourceCtx.ellipse(
+          ox, oy,
+          rx, ry,
+          Math.sin(i * 0.17) * 0.35,
+          0,
+          Math.PI * 2
+        );
+        sourceCtx.stroke();
+      }
+    }
+
+    function drawLatticeSource(detail, minSide, sampleTime, lineColor, accentColor, pass) {
+      const count = Math.max(3, detail);
+      const extent = minSide * 0.94;
+      const samples = 64;
+
+      for (let axis = 0; axis < 2; axis++) {
+        for (let i = 0; i < count; i++) {
+          const rel = count <= 1 ? 0 : i / (count - 1);
+          const base = (rel - 0.5) * extent;
+          const phase = i * 0.47 + sampleTime * (0.16 + axis * 0.025);
+
+          sourceCtx.strokeStyle = (i % 8 === 0) ? accentColor : lineColor;
+          sourceCtx.globalAlpha = sourcePassAlpha(pass, i % 8 === 0, (i % 8 === 0) ? 0.92 : 0.48);
+          sourceCtx.lineWidth = Math.max(0.7, minSide * 0.0009);
+          sourceCtx.beginPath();
+
+          for (let j = 0; j < samples; j++) {
+            const t = j / (samples - 1);
+            const along = (t - 0.5) * extent * 1.42;
+            const bend =
+              Math.sin(t * Math.PI * 3.2 + phase) * minSide * 0.035 +
+              Math.sin(t * Math.PI * 8.0 - phase * 0.61) * minSide * 0.012;
+
+            const px = axis === 0 ? along : base + bend;
+            const py = axis === 0 ? base + bend : along;
+
+            if (j === 0) sourceCtx.moveTo(px, py);
+            else sourceCtx.lineTo(px, py);
+          }
+
+          sourceCtx.stroke();
+        }
+      }
+    }
+
+    function drawRadialSource(detail, minSide, sampleTime, lineColor, accentColor, pass) {
+      const count = Math.max(6, detail * 2);
+      const inner = minSide * 0.035;
+      const outer = minSide * 0.60;
+
+      for (let i = 0; i < count; i++) {
+        const a = (i / count) * Math.PI * 2;
+        const phase = i * 0.37 + sampleTime * 0.20;
+
+        const innerR =
+          inner + Math.sin(phase * 1.7) * minSide * 0.020;
+        const outerR =
+          outer * (0.78 + 0.18 * Math.sin(phase * 0.73));
+
+        const bend =
+          Math.sin(sampleTime * 0.14 + i * 0.51) *
+          minSide * 0.040;
+
+        const x0 = Math.cos(a) * innerR;
+        const y0 = Math.sin(a) * innerR;
+        const x1 = Math.cos(a) * outerR - Math.sin(a) * bend;
+        const y1 = Math.sin(a) * outerR + Math.cos(a) * bend;
+
+        sourceCtx.strokeStyle = (i % 9 === 0) ? accentColor : lineColor;
+        sourceCtx.globalAlpha = sourcePassAlpha(pass, i % 9 === 0, (i % 9 === 0) ? 0.96 : 0.58);
+        sourceCtx.lineWidth = Math.max(0.8, minSide * 0.00105);
+        sourceCtx.beginPath();
+        sourceCtx.moveTo(x0, y0);
+        sourceCtx.quadraticCurveTo(
+          Math.cos(a) * minSide * 0.26 - Math.sin(a) * bend * 1.4,
+          Math.sin(a) * minSide * 0.26 + Math.cos(a) * bend * 1.4,
+          x1, y1
+        );
+        sourceCtx.stroke();
+      }
+
+      const ringCount = Math.max(2, Math.floor(detail / 6));
+      for (let i = 0; i < ringCount; i++) {
+        const r = minSide * (0.16 + i * 0.11);
+        const isAccentRing = i % 2 !== 0;
+        sourceCtx.strokeStyle = isAccentRing ? accentColor : lineColor;
+        sourceCtx.globalAlpha = sourcePassAlpha(pass, isAccentRing, 0.42);
+        sourceCtx.lineWidth = Math.max(0.7, minSide * 0.0009);
+        sourceCtx.beginPath();
+        sourceCtx.arc(0, 0, r, 0, Math.PI * 2);
+        sourceCtx.stroke();
+      }
+    }
+
+    function renderSource(state, sampleTime, pass) {
+      const w = sourceCanvas.width;
+      const h = sourceCanvas.height;
+      const minSide = Math.min(w, h);
+      const sourceType = Math.round(clamp(readVal(state, "source_type", 0), 0, 3));
+      const detail = Math.round(clamp(readVal(state, "source_detail", 18), 3, 48));
+      const scale = Math.max(0.05, readVal(state, "source_scale", 100) / 100);
+      const drift = Math.max(0, readVal(state, "drift", 54) / 100);
+      const lineColor = readVal(state, "line_color", "#e8ddc8");
+      const accentColor = readVal(state, "accent_color", "#ec6b2d");
+
+      sourceCtx.setTransform(1, 0, 0, 1, 0, 0);
+      sourceCtx.globalAlpha = 1;
+      sourceCtx.globalCompositeOperation = "source-over";
+      sourceCtx.clearRect(0, 0, w, h);
+
+      const driftX =
+        Math.sin(sampleTime * 0.43) * minSide * 0.18 * drift +
+        Math.sin(sampleTime * 0.17 + 1.7) * minSide * 0.06 * drift;
+      const driftY =
+        Math.cos(sampleTime * 0.37) * minSide * 0.16 * drift +
+        Math.sin(sampleTime * 0.13 + 0.4) * minSide * 0.07 * drift;
+
+      sourceCtx.save();
+      sourceCtx.translate(w * 0.5 + driftX, h * 0.5 + driftY);
+      sourceCtx.scale(scale, scale);
+      sourceCtx.lineCap = "round";
+      sourceCtx.lineJoin = "round";
+
+      if (sourceType === 1) {
+        drawRingsSource(detail, minSide, sampleTime, lineColor, accentColor, pass);
+      } else if (sourceType === 2) {
+        drawLatticeSource(detail, minSide, sampleTime, lineColor, accentColor, pass);
+      } else if (sourceType === 3) {
+        drawRadialSource(detail, minSide, sampleTime, lineColor, accentColor, pass);
+      } else {
+        drawRibbonSource(detail, minSide, sampleTime, lineColor, accentColor, pass);
+      }
+
+      sourceCtx.restore();
+      sourceCtx.globalAlpha = 1;
+    }
+
+    function resetAgeBins() {
+      ageBins = Array.from({ length: AGE_BIN_COUNT }, () => ({
+        lastTouch: -Infinity,
+        opacity: 0
+      }));
+      ageDirection = -1;
+    }
+
+    function ensureAgeBins(direction) {
+      if (ageBins.length !== AGE_BIN_COUNT || ageDirection !== direction) {
+        ageBins = Array.from({ length: AGE_BIN_COUNT }, () => ({
+          lastTouch: -Infinity,
+          opacity: 0
+        }));
+        ageDirection = direction;
+        clearAccumulator();
+      }
+    }
+
+    function getDirectionVectors(mode) {
+      // The four directions are now unique:
+      // 0 = Vertical
+      // 1 = Horizontal
+      // 2 = Diagonal TL↘BR
+      // 3 = Diagonal TR↙BL
+      if (mode === 1) return { nx: 1, ny: 0 };
+      if (mode === 2) return { nx: Math.SQRT1_2, ny: Math.SQRT1_2 };
+      if (mode === 3) return { nx: -Math.SQRT1_2, ny: Math.SQRT1_2 };
+      return { nx: 0, ny: 1 };
+    }
+
+    function projectionRange(nx, ny, w, h) {
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const corners = [
+        [-cx, -cy],
+        [ w - cx, -cy],
+        [ w - cx,  h - cy],
+        [-cx,  h - cy]
+      ];
+
+      let minP = Infinity;
+      let maxP = -Infinity;
+
+      for (const [x, y] of corners) {
+        const p = x * nx + y * ny;
+        if (p < minP) minP = p;
+        if (p > maxP) maxP = p;
+      }
+      return { minP, maxP };
+    }
+
+    function drawClippedBand(targetCtx, progress, band, nx, ny, imageOffset, alpha, w, h) {
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const tx = -ny;
+      const ty = nx;
+
+      const { minP, maxP } = projectionRange(nx, ny, w, h);
+      const centerP = minP + progress * (maxP - minP);
+      const half = band * 0.5;
+      const span = Math.sqrt(w * w + h * h) * 1.2;
+
+      const p1x = cx + nx * (centerP - half) + tx * (-span);
+      const p1y = cy + ny * (centerP - half) + ty * (-span);
+      const p2x = cx + nx * (centerP - half) + tx * ( span);
+      const p2y = cy + ny * (centerP - half) + ty * ( span);
+      const p3x = cx + nx * (centerP + half) + tx * ( span);
+      const p3y = cy + ny * (centerP + half) + ty * ( span);
+      const p4x = cx + nx * (centerP + half) + tx * (-span);
+      const p4y = cy + ny * (centerP + half) + ty * (-span);
+
+      targetCtx.save();
+      targetCtx.globalCompositeOperation = "source-over";
+      targetCtx.globalAlpha = alpha;
+      targetCtx.beginPath();
+      targetCtx.moveTo(p1x, p1y);
+      targetCtx.lineTo(p2x, p2y);
+      targetCtx.lineTo(p3x, p3y);
+      targetCtx.lineTo(p4x, p4y);
+      targetCtx.closePath();
+      targetCtx.clip();
+      targetCtx.drawImage(sourceCanvas, imageOffset.x, imageOffset.y);
+      targetCtx.restore();
+    }
+
+    function eraseProjectionSlice(targetCtx, norm0, norm1, nx, ny, alpha, w, h, overlapPx = 0) {
+      if (alpha <= 0) return;
+
+      norm0 = clamp01(norm0);
+      norm1 = clamp01(norm1);
+      if (norm1 <= norm0) return;
+
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const tx = -ny;
+      const ty = nx;
+      const { minP, maxP } = projectionRange(nx, ny, w, h);
+      const span = Math.sqrt(w * w + h * h) * 1.2;
+
+      // For hard clears we expand the slice slightly along the scan normal.
+      // This removes 1px-ish anti-aliased seams that can otherwise survive
+      // between adjacent age bins.
+      const p0 = minP + norm0 * (maxP - minP) - overlapPx;
+      const p1 = minP + norm1 * (maxP - minP) + overlapPx;
+
+      const aX = cx + nx * p0 + tx * (-span);
+      const aY = cy + ny * p0 + ty * (-span);
+      const bX = cx + nx * p0 + tx * ( span);
+      const bY = cy + ny * p0 + ty * ( span);
+      const cX = cx + nx * p1 + tx * ( span);
+      const cY = cy + ny * p1 + ty * ( span);
+      const dX = cx + nx * p1 + tx * (-span);
+      const dY = cy + ny * p1 + ty * (-span);
+
+      targetCtx.save();
+      targetCtx.globalCompositeOperation = "destination-out";
+      targetCtx.globalAlpha = clamp01(alpha);
+      targetCtx.beginPath();
+      targetCtx.moveTo(aX, aY);
+      targetCtx.lineTo(bX, bY);
+      targetCtx.lineTo(cX, cY);
+      targetCtx.lineTo(dX, dY);
+      targetCtx.closePath();
+      targetCtx.fillStyle = "#000";
+      targetCtx.fill();
+      targetCtx.restore();
+    }
+
+    function eraseAllProjectionSlices(norm0, norm1, nx, ny, alpha, w, h, overlapPx = 0) {
+      eraseProjectionSlice(accLegacyCtx, norm0, norm1, nx, ny, alpha, w, h, overlapPx);
+      eraseProjectionSlice(accLineCtx, norm0, norm1, nx, ny, alpha, w, h, overlapPx);
+      eraseProjectionSlice(accAccentCtx, norm0, norm1, nx, ny, alpha, w, h, overlapPx);
+    }
+
+    function markCurrentBand(progress, halfNorm, now) {
+      const lo = clamp01(progress - halfNorm);
+      const hi = clamp01(progress + halfNorm);
+
+      const first = Math.max(0, Math.floor(lo * AGE_BIN_COUNT));
+      const last = Math.min(
+        AGE_BIN_COUNT - 1,
+        Math.floor(hi * AGE_BIN_COUNT)
+      );
+
+      for (let i = first; i <= last; i++) {
+        ageBins[i].lastTouch = now;
+        ageBins[i].opacity = 1;
+      }
+    }
+
+    function applyAgeBasedHold(holdHundredths, now, nx, ny, w, h) {
+      const holdSeconds = clamp(holdHundredths, 0, 500) * 0.01;
+
+      // 0 means: keep only the band currently being acquired.
+      // Any previously touched strip is cleared on the next draw.
+      for (let i = 0; i < AGE_BIN_COUNT; i++) {
+        const bin = ageBins[i];
+        if (!Number.isFinite(bin.lastTouch)) continue;
+
+        const age = Math.max(0, now - bin.lastTouch);
+
+        let targetOpacity;
+        if (holdSeconds <= 0) {
+          targetOpacity = age <= 0 ? 1 : 0;
+        } else {
+          // Linear decay over the exact requested lifetime.
+          // Example: Hold=50 -> 0.50 s from full opacity to zero.
+          targetOpacity = clamp01(1 - age / holdSeconds);
+        }
+
+        if (targetOpacity >= bin.opacity - 1e-6) continue;
+
+        const eraseAlpha =
+          bin.opacity <= 1e-6
+            ? 1
+            : clamp01(1 - targetOpacity / bin.opacity);
+
+        const expired = targetOpacity <= 1e-6;
+
+        eraseAllProjectionSlices(
+          i / AGE_BIN_COUNT,
+          (i + 1) / AGE_BIN_COUNT,
+          nx, ny,
+          expired ? 1 : eraseAlpha,
+          w, h,
+          expired ? 2.0 : 0
+        );
+
+        bin.opacity = targetOpacity;
+
+        if (expired) {
+          // A second exact hard clear guarantees that repeated translucent draws
+          // and clip-edge antialiasing cannot leave ghost pixels behind.
+          eraseAllProjectionSlices(
+            i / AGE_BIN_COUNT,
+            (i + 1) / AGE_BIN_COUNT,
+            nx, ny,
+            1,
+            w, h,
+            2.0
+          );
+
+          bin.lastTouch = -Infinity;
+          bin.opacity = 0;
+        }
+      }
+    }
+
+    function copyScanBand(state, progress, sampleTime) {
+      const w = accumulatorLine.width;
+      const h = accumulatorLine.height;
+      const minSide = Math.min(w, h);
+
+      const direction = Math.round(clamp(readVal(state, "direction", 0), 0, 3));
+      const widthNorm = Math.max(0.01, readVal(state, "scan_width", 40) / 100);
+      const smearNorm = Math.max(0, readVal(state, "smear", 34) / 100);
+      const { nx, ny } = getDirectionVectors(direction);
+      const band = Math.max(1, minSide * (0.0055 + widthNorm * 0.075));
+      const smearPixels = smearNorm * minSide * 0.16;
+      const smearCopies = smearNorm <= 0.001 ? 0 : Math.min(8, 2 + Math.floor(smearNorm * 3));
+
+      function capturePass(pass, targetCtx) {
+        renderSource(state, sampleTime, pass);
+        for (let s = smearCopies; s >= 1; s--) {
+          const t = s / (smearCopies + 1);
+          const trailing = smearPixels * t;
+          drawClippedBand(targetCtx, progress, band, nx, ny,
+            { x: -nx * trailing, y: -ny * trailing }, (1 - t) * 0.30, w, h);
+        }
+        drawClippedBand(targetCtx, progress, band, nx, ny, { x: 0, y: 0 }, 1, w, h);
+      }
+
+      capturePass("all", accLegacyCtx);
+      capturePass("line", accLineCtx);
+      capturePass("accent", accAccentCtx);
+
+      const { minP, maxP } = projectionRange(nx, ny, w, h);
+      const halfNorm = (band * 0.5) / Math.max(1, maxP - minP);
+      return { nx, ny, halfNorm };
+    }
+
+    window.sketchDraw = function(state, hostContext) {
+      const w = canvas.width;
+      const h = canvas.height;
+      if (w < 1 || h < 1) return;
+
+      const bpm = clamp(readVal(state, "motion_bpm", 72), 0, 260);
+      const manualPosition = clamp01(readVal(state, "scan_position", 0) / 100);
+      const temporalOffset = Math.max(0, readVal(state, "temporal_offset", 46) / 100);
+      const hold = clamp(readVal(state, "hold", 25), 0, 500);
+      const trigger = readVal(state, "trigger", 0) >= 0.5 ? 1 : 0;
+      const time = readVal(state, "time", 0);
+
+      // A full pass takes four beats. At BPM 0, Scan Position becomes
+      // the direct manual scan-head position.
+      const autoPhase = bpm <= 0 ? 0 : time * (bpm / 60) * 0.25;
+      const rawPhase = fract(autoPhase + manualPosition);
+
+      const direction =
+        Math.round(clamp(readVal(state, "direction", 0), 0, 3));
+
+      ensureAgeBins(direction);
+
+      // Trigger is a rising-edge hard reset.
+      if (trigger > lastTrigger) {
+        clearAccumulator();
+        resetAgeBins();
+        ensureAgeBins(direction);
+        lastRawPhase = null;
+      }
+      lastTrigger = trigger;
+
+      // Temporal Offset turns the scan into a slit-scan:
+      // different scan positions sample different moments of the internal source.
+      const timeShift =
+        (rawPhase - 0.5) * temporalOffset * 5.0;
+      const sampleTime = time - timeShift;
+
+      // Capture the current strip, timestamp only the strips actually touched,
+      // then decay every older strip according to its own age.
+      // This removes the artificial minimum lifetime caused by scan-head overlap.
+      const scanGeometry =
+        copyScanBand(state, rawPhase, sampleTime);
+
+      markCurrentBand(
+        rawPhase,
+        scanGeometry.halfNorm,
+        time
+      );
+
+      applyAgeBasedHold(
+        hold,
+        time,
+        scanGeometry.nx,
+        scanGeometry.ny,
+        w, h
+      );
+
+      lastRawPhase = rawPhase;
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, w, h);
+      const lineOpacity = indexColorOpacity(hostContext, "line_color");
+      const accentOpacity = indexColorOpacity(hostContext, "accent_color");
+      const useLegacyComposite = lineOpacity === 1 && accentOpacity === 1;
+
+      if (useLegacyComposite) {
+        // Exact original composition path for standalone / Sketch and host 100/100.
+        ctx.globalAlpha = 1;
+        ctx.drawImage(accumulatorLegacy, 0, 0);
+      } else {
+        ctx.globalAlpha = lineOpacity;
+        ctx.drawImage(accumulatorLine, 0, 0);
+        ctx.globalAlpha = accentOpacity;
+        ctx.drawImage(accumulatorAccent, 0, 0);
+      }
+      ctx.globalAlpha = 1;
+    };
+  </script>
+
+  <script>
+    (function localPreview() {
+      if (window.parent !== window) return;
+
+      const manifest = window.SKETCH_TOOL;
+      const state = { time: 0 };
+
+      for (const p of manifest.params) state[p.key] = p.default;
+      for (const c of manifest.colors) state[c.key] = c.default;
+
+      function fit() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const side = Math.max(96, Math.min(window.innerWidth, window.innerHeight) - 40);
+
+        canvas.style.width = side + "px";
+        canvas.style.height = side + "px";
+
+        window.sketchResize(
+          Math.max(1, Math.floor(side * dpr)),
+          Math.max(1, Math.floor(side * dpr))
+        );
+      }
+
+      fit();
+      window.addEventListener("resize", fit);
+
+      let last = performance.now();
+
+      function tick(now) {
+        state.time += Math.min(0.05, (now - last) / 1000);
+        last = now;
+
+        try {
+          window.sketchDraw(state);
+        } catch (err) {
+          console.error("[sketch] draw threw:", err);
+        }
+
+        requestAnimationFrame(tick);
+      }
+
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body>
+</html>

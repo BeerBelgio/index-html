@@ -1,0 +1,431 @@
+<!--
+INDEX HTML — HTML Tool
+Project: https://github.com/BeerBelgio/index-html
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DNA Filament v1.0</title>
+  <style>
+    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#111; }
+    body { display:flex; align-items:center; justify-content:center; }
+    canvas { display:block; background:transparent; }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+/*
+  DNA Filament v1.0
+  Original INDEX HTML implementation.
+  Creative reference: PLAYGRND / Filament — bundled streamlines moving through a vector/noise field.
+  No third-party implementation code is incorporated here.
+
+  Mode:
+  0 Flow
+  1 Converge
+  2 Burst
+  3 Vortex
+*/
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "DNA Filament v1.0",
+  params: [
+    { key: "mode", label: "Mode", min: 0, max: 3, step: 1, default: 2 },
+    { key: "lines", label: "Lines", min: 4, max: 180, step: 1, default: 56 },
+    { key: "length", label: "Length", min: 10, max: 240, step: 1, default: 122 },
+    { key: "spread", label: "Spread", min: 0, max: 200, step: 1, default: 74 },
+    { key: "bundle", label: "Bundle", min: 0, max: 200, step: 1, default: 128 },
+    { key: "field", label: "Field", min: 0, max: 200, step: 1, default: 96 },
+    { key: "curl", label: "Curl", min: -200, max: 200, step: 1, default: 38 },
+    { key: "twist", label: "Twist", min: -200, max: 200, step: 1, default: 26 },
+    { key: "weave", label: "DNA Maker", min: -200, max: 200, step: 1, default: 0 },
+    { key: "width", label: "Width", min: 0.5, max: 20, step: 0.1, default: 2.4 },
+    { key: "drift", label: "Drift", min: 0, max: 200, step: 1, default: 42 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "line_color", label: "Line Color", default: "#E8DDC8" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "lines", "length", "spread", "bundle",
+    "field", "curl", "twist", "weave",
+    "width", "drift"
+  ]
+};
+
+const canvas=document.getElementById("sketch-canvas");
+const ctx=canvas.getContext("2d",{alpha:true});
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function clamp01(v){ return clamp(v,0,1); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function fract(v){ return v-Math.floor(v); }
+function hash01(n){ return fract(Math.sin(n*127.1+311.7)*43758.5453123); }
+function readVal(obj,key,fallback){
+  return (obj && Object.prototype.hasOwnProperty.call(obj,key) && obj[key]!==undefined && obj[key]!==null)
+    ? obj[key] : fallback;
+}
+function angleDiff(a,b){
+  return Math.atan2(Math.sin(a-b),Math.cos(a-b));
+}
+
+
+function indexColorOpacity(hostContext, key){
+  if (!hostContext || !hostContext.colorOpacity) return 1;
+  const value = Number(hostContext.colorOpacity[key]);
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
+}
+
+window.sketchResize=function(width,height){
+  width=Math.max(1,Math.floor(width));
+  height=Math.max(1,Math.floor(height));
+  if(canvas.width!==width || canvas.height!==height){
+    canvas.width=width;
+    canvas.height=height;
+  }
+};
+
+function bundleInfo(index,count,bundleN){
+  const u=count<=1?0.5:index/(count-1);
+
+  // At Bundle 0 each filament is effectively independent.
+  // At Bundle 1 the colony collapses into only a few visible cohorts.
+  const groupCount=Math.max(2,Math.round(lerp(Math.min(count,24),3,Math.pow(bundleN,0.82))));
+  const gi=Math.min(groupCount-1,Math.floor((index/count)*groupCount));
+  const groupU=(gi+0.5)/groupCount;
+
+  // Strong positional collapse toward each cohort centre at high Bundle values.
+  const bundledU=lerp(u,groupU,Math.pow(bundleN,0.72)*0.94);
+
+  return {
+    u,
+    groupCount,
+    groupIndex:gi,
+    groupU,
+    bundledU,
+    cohesion:bundleN,
+    groupSeed:97.13 + gi*43.71
+  };
+}
+
+function sourcePoint(mode,index,count,w,h,spreadN,bundleN){
+  const bi=bundleInfo(index,count,bundleN);
+  const minSide=Math.min(w,h);
+  const span=0.10+0.84*spreadN;
+
+  if(mode===0){ // FLOW
+    const y=h*(0.5 + (bi.bundledU-0.5)*span);
+    return {
+      x:-w*0.12,
+      y,
+      angle:0,
+      group:bi
+    };
+  }
+
+  if(mode===1){ // CONVERGE
+    // Start separated on the left, then collapse toward a central corridor.
+    const y=h*(0.5 + (bi.bundledU-0.5)*span);
+    return {
+      x:-w*0.12,
+      y,
+      angle:0,
+      group:bi
+    };
+  }
+
+  if(mode===2){ // BURST
+    const groupAngle=bi.groupU*Math.PI*2;
+    const lineAngle=bi.u*Math.PI*2;
+    const a=lerp(lineAngle,groupAngle,Math.pow(bundleN,0.75)*0.93);
+    const r=minSide*(0.015 + 0.12*spreadN*(1-bundleN*0.45));
+    return {
+      x:w*0.5+Math.cos(a)*r,
+      y:h*0.5+Math.sin(a)*r,
+      angle:a,
+      group:bi
+    };
+  }
+
+  // VORTEX: distribute origins around a ring, grouped into arcs.
+  const groupAngle=bi.groupU*Math.PI*2;
+  const lineAngle=bi.u*Math.PI*2;
+  const a=lerp(lineAngle,groupAngle,Math.pow(bundleN,0.78)*0.94);
+  const r=minSide*(0.16+0.24*spreadN);
+  return {
+    x:w*0.5+Math.cos(a)*r,
+    y:h*0.5+Math.sin(a)*r,
+    angle:a+Math.PI/2,
+    group:bi
+  };
+}
+
+function noiseOffset(x,y,w,h,seed,fieldN,time){
+  const nx=x/Math.max(1,w)-0.5;
+  const ny=y/Math.max(1,h)-0.5;
+
+  const n =
+    Math.sin(nx*5.2 + ny*3.4 + seed*0.017 + time*0.31)*0.48 +
+    Math.sin(nx*11.9 - ny*7.3 + seed*0.029 - time*0.17)*0.31 +
+    Math.cos(nx*20.1 + ny*13.7 + seed*0.041 + time*0.09)*0.21;
+
+  return n*fieldN*Math.PI*1.45;
+}
+
+function structureAngle(mode,x,y,t,root,w,h,spreadN,bundleN,groupIndex){
+  const cx=w*0.5, cy=h*0.5;
+
+  if(mode===0){ // FLOW
+    // Small cohort-specific lane angle; otherwise the field remains directional.
+    const lane=(groupIndex-(root.group.groupCount-1)*0.5)/Math.max(1,root.group.groupCount);
+    return lane*0.16*spreadN;
+  }
+
+  if(mode===1){ // CONVERGE
+    const targetX=w*(0.48+0.08*spreadN);
+    const targetSpan=h*(0.015+0.12*(1-bundleN));
+    const targetY=cy + (root.group.groupU-0.5)*targetSpan;
+
+    if(x<targetX){
+      return Math.atan2(targetY-y,targetX-x);
+    }
+
+    // After the squeeze point the strands open again toward the right.
+    const exitY=cy + (root.group.groupU-0.5)*h*(0.06+0.28*spreadN);
+    return Math.atan2(exitY-y,w*1.12-x);
+  }
+
+  if(mode===2){ // BURST
+    return Math.atan2(y-cy,x-cx);
+  }
+
+  // VORTEX
+  const radial=Math.atan2(y-cy,x-cx);
+  const rr=Math.hypot(x-cx,y-cy)/Math.max(1,Math.min(w,h));
+  const spiral=0.24 + 0.32*spreadN - 0.10*rr;
+  return radial + Math.PI/2 + spiral;
+}
+
+function traceLine(root,index,count,w,h,opts){
+  const pts=[{x:root.x,y:root.y}];
+  const maxSteps=Math.round(lerp(22,300,opts.lengthN));
+  const step=Math.min(w,h)*(0.0037+0.0040*opts.lengthN);
+
+  let x=root.x, y=root.y, heading=root.angle;
+  const bi=root.group;
+
+  // Position of this filament inside its current bundle.
+  // Used by Weave so bundle members exchange their apparent position over the path.
+  const groupFloat=(index/Math.max(1,count))*bi.groupCount;
+  const localU=clamp01(groupFloat-bi.groupIndex);
+  const memberPhase=localU*Math.PI*2;
+
+  // Cohesion also makes members of a bundle share the same field identity.
+  const uniqueSeed=131.7 + index*7.31;
+  const seed=lerp(uniqueSeed,bi.groupSeed,Math.pow(opts.bundleN,0.78));
+
+  for(let s=0;s<maxSteps;s++){
+    const t=s/Math.max(1,maxSteps-1);
+
+    const structural=structureAngle(
+      opts.mode,x,y,t,root,w,h,
+      opts.spreadN,opts.bundleN,bi.groupIndex
+    );
+
+    const fieldOffset=noiseOffset(
+      x,y,w,h,seed,opts.fieldN,opts.time
+    );
+
+    // Bundle high = less line-specific divergence, more shared trajectory.
+    const personalNoise=
+      Math.sin(t*Math.PI*2*(1.0+hash01(index*3.7)*2.4)+index*0.27+opts.time*0.21)
+      *0.18*(1-opts.bundleN);
+
+    const target=structural + fieldOffset + personalNoise;
+    const follow=0.075+0.30*opts.fieldN+0.08*opts.bundleN;
+    heading += angleDiff(target,heading)*follow;
+
+    // CURL: strong accumulated curvature.
+    // Non-linear response makes mid/high values much more obvious while preserving a calm centre.
+    const curlGain =
+      (opts.curlN===0 ? 0 : Math.sign(opts.curlN)) *
+      Math.pow(Math.abs(opts.curlN),0.72);
+    heading += curlGain * (0.060 + 0.080*opts.fieldN);
+
+    // TWIST: strong alternating torsion with a secondary harmonic.
+    // Positive/negative values reverse the twist direction.
+    const twistGain =
+      (opts.twistN===0 ? 0 : Math.sign(opts.twistN)) *
+      Math.pow(Math.abs(opts.twistN),0.72);
+
+    const twistPhase=
+      t*Math.PI*2*(1.15+opts.fieldN*2.15) +
+      bi.groupIndex*0.91 +
+      opts.time*0.43;
+
+    heading += (
+      Math.sin(twistPhase) * (0.080+0.105*opts.fieldN) +
+      Math.sin(twistPhase*0.47 + bi.groupIndex*0.63) * (0.026+0.035*opts.fieldN)
+    ) * twistGain;
+
+    // Drift remains a smaller, slower instability layer.
+    heading +=
+      Math.sin(t*Math.PI*2*(0.55+hash01(index*4.9)*1.15)+opts.time*0.18+index*0.13)
+      *0.012*opts.driftN;
+
+    x += Math.cos(heading)*step;
+    y += Math.sin(heading)*step;
+
+    // WEAVE: visual braiding around the shared bundle trajectory.
+    // The underlying field trajectory stays intact; only the rendered strand
+    // moves around it, so the bundle reads like a rope rather than extra noise.
+    const weaveAbs=Math.abs(opts.weaveN);
+    const weaveSign=(opts.weaveN===0 ? 0 : Math.sign(opts.weaveN));
+    const weaveCycles=1.15 + 3.10*weaveAbs;
+    const weavePhase=
+      memberPhase +
+      weaveSign*(t*Math.PI*2*weaveCycles + opts.time*0.34);
+
+    const weaveAmp=
+      Math.min(w,h) *
+      (0.002 + 0.030*weaveAbs) *
+      (0.28 + 0.72*opts.bundleN);
+
+    const weaveOffset =
+      weaveSign===0 ? 0 :
+      (
+        Math.sin(weavePhase) +
+        Math.sin(weavePhase*2.0 + bi.groupIndex*0.47)*0.22
+      ) * weaveAmp;
+
+    // Normal to the local trajectory.
+    const nx=-Math.sin(heading);
+    const ny= Math.cos(heading);
+
+    pts.push({
+      x:x + nx*weaveOffset,
+      y:y + ny*weaveOffset
+    });
+
+    if(x<-w*0.45||x>w*1.45||y<-h*0.45||y>h*1.45) break;
+  }
+
+  return pts;
+}
+
+function drawPolyline(points,width,color,alpha){
+  if(points.length<2) return;
+  ctx.strokeStyle=color;
+  ctx.lineWidth=width;
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+  ctx.globalAlpha=alpha;
+  ctx.beginPath();
+  ctx.moveTo(points[0].x,points[0].y);
+  for(let i=1;i<points.length;i++) ctx.lineTo(points[i].x,points[i].y);
+  ctx.stroke();
+}
+
+window.sketchDraw = function(state, hostContext){
+  const w=canvas.width,h=canvas.height;
+  if(w<2||h<2) return;
+
+  const mode=Math.round(clamp(readVal(state,"mode",2),0,3));
+  const lines=Math.round(clamp(readVal(state,"lines",56),4,180));
+  const lengthN=clamp(readVal(state,"length",122),10,240)/240;
+  const spreadN=clamp(readVal(state,"spread",74),0,200)/200;
+  const bundleN=clamp(readVal(state,"bundle",128),0,200)/200;
+  const fieldN=clamp(readVal(state,"field",96),0,200)/200;
+  const curlN=clamp(readVal(state,"curl",38),-200,200)/200;
+  const twistN=clamp(readVal(state,"twist",26),-200,200)/200;
+  const weaveN=clamp(readVal(state,"weave",0),-200,200)/200;
+  const width=clamp(readVal(state,"width",2.4),0.5,20);
+  const driftN=clamp(readVal(state,"drift",42),0,200)/200;
+  const bpm=clamp(readVal(state,"motion_bpm",72),0,260);
+  const time=(bpm<=0?0:(Number(readVal(state,"time",0))||0)*(bpm/60));
+
+  const lineColor=readVal(state,"line_color","#E8DDC8");
+  const accentColor=readVal(state,"accent_color","#EC6B2D");
+  const lineColorOpacity=indexColorOpacity(hostContext,"line_color");
+  const accentColorOpacity=indexColorOpacity(hostContext,"accent_color");
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalCompositeOperation="source-over";
+  ctx.globalAlpha=1;
+  ctx.clearRect(0,0,w,h);
+
+  for(let i=0;i<lines;i++){
+    const root=sourcePoint(mode,i,lines,w,h,spreadN,bundleN);
+    const pts=traceLine(root,i,lines,w,h,{
+      mode,
+      lengthN,
+      spreadN,
+      bundleN,
+      fieldN,
+      curlN,
+      twistN,
+      weaveN,
+      driftN,
+      time
+    });
+
+    // Accent the centre filament of each bundle, making Bundle easier to read.
+    const bi=root.group;
+    const localPos=(i/lines)*bi.groupCount-bi.groupIndex;
+    const accent=Math.abs(localPos-0.5)<(0.52/Math.max(1,lines/bi.groupCount));
+
+    const lineSeed=137.0+i*1.137;
+    const localWidth=width*(0.78+0.38*hash01(lineSeed*3.9));
+
+    drawPolyline(
+      pts,
+      localWidth*(accent?1.35:1),
+      accent?accentColor:lineColor,
+      (accent?0.98:0.72)*(accent?accentColorOpacity:lineColorOpacity)
+    );
+  }
+
+  ctx.globalAlpha=1;
+};
+</script>
+<script>
+(function localPreview(){
+  if(window.parent!==window) return;
+  const manifest=window.SKETCH_TOOL,state={time:0};
+  for(const p of manifest.params) state[p.key]=p.default;
+  for(const c of manifest.colors) state[c.key]=c.default;
+
+  function fit(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
+    canvas.style.width=side+"px";
+    canvas.style.height=side+"px";
+    window.sketchResize(
+      Math.max(1,Math.floor(side*dpr)),
+      Math.max(1,Math.floor(side*dpr))
+    );
+  }
+
+  fit();
+  window.addEventListener("resize",fit);
+  let last=performance.now();
+
+  function tick(now){
+    state.time+=Math.min(0.05,(now-last)/1000);
+    last=now;
+    try{ window.sketchDraw(state); }
+    catch(err){ console.error("[sketch] draw threw:",err); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

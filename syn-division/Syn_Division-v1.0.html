@@ -1,0 +1,297 @@
+<!--
+INDEX HTML — HTML Tool
+Project: https://github.com/BeerBelgio/index-html
+License: PolyForm Noncommercial 1.0.0
+https://polyformproject.org/licenses/noncommercial/1.0.0/
+Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Syn Division v1.0</title>
+  <style>
+    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:#111; }
+    body { display:flex; align-items:center; justify-content:center; }
+    canvas { display:block; background:transparent; }
+  </style>
+</head>
+<body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+/*
+  Syn Division v1.0
+  Original INDEX HTML implementation.
+  Creative reference: PLAYGRND / Zig — interlocking zigzags and staircase structures.
+  No third-party implementation code is incorporated here.
+*/
+window.SKETCH_TOOL = {
+  schemaVersion: 1,
+  name: "Syn Division v1.0",
+  params: [
+    { key: "stripes", label: "Stripes", min: 3, max: 80, step: 1, default: 18 },
+    { key: "spacing", label: "Spacing", min: 0, max: 200, step: 1, default: 70 },
+    { key: "weight", label: "Weight", min: 5, max: 100, step: 1, default: 58 },
+    { key: "tooth_depth", label: "Tooth Depth", min: 0, max: 200, step: 1, default: 86 },
+    { key: "tooth_length", label: "Tooth Length", min: 10, max: 240, step: 1, default: 92 },
+    { key: "stagger", label: "Stagger", min: 0, max: 200, step: 1, default: 72 },
+    { key: "warp", label: "Warp", min: -200, max: 200, step: 1, default: 26 },
+    { key: "ripple", label: "Ripple", min: -200, max: 200, step: 1, default: 42 },
+    { key: "vector_mode", label: "Vector Mode", min: 0, max: 2, step: 1, default: 0 },
+    { key: "phase", label: "Phase", min: 0, max: 360, step: 1, default: 0 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "primary_color", label: "Primary Color", default: "#E8DDC8" },
+    { key: "secondary_color", label: "Secondary Color", default: "#EC6B2D" },
+    { key: "accent_color", label: "Third Color", default: "#6A9E5D" }
+  ],
+  audio: [
+    "stripes", "spacing", "weight", "tooth_depth",
+    "tooth_length", "stagger", "warp", "ripple",
+    "phase"
+  ]
+};
+
+const canvas=document.getElementById("sketch-canvas");
+const ctx=canvas.getContext("2d",{alpha:true});
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function fract(v){ return v-Math.floor(v); }
+function hash01(n){ return fract(Math.sin(n*127.1+311.7)*43758.5453123); }
+function readVal(obj,key,fallback){
+  return (obj && Object.prototype.hasOwnProperty.call(obj,key) && obj[key]!==undefined && obj[key]!==null)
+    ? obj[key] : fallback;
+}
+function triangle(t){ const f=fract(t); return 1-4*Math.abs(f-0.5); }
+function steppedTriangle(t){ return Math.round(triangle(t)*3)/3; }
+function smoothWave(t){ return -Math.cos(fract(t)*Math.PI*2); }
+
+
+function indexColorOpacity(hostContext, key){
+  if (!hostContext || !hostContext.colorOpacity) return 1;
+  const value = Number(hostContext.colorOpacity[key]);
+  return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
+}
+
+window.sketchResize=function(width,height){
+  width=Math.max(1,Math.floor(width));
+  height=Math.max(1,Math.floor(height));
+  if(canvas.width!==width || canvas.height!==height){ canvas.width=width; canvas.height=height; }
+};
+
+function shapeWave(t,rowSeed){
+  // Interlock-only motor, permanently rounded.
+  const tri=triangle(t);
+  const hook=triangle(t+0.23+(rowSeed%2)*0.12);
+  const hard=clamp(tri*0.72+hook*0.52,-1,1);
+  return lerp(hard,smoothWave(t+0.12),0.58);
+}
+
+function drawRow(row,rowCount,w,h,opts){
+  // Stripes changes only the number of generated rows.
+  // Spacing sets the physical distance between them.
+  const rowGap=opts.spacingPx;
+  const baseY=h*0.5 + (row-(rowCount-1)*0.5)*rowGap;
+
+  // Fixed reference scale: count and spacing never rescale the pattern.
+  const referenceGap=h/20;
+  const rowSeed = row*19.37 + 137.0;
+
+  const period=Math.max(8, opts.toothLengthPx);
+  const phaseShift=
+    opts.phaseCycles +
+    row*opts.staggerCycles +
+    (hash01(rowSeed*1.7)-0.5)*0.18*Math.abs(opts.warpN);
+
+  const amp=
+    referenceGap*(0.08 + 1.15*opts.depth) *
+    (0.88 + 0.24*hash01(rowSeed*2.9));
+
+  const warpAmp=referenceGap*1.50*Math.abs(opts.warpN);
+  const rippleAmp=referenceGap*(0.30 + 2.20*Math.abs(opts.rippleN));
+
+  // Heavy horizontal overscan: the rows behave as effectively infinite lines.
+  const overscan=3.0;
+  const xStart=-w*overscan;
+  const xEnd=w*(1+overscan);
+  const span=xEnd-xStart;
+  const samples=Math.max(420,Math.ceil(span/4));
+
+  const warpSign = opts.warpN===0 ? 0 : Math.sign(opts.warpN);
+  const rippleSign = opts.rippleN===0 ? 0 : Math.sign(opts.rippleN);
+  const wa = Math.abs(opts.warpN);
+  const ra = Math.abs(opts.rippleN);
+
+  ctx.beginPath();
+  for(let i=0;i<=samples;i++){
+    const x=xStart+(i/samples)*span;
+    const xn=(x/w)-0.5;
+    const u=x/period + phaseShift;
+
+    let y=baseY + shapeWave(u,row)*amp;
+
+    // VECTOR MODES
+    // 0 = Flow     -> warp + ripple reinforce one another
+    // 1 = Counter  -> ripple becomes lateral while warp stays mostly vertical
+    // 2 = Clash    -> opposing/crossed vectors with row-by-row inversion
+    const mode = opts.vectorMode|0;
+
+    // Ripple engine, bipolar and center-balanced.
+    // Negative values reverse the propagation direction.
+    let rippleMotion = opts.motionPhase*0.19;
+    if(mode===2) rippleMotion *= (row%2===0 ? 1 : -1);
+
+    const rippleTravel = (
+      xn*Math.PI*2*(0.80 + ra*2.6) * (rippleSign === 0 ? 1 : rippleSign)
+    ) + row*0.41 + rippleMotion + opts.phaseCycles*Math.PI*2;
+
+    const rippleY =
+      Math.sin(rippleTravel) * rippleAmp * (0.42 + 0.58*ra);
+
+    const rippleX =
+      Math.cos(rippleTravel*0.92 + row*0.23) * referenceGap * 0.84 * ra;
+
+    // Warp engine uses a denser multi-frequency field.
+    // In Clash mode its temporal direction opposes Ripple and alternates per row.
+    const warpMotionDir = mode===2 ? (row%2===0 ? -1 : 1) : 1;
+    const warpTravelA = x/w*Math.PI*2*(1.15+hash01(rowSeed*3.8)*1.35) + row*0.31 + opts.motionPhase*0.15*warpMotionDir;
+    const warpTravelB = x/w*Math.PI*2*3.3 - row*0.17 - opts.motionPhase*0.08*warpMotionDir;
+    const warpTravelC = x/w*Math.PI*2*6.7 + row*0.11 + opts.motionPhase*0.03*warpMotionDir;
+
+    const warpComposite =
+      Math.sin(warpTravelA)*0.56 +
+      Math.sin(warpTravelB)*0.26 +
+      Math.sin(warpTravelC)*0.18;
+
+    const warpY = warpComposite * warpAmp * (warpSign === 0 ? 0 : warpSign);
+    const warpX = (
+      Math.sin(x/w*Math.PI*2*0.75 + row*0.23 + opts.motionPhase*0.04*warpMotionDir) * referenceGap * 0.56 * wa * (warpSign === 0 ? 0 : warpSign)
+      +
+      Math.cos(x/w*Math.PI*2*2.1 - row*0.19 - opts.motionPhase*0.06*warpMotionDir) * referenceGap * 0.36 * wa
+    );
+
+    let xx = x;
+
+    if(mode===0){ // FLOW — the readable/base behaviour
+      y += rippleY + warpY;
+      xx += rippleX*0.20 + warpX*0.25;
+
+    } else if(mode===1){ // COUNTER — keep the interesting old mode 3
+      y += warpY + rippleY*0.38;
+      xx += warpX*0.18 + rippleX*1.32;
+
+    } else { // CLASH — both engines fight across different axes/directions
+      const rowFlip = (row%2===0 ? 1 : -1);
+
+      // Vertical forces actively oppose each other and alternate between rows.
+      y += (warpY*1.22 - rippleY*1.08)*rowFlip;
+
+      // Horizontal forces are stronger and counter-rotated.
+      xx += (rippleX*1.38 - warpX*1.14)*rowFlip;
+
+      // Cross-coupling makes the two vector fields pull on the opposite axis too.
+      y  += warpX*0.58 - rippleX*0.34;
+      xx += rippleY*0.48 - warpY*0.36;
+    }
+
+    if(i===0) ctx.moveTo(xx,y); else ctx.lineTo(xx,y);
+  }
+
+  let color=opts.primary;
+  let colorOpacity=opts.primaryOpacity;
+  if(row%3===1){ color=opts.secondary; colorOpacity=opts.secondaryOpacity; }
+  else if(row%3===2){ color=opts.accent; colorOpacity=opts.accentOpacity; }
+
+  ctx.strokeStyle=color;
+  ctx.lineWidth=Math.max(0.75,referenceGap*(0.08+0.92*opts.weight));
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+  ctx.globalAlpha=colorOpacity;
+  ctx.stroke();
+}
+
+window.sketchDraw = function(state, hostContext){
+  const w=canvas.width,h=canvas.height;
+  if(w<2||h<2) return;
+
+  const stripes=Math.round(clamp(readVal(state,"stripes",18),3,80));
+  const spacing=clamp(readVal(state,"spacing",70),0,200)/200;
+  const weight=clamp(readVal(state,"weight",58),5,100)/100;
+  const depth=clamp(readVal(state,"tooth_depth",86),0,200)/200;
+  const toothLength=clamp(readVal(state,"tooth_length",92),10,240);
+  const stagger=clamp(readVal(state,"stagger",72),0,200)/200;
+  const warp=clamp(readVal(state,"warp",26),-200,200)/200;
+  const ripple=clamp(readVal(state,"ripple",42),-200,200)/200;
+  const vectorMode=Math.round(clamp(readVal(state,"vector_mode",0),0,2));
+  const phase=clamp(readVal(state,"phase",0),0,360)/360;
+  const bpm=clamp(readVal(state,"motion_bpm",72),0,260);
+  const t=Number(readVal(state,"time",0))||0;
+
+  const primary=readVal(state,"primary_color","#E8DDC8");
+  const secondary=readVal(state,"secondary_color","#EC6B2D");
+  const accent=readVal(state,"accent_color","#6A9E5D");
+  const primaryOpacity=indexColorOpacity(hostContext,"primary_color");
+  const secondaryOpacity=indexColorOpacity(hostContext,"secondary_color");
+  const accentOpacity=indexColorOpacity(hostContext,"accent_color");
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.globalCompositeOperation="source-over";
+  ctx.globalAlpha=1;
+  ctx.clearRect(0,0,w,h);
+
+  const rowCount=stripes;
+  const minSide=Math.min(w,h);
+  const referenceGap=h/20;
+  const spacingPx=referenceGap*lerp(0.22,3.40,spacing);
+  const toothLengthPx=minSide*(0.035+0.34*(toothLength/240));
+  const phaseCycles=phase+(bpm<=0?0:t*(bpm/60)*0.14);
+  const opts={
+    spacingPx,
+    weight,
+    depth,
+    toothLengthPx,
+    staggerCycles:stagger*0.72,
+    warpN:warp,
+    rippleN:ripple,
+    vectorMode,
+    phaseCycles,
+    motionPhase:(bpm<=0?0:t*(bpm/60)*Math.PI*2),
+    primary,
+    secondary,
+    accent,
+    primaryOpacity,
+    secondaryOpacity,
+    accentOpacity
+  };
+
+  for(let r=0;r<rowCount;r++) drawRow(r,rowCount,w,h,opts);
+  ctx.globalAlpha=1;
+};
+</script>
+<script>
+(function localPreview(){
+  if(window.parent!==window) return;
+  const manifest=window.SKETCH_TOOL,state={time:0};
+  for(const p of manifest.params) state[p.key]=p.default;
+  for(const c of manifest.colors) state[c.key]=c.default;
+  function fit(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
+    canvas.style.width=side+"px"; canvas.style.height=side+"px";
+    window.sketchResize(Math.max(1,Math.floor(side*dpr)),Math.max(1,Math.floor(side*dpr)));
+  }
+  fit(); window.addEventListener("resize",fit);
+  let last=performance.now();
+  function tick(now){
+    state.time+=Math.min(0.05,(now-last)/1000); last=now;
+    try{ window.sketchDraw(state); } catch(err){ console.error("[sketch] draw threw:",err); }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
