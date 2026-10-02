@@ -79,10 +79,9 @@
   }
 
   function applyPreviewMotion(slug, state, dt) {
+    // Recipes marked "Advance time" in the V9 master need no explicit case:
+    // state.time is already advanced by the shared preview loop.
     switch (slug) {
-      case 'linking-nodes':
-        state.melt = 250;
-        break;
       case 'cassini-flow':
         state.drift = 80;
         break;
@@ -96,7 +95,8 @@
         break;
       case 'form-cutter': {
         const beat = (state.time * 2.5) % 1;
-        state.trigger = beat < 0.5 ? 100 * (1 - beat / 0.5) : 0;
+        state.trigger = 100 * (1 - beat);
+        state.cut_mode = Math.floor(state.time) % 6;
         break;
       }
       case 'formshift': {
@@ -122,42 +122,11 @@
       case 'topographic-mask':
         state.height_shift = ((Number(state.height_shift) || 0) + dt * 4.0) % 100;
         break;
-      case 'kinda-flower':
-        Object.assign(state, { rays: 72, size: 118, ragged: 78, width: 7, dash: 24, gap: 10, bend: 76, beads: 42, layer_spread: 126, motion_bpm: 72 });
-        break;
-      case 'syn-division':
-        Object.assign(state, { vector_mode: 2, warp: 130, ripple: -110, stripes: 24, spacing: 82, weight: 54, tooth_depth: 112, tooth_length: 108, stagger: 96, motion_bpm: 72 });
-        break;
-      case 'dna-filament':
-        Object.assign(state, { mode: 3, lines: 72, length: 170, spread: 96, bundle: 158, field: 126, curl: 84, twist: -72, weave: 116, width: 2.8, drift: 58, motion_bpm: 72 });
-        break;
-      case 'scan-accumulator':
-        Object.assign(state, { direction: 2, scan_width: 34, temporal_offset: 82, drift: 68, hold: 75, smear: 44, source_type: 0, source_detail: 22, source_scale: 118, motion_bpm: 68 });
-        break;
-      case 'orbital-geometry':
-        Object.assign(state, { system: 1, amount: 12, ratio: 5, arc_length: 100, drift: 74, intersection: 55, intersection_size: 80 });
-        break;
-      case 'lava-lamp':
-        Object.assign(state, { amount: 12, size: 110, viscosity: 90, merge: 132, wandering: 112, turbulence: 86, color_groups: 2, motion_bpm: 72 });
-        break;
-      case 'electrostatic-field':
-        Object.assign(state, { system_shape: 1, density: 90, flow: 180, pole_force: 85, pole_count: 64, spread: 110 });
-        break;
-      case 'homers-hair':
-        Object.assign(state, { system: 2, repetitions: 42, spacing: 74, displacement: 66, curve_tension: 220, warp: 48, propagation: 92, motion_bpm: 68 });
-        break;
       case 'sticky-plants':
-        Object.assign(state, {
-          mode: 4,
-          branches: 10,
-          forking: 150,
-          rib_density: 68,
-          rib_length: 90,
-          growth: 72 + 28 * Math.sin(state.time * 0.72),
-          spread: 118 + 32 * Math.sin(state.time * 0.41),
-          wobble: 54 + 28 * Math.sin(state.time * 0.57),
-          asymmetry: 68 + 32 * Math.sin(state.time * 0.33)
-        });
+        state.growth = 72 + 28 * Math.sin(state.time * 0.72);
+        state.spread = 118 + 32 * Math.sin(state.time * 0.41);
+        state.wobble = 54 + 28 * Math.sin(state.time * 0.57);
+        state.asymmetry = 68 + 32 * Math.sin(state.time * 0.33);
         break;
       default:
         break;

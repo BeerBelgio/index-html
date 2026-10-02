@@ -8,7 +8,7 @@
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
     "editorialSourceOfTruth": "index-html_content-inventory_v9.xlsx",
     "notes": "Technical controls, ranges, defaults, colors, Sketch Audio Sync exposure and native host color-opacity support live in each tool manifest. Public editorial copy and preview behaviour are synchronized from the V9 content inventory.",
-    "stagingBuild": "v0.17"
+    "stagingBuild": "v0.17.1"
   },
   "tools": [
     {
