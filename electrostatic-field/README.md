@@ -19,7 +19,7 @@ Generates a field of animated trajectories driven by four structural modes. Line
 |---|---|---:|---:|---:|---|
 | System Shape | `system_shape` | 0–3 | 1 | 3 | No |
 | Density | `density` | 6–120 | 1 | 90 | Yes |
-| Scale | `scale` | 40–300 | 1 | 100 | Yes |
+| Scale | `scale` | 40–300 | 1 | 275 | Yes |
 | Flow | `flow` | 0–300 | 1 | 58 | Yes |
 | Warp | `warp` | 0–100 | 1 | 42 | Yes |
 | Pole Force | `pole_force` | 0–100 | 1 | 52 | Yes |

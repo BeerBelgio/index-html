@@ -26,7 +26,7 @@ Builds a repeated family from one source curve then transforms each copy through
 | Rotation Step | `rotation_step` | -30–30 | 0.1 | 2.2 | Yes |
 | Curve Tension | `curve_tension` | 0–400 | 1 | 168 | Yes |
 | Warp | `warp` | 0–200 | 1 | 34 | Yes |
-| Propagation | `propagation` | 0–200 | 1 | 62 | Yes |
+| Propagation | `propagation` | 0–200 | 1 | 70 | Yes |
 | Line Width | `line_width` | 0.5–6 | 0.1 | 1.2 | Yes |
 | Motion BPM | `motion_bpm` | 0–260 | 1 | 72 | No |
 

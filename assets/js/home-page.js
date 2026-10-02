@@ -229,7 +229,7 @@
 
     try {
       const loadPromise = waitForIframeLoad(iframe);
-      iframe.src = `${tool.file}?hero=1`;
+      iframe.src = `${tool.file}?hero=1&build=0172`;
       heroToolMask.replaceChildren(iframe);
 
       await loadPromise;
@@ -408,7 +408,7 @@
     // Attach the load/error listeners before navigation starts. Cached local tool
     // files can otherwise finish fast enough to race a listener registered later.
     const loadPromise = waitForIframeLoad(iframe);
-    iframe.src = `${preview.tool.file}?catalogue=1&attempt=${attempt}`;
+    iframe.src = `${preview.tool.file}?catalogue=1&build=0172&attempt=${attempt}`;
     preview.stage.appendChild(iframe);
 
     await loadPromise;

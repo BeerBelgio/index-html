@@ -18,12 +18,12 @@ Generates an internal line source and reconstructs it progressively along vertic
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
 | Scan Position | `scan_position` | 0–100 | 1 | 0 | Yes |
-| Direction | `direction` | 0–3 | 1 | 0 | No |
+| Direction | `direction` | 0–3 | 1 | 1 | No |
 | Scan Width | `scan_width` | 1–200 | 1 | 40 | Yes |
-| Temporal Offset | `temporal_offset` | 0–200 | 1 | 46 | Yes |
-| Drift | `drift` | 0–200 | 1 | 54 | Yes |
-| Hold Time (0.01s) | `hold` | 0–500 | 1 | 25 | Yes |
-| Smear | `smear` | 0–200 | 1 | 34 | Yes |
+| Temporal Offset | `temporal_offset` | 0–200 | 1 | 80 | Yes |
+| Drift | `drift` | 0–200 | 1 | 70 | Yes |
+| Hold Time (0.01s) | `hold` | 0–500 | 1 | 75 | Yes |
+| Smear | `smear` | 0–200 | 1 | 45 | Yes |
 | HARD RESET | `trigger` | 0–1 | 1 | 0 | No |
 | Source Type | `source_type` | 0–3 | 1 | 0 | No |
 | Source Detail | `source_detail` | 3–48 | 1 | 18 | Yes |

@@ -19,7 +19,7 @@ Generates three related geometric systems around a shared language of harmonic R
 |---|---|---:|---:|---:|---|
 | System | `system` | 0–2 | 1 | 2 | No |
 | Amount | `amount` | 2–24 | 1 | 9 | Yes |
-| Scale | `scale` | 30–220 | 1 | 100 | Yes |
+| Scale | `scale` | 30–220 | 1 | 150 | Yes |
 | Ratio | `ratio` | 0–8 | 1 | 3 | Yes |
 | Phase | `phase` | 0–360 | 1 | 35 | Yes |
 | Eccentricity | `eccentricity` | 0–100 | 1 | 28 | Yes |

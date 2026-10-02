@@ -18,7 +18,7 @@ Generates a family of coral-like line structures that branch, fork and build rib
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
 | Mode | `mode` | 0–4 | 1 | 4 | No |
-| Branches | `branches` | 2–72 | 1 | 6 | Yes |
+| Branches | `branches` | 2–72 | 1 | 46 | Yes |
 | Forking | `forking` | 0–300 | 1 | 112 | Yes |
 | Spacing | `spacing` | 0–300 | 1 | 78 | Yes |
 | Spread | `spread` | 0–200 | 1 | 118 | Yes |

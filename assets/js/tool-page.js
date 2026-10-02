@@ -678,7 +678,7 @@
 
     mountFrameForMode();
     els.frame.title = `${tool.name} live preview`;
-    els.frame.src = tool.file;
+    els.frame.src = `${tool.file}?detail=1&build=0172`;
   }
 
   const emailFallback = document.getElementById('email-fallback');

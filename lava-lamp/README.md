@@ -17,13 +17,13 @@ Generates a bounded population of morphing zero-gravity blobs. Viscosity and Wan
 
 | Control | Key | Range | Step | Default | Audio Sync |
 |---|---|---:|---:|---:|---|
-| Amount | `amount` | 2–18 | 1 | 7 | Yes |
+| Amount | `amount` | 2–18 | 1 | 13 | Yes |
 | Size | `size` | 20–180 | 1 | 92 | Yes |
 | Viscosity | `viscosity` | 0–200 | 1 | 112 | Yes |
 | Merge | `merge` | 0–200 | 1 | 112 | Yes |
 | Wandering | `wandering` | 0–200 | 1 | 62 | Yes |
 | Turbulence | `turbulence` | 0–200 | 1 | 34 | Yes |
-| Color Groups | `color_groups` | 1–3 | 1 | 1 | No |
+| Color Groups | `color_groups` | 1–3 | 1 | 3 | No |
 | Seed | `seed` | 0–999 | 1 | 137 | No |
 | Motion BPM | `motion_bpm` | 0–260 | 1 | 72 | No |
 

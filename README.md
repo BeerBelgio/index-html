@@ -14,13 +14,15 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.17.1**
+**Current staging UI build → V0.17.2**
 
-**V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
+**V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
 
 **V0.17.1 motion-recipe sync:** the shared catalogue / hero recipes are synchronized to the current V9 master after the catalogue pass. Recipes marked **Advance time** now run directly from each tool's manifest defaults while the shared preview clock advances; explicit recipes remain targeted parameter overrides. The values remain provisional until the live hero pass is complete.
 
-The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. Tool rendering code and manifests are unchanged in V0.17.1; this patch only resynchronizes preview motion behaviour and cache-busts the homepage script.
+**V0.17.2 default sync:** HTML defaults are synchronized to the current V9.1 master after the catalogue pass. Scan Accumulator, Orbital Geometry, Lava Lamp, Electrostatic Field, Homer's Hair and Sticky Plants receive updated starting values; ranges, steps, Audio Sync exposure, color contracts and rendering logic are unchanged. The affected tool versions remain unchanged while these new v1.0 tools are still being tuned in staging.
+
+The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
 
