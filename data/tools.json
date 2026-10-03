@@ -6,14 +6,16 @@
     "repository": "https://github.com/BeerBelgio/index-html",
     "dataset": "staging",
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
-    "editorialSourceOfTruth": "index-html_content-inventory_v9.1.xlsx",
-    "notes": "Technical controls, ranges, defaults, colors, Sketch Audio Sync exposure and native host color-opacity support live in each tool manifest. Public editorial copy and preview behaviour are synchronized from the V9.1 content inventory.",
-    "stagingBuild": "v0.17.2"
+    "editorialSourceOfTruth": "index-html_content-inventory_v9.2.xlsx",
+    "notes": "Technical controls, ranges, defaults, colors, Sketch Audio Sync exposure and native host color-opacity support live in each tool manifest. Stable tool identity/type metadata (toolId, toolType), public editorial copy and preview behaviour are synchronized from the V9.2 content inventory.",
+    "stagingBuild": "v0.18"
   },
   "tools": [
     {
       "name": "Linking Nodes",
       "slug": "linking-nodes",
+      "toolId": "IDX-001",
+      "toolType": "generator",
       "version": "v2.1",
       "file": "linking-nodes/Linking_Nodes-v2.1.html",
       "renderer": "Canvas 2D",
@@ -129,6 +131,8 @@
     {
       "name": "Cassini Flow",
       "slug": "cassini-flow",
+      "toolId": "IDX-002",
+      "toolType": "generator",
       "version": "v1.7",
       "file": "cassini-flow/Cassini_Flow-v1.7.html",
       "renderer": "Canvas 2D",
@@ -241,6 +245,8 @@
     {
       "name": "Caustic Stitch",
       "slug": "caustic-stitch",
+      "toolId": "IDX-003",
+      "toolType": "generator",
       "version": "v1.9",
       "file": "caustic-stitch/Caustic_Stitch-v1.9.html",
       "renderer": "Canvas 2D",
@@ -255,7 +261,7 @@
       "copy": {
         "short": "Points, two-color lines and basic forms. Then a multi-force warp makes the lines move fluidly and unpredictably.",
         "about": "Creates string-art style line fields across several geometric boundary families, with an independently controlled accent group and optional multi-force line warping derived from the Linking Nodes deformation logic.",
-        "implementation": "Canvas2D; nine endpoint/boundary families, explicit chord drawing, independent accent group, an internal multi-force B\u00e9zier Warp system and aspect-aware long-axis fitting for Loom/Fissure layouts."
+        "implementation": "Canvas2D; nine endpoint/boundary families, explicit chord drawing, independent accent group, an internal multi-force Bézier Warp system and aspect-aware long-axis fitting for Loom/Fissure layouts."
       },
       "parameters": [
         {
@@ -362,6 +368,8 @@
     {
       "name": "Cellular Field",
       "slug": "cellular-field",
+      "toolId": "IDX-004",
+      "toolType": "generator",
       "version": "v1.5",
       "file": "cellular-field/Cellular_Field-v1.5.html",
       "renderer": "WebGL",
@@ -449,7 +457,7 @@
           "project": "Fluid",
           "author": "enonforetsam",
           "sourceLicence": "MIT",
-          "publicText": "Inspired by the Cellular / Worley\u2013Voronoi language in enonforetsam's Fluid. The current WebGL implementation is independently built.",
+          "publicText": "Inspired by the Cellular / Worley–Voronoi language in enonforetsam's Fluid. The current WebGL implementation is independently built.",
           "authorUrl": "https://github.com/enonforetsam",
           "projectUrl": "https://github.com/enonforetsam/fluid",
           "specificReference": "FLUID Cellular Engine",
@@ -467,6 +475,8 @@
     {
       "name": "Nodal Morph",
       "slug": "nodal-morph",
+      "toolId": "IDX-005",
+      "toolType": "generator",
       "version": "v1.9",
       "file": "nodal-morph/Nodal_Morph-v1.9.html",
       "renderer": "WebGL",
@@ -567,6 +577,8 @@
     {
       "name": "FormCutter",
       "slug": "form-cutter",
+      "toolId": "IDX-006",
+      "toolType": "generator",
       "version": "v1.4",
       "file": "form-cutter/FormCutter-v1.4.html",
       "renderer": "Canvas 2D",
@@ -672,6 +684,8 @@
     {
       "name": "Fractured Mask",
       "slug": "fractured-mask",
+      "toolId": "IDX-007",
+      "toolType": "generator",
       "version": "v1.7",
       "file": "fractured-mask/Fractured_Mask-v1.7.html",
       "renderer": "Canvas 2D",
@@ -742,7 +756,7 @@
           "relation": "internal sibling",
           "project": "FormCutter / shared Flash exploration",
           "author": "BeerBelgio / Matteo Belgiovine",
-          "sourceLicence": "Internal \u2014 PolyForm Noncommercial 1.0.0",
+          "sourceLicence": "Internal — PolyForm Noncommercial 1.0.0",
           "publicText": "Developed alongside FormCutter from the same internal masking/cutting exploration; it is a sibling idea, not a code derivative.",
           "authorUrl": "https://github.com/BeerBelgio",
           "projectUrl": null,
@@ -763,6 +777,8 @@
     {
       "name": "Scatter Front",
       "slug": "scatter-front",
+      "toolId": "IDX-008",
+      "toolType": "generator",
       "version": "v1.7",
       "file": "scatter-front/Scatter_Front-v1.7.html",
       "renderer": "Canvas 2D",
@@ -877,6 +893,8 @@
     {
       "name": "Topographic",
       "slug": "topographic",
+      "toolId": "IDX-009",
+      "toolType": "generator",
       "version": "v1.4",
       "file": "topographic/Topographic-v1.4.html",
       "renderer": "Canvas 2D",
@@ -891,7 +909,7 @@
       "copy": {
         "short": "Not like a pirate map, but if you look hard enough, maybe you'll find a treasure here too.",
         "about": "Generates animated topographic contour lines from a procedural scalar field. Several field families can produce soft terrain, ridges, rings, waves and warped contours.",
-        "implementation": "Canvas2D; six custom scalar-field families, continuous Drift, explicit marching-squares-style contour extraction, 0\u201310 accent amount and independent BG controls."
+        "implementation": "Canvas2D; six custom scalar-field families, continuous Drift, explicit marching-squares-style contour extraction, 0–10 accent amount and independent BG controls."
       },
       "parameters": [
         {
@@ -989,6 +1007,8 @@
     {
       "name": "Topographic Mask",
       "slug": "topographic-mask",
+      "toolId": "IDX-010",
+      "toolType": "generator",
       "version": "v1.11",
       "file": "topographic-mask/Topographic_Mask-v1.11.html",
       "renderer": "Canvas 2D",
@@ -1075,7 +1095,7 @@
           "relation": "derived-from",
           "project": "Topographic",
           "author": "BeerBelgio / Matteo Belgiovine",
-          "sourceLicence": "Internal \u2014 PolyForm Noncommercial 1.0.0",
+          "sourceLicence": "Internal — PolyForm Noncommercial 1.0.0",
           "publicText": "Derived internally from Topographic, reworking the same procedural field into a filled-mask system.",
           "authorUrl": "https://github.com/BeerBelgio",
           "projectUrl": "https://github.com/BeerBelgio/index-html",
@@ -1105,6 +1125,8 @@
     {
       "name": "FormShift",
       "slug": "formshift",
+      "toolId": "IDX-011",
+      "toolType": "generator",
       "version": "v1.8",
       "file": "formshift/FormShift-v1.8.html",
       "renderer": "Canvas 2D",
@@ -1217,6 +1239,8 @@
     {
       "name": "Kinda Flower",
       "slug": "kinda-flower",
+      "toolId": "IDX-012",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "kinda-flower/Kinda_Flower-v1.0.html",
       "renderer": "Canvas 2D",
@@ -1231,7 +1255,7 @@
       "copy": {
         "short": "\"Flowers are blooming everywhere\"",
         "about": "Generates a layered radial system of dashed trajectories that behaves like a synthetic flowerish shape.",
-        "implementation": "Canvas2D; deterministic three-layer radial field; curved multi-sample ray paths; segmented dash/gap stroke system; per-ray irregularity; moving accent beads fixed at 125% of line width; extended off-axis center positioning; full-range layer spread up to a 360\u00b0 relationship; transparent output."
+        "implementation": "Canvas2D; deterministic three-layer radial field; curved multi-sample ray paths; segmented dash/gap stroke system; per-ray irregularity; moving accent beads fixed at 125% of line width; extended off-axis center positioning; full-range layer spread up to a 360° relationship; transparent output."
       },
       "parameters": [
         {
@@ -1343,6 +1367,8 @@
     {
       "name": "Syn Division",
       "slug": "syn-division",
+      "toolId": "IDX-013",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "syn-division/Syn_Division-v1.0.html",
       "renderer": "Canvas 2D",
@@ -1464,6 +1490,8 @@
     {
       "name": "DNA Filament",
       "slug": "dna-filament",
+      "toolId": "IDX-014",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "dna-filament/DNA_Filament-v1.0.html",
       "renderer": "Canvas 2D",
@@ -1592,6 +1620,8 @@
     {
       "name": "Scan Accumulator",
       "slug": "scan-accumulator",
+      "toolId": "IDX-015",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "scan-accumulator/Scan_Accumulator-v1.0.html",
       "renderer": "Canvas 2D",
@@ -1718,6 +1748,8 @@
     {
       "name": "Orbital Geometry",
       "slug": "orbital-geometry",
+      "toolId": "IDX-016",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "orbital-geometry/Orbital_Geometry-v1.0.html",
       "renderer": "Canvas 2D",
@@ -1829,7 +1861,7 @@
           "publicText": "Inspired by selected geometry experiments in Yordan Stoyanov's Brand Assets Generator. Orbital Geometry is an independently implemented standalone Canvas2D tool for this project.",
           "authorUrl": "https://stoyanov.works/",
           "projectUrl": "https://brand-generator.stoyanov.works/",
-          "specificReference": "Circle mapping \u00b7 intersections \u00b7 geo tool",
+          "specificReference": "Circle mapping · intersections · geo tool",
           "specificReferenceUrl": "https://brand-generator.stoyanov.works/"
         }
       ],
@@ -1844,6 +1876,8 @@
     {
       "name": "Lava Lamp",
       "slug": "lava-lamp",
+      "toolId": "IDX-017",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "lava-lamp/Lava_Lamp-v1.0.html",
       "renderer": "Canvas 2D",
@@ -1949,6 +1983,8 @@
     {
       "name": "Electrostatic Field",
       "slug": "electrostatic-field",
+      "toolId": "IDX-018",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "electrostatic-field/Electrostatic_Field-v1.0.html",
       "renderer": "Canvas 2D",
@@ -2056,11 +2092,11 @@
           "relation": "inspired-by",
           "project": "Book of Shapes",
           "author": "Nikolaj Sokolowski",
-          "sourceLicence": "Restricted reference source \u2014 no redistribution of patterns, node graphs or generators",
+          "sourceLicence": "Restricted reference source — no redistribution of patterns, node graphs or generators",
           "publicText": "Inspired by selected flow / physics studies from Book of Shapes. Electrostatic Field is an independently implemented standalone Canvas2D field system for this project.",
           "authorUrl": null,
           "projectUrl": "https://bookofshapes.com/",
-          "specificReference": "Flow Poles \u00b7 Wavy Lines Converging \u00b7 Resonance Field",
+          "specificReference": "Flow Poles · Wavy Lines Converging · Resonance Field",
           "specificReferenceUrl": "https://bookofshapes.com/"
         }
       ],
@@ -2075,6 +2111,8 @@
     {
       "name": "Homer's Hair",
       "slug": "homers-hair",
+      "toolId": "IDX-019",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "homers-hair/Homers_Hair-v1.0.html",
       "renderer": "Canvas 2D",
@@ -2186,7 +2224,7 @@
           "publicText": "Inspired by selected curve-repetition studies in Yordan Stoyanov's Brand Assets Generator. Homer's Hair is an independently implemented standalone Canvas2D tool for this project.",
           "authorUrl": "https://stoyanov.works/",
           "projectUrl": "https://brand-generator.stoyanov.works/",
-          "specificReference": "Tracery lines \u00b7 curve repetition \u00b7 geometric displacement",
+          "specificReference": "Tracery lines · curve repetition · geometric displacement",
           "specificReferenceUrl": "https://brand-generator.stoyanov.works/"
         }
       ],
@@ -2201,6 +2239,8 @@
     {
       "name": "Sticky Plants",
       "slug": "sticky-plants",
+      "toolId": "IDX-020",
+      "toolType": "generator",
       "version": "v1.0",
       "file": "sticky-plants/Sticky_Plants-v1.0.html",
       "renderer": "Canvas 2D",
@@ -2222,7 +2262,7 @@
           "key": "mode",
           "label": "Mode",
           "behaviour": "Selects the coral spawning mode.",
-          "explanation": "Modes 0\u20133 grow inward from a specific edge; mode 4 places corals randomly in the canvas",
+          "explanation": "Modes 0–3 grow inward from a specific edge; mode 4 places corals randomly in the canvas",
           "mapping": null
         },
         {

@@ -3,6 +3,8 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Linking_Nodes-v2.1.html`  
 **Version:** v2.1  
+**Tool ID:** `IDX-001`  
+**Tool type:** `generator`  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `particles`, `lines`

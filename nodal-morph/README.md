@@ -3,6 +3,8 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Nodal_Morph-v1.9.html`  
 **Version:** v1.9  
+**Tool ID:** `IDX-005`  
+**Tool type:** `generator`  
 **Renderer:** WebGL  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `field`, `stripes`

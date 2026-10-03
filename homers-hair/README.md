@@ -3,6 +3,8 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Homers_Hair-v1.0.html`  
 **Version:** v1.0  
+**Tool ID:** `IDX-019`  
+**Tool type:** `generator`  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `lines`, `flow`

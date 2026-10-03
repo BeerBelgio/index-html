@@ -152,8 +152,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   overflow: hidden;
   opacity: 0;
   background: var(--ink);
-  -webkit-mask: url("../branding/wordmark-claim.svg?v=0170") center / 100% 100% no-repeat;
-  mask: url("../branding/wordmark-claim.svg?v=0170") center / 100% 100% no-repeat;
+  -webkit-mask: url("../branding/wordmark-claim.svg?v=0180") center / 100% 100% no-repeat;
+  mask: url("../branding/wordmark-claim.svg?v=0180") center / 100% 100% no-repeat;
 }
 .hero-brand.is-rendered .hero-tool-mask { opacity: 1; }
 .hero-brand.is-rendered .hero-brand-fallback { opacity: 0; }
@@ -176,6 +176,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   font-weight: 600;
   white-space: nowrap;
 }
+.hero-title-line { display: inline; }
 .hero-copy {
   width: 100%;
   max-width: none;
@@ -225,7 +226,56 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   opacity: .66;
 }
 
-.catalogue-heading { align-items: center; justify-content: stretch; }
+.catalogue-heading { width: 100%; }
+.catalogue-title-row {
+  align-items: center;
+  margin-bottom: 14px;
+}
+.catalogue-title-row h2 {
+  font-family: var(--display-font);
+  margin: 0;
+  font-size: clamp(22px, 2.1vw, 28px);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .035em;
+}
+.download-all-control {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  padding: 0 14px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+  transition: transform 140ms ease, background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+.download-all-control:hover,
+.download-all-control:focus-visible {
+  background: var(--ink);
+  color: var(--cream);
+  transform: translateY(-1px);
+}
+.download-all-control:disabled {
+  cursor: wait;
+  opacity: .55;
+  transform: none;
+}
+.download-all-control-large {
+  min-height: 46px;
+  padding-inline: 18px;
+  font-size: 11px;
+}
+.download-all-actions { margin-top: 24px; }
 .catalogue-filters {
   width: 100%;
   display: flex;
@@ -570,7 +620,14 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   gap: 34px;
   margin-top: 30px;
 }
+.about-use-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 34px;
+  margin-top: 30px;
+}
 .about-two-col h3,
+.about-use-grid h3,
 .mapping-grid h3,
 .host-contract h3,
 .privacy-grid h3 {
@@ -581,6 +638,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   letter-spacing: .09em;
 }
 .about-two-col p,
+.about-use-grid p,
 .mapping-grid p,
 .host-contract p,
 .privacy-grid p {
@@ -589,6 +647,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   line-height: 1.58;
 }
 .about-two-col p + p,
+.about-use-grid p + p,
 .host-contract p + p { margin-top: 12px; }
 .inline-link {
   display: inline-flex;
@@ -651,6 +710,15 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   .hero-tool-mask { transition: none; }
 }
 
+@media (max-width: 1150px) {
+  .home-hero h1 { white-space: normal; }
+  .hero-title-line { display: block; white-space: nowrap; }
+}
+
+@media (max-width: 900px) {
+  .about-use-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 1080px) {
   .home-footer {
     align-items: stretch;
@@ -702,7 +770,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   }
   .home-main { padding-top: 36px; }
   .home-hero { padding-bottom: 50px; }
-  .home-hero h1 { white-space: normal; }
+  .home-hero h1 { font-size: clamp(34px, 10.2vw, 46px); }
   .section-heading { align-items: flex-start; flex-direction: column; }
   .section-heading p { text-align: left; }
   .tool-search { flex: 0 0 auto; }
@@ -712,6 +780,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   .home-brand-claim { display: none; }
   .tool-grid { grid-template-columns: 1fr; }
   .about-two-col,
+  .about-use-grid,
   .mapping-grid { grid-template-columns: 1fr; }
   .mapping-grid article:nth-last-child(2) { border-bottom: 1px solid var(--soft-line); }
 }

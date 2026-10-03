@@ -3,6 +3,8 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Topographic-v1.4.html`  
 **Version:** v1.4  
+**Tool ID:** `IDX-009`  
+**Tool type:** `generator`  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `field`, `lines`
@@ -28,7 +30,7 @@ Terrain Mode selects the procedural field family; Seed changes the pattern; Leve
 | Roughness | `ruggedness` | 0–100 | 1 | 34 | Yes |
 | Height Shift | `height_shift` | 0–100 | 1 | 0 | Yes |
 | Drift | `drift` | 0–100 | 1 | 0 | Yes |
-| Line Width | `line_width` | 1–100 | 1 | 18 | Yes |
+| Line Width | `line_width` | 1–100 | 1 | 50 | Yes |
 | Accent | `accent` | 0–10 | 0.1 | 5 | Yes |
 | Rotation | `rotation` | 0–360 | 1 | 0 | Yes |
 

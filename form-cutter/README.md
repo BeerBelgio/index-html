@@ -3,6 +3,8 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `FormCutter-v1.4.html`  
 **Version:** v1.4  
+**Tool ID:** `IDX-006`  
+**Tool type:** `generator`  
 **Renderer:** Canvas 2D  
 **Provenance:** `original · inspired-by`  
 **Concept tags:** `mask-cut`, `transition`

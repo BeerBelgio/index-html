@@ -3,6 +3,8 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Fractured_Mask-v1.7.html`  
 **Version:** v1.7  
+**Tool ID:** `IDX-007`  
+**Tool type:** `generator`  
 **Renderer:** Canvas 2D  
 **Provenance:** `original`  
 **Concept tags:** `mask-cut`

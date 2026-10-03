@@ -79,7 +79,7 @@
   }
 
   function applyPreviewMotion(slug, state, dt) {
-    // Recipes marked "Advance time" in the V9 master need no explicit case:
+    // Recipes marked "Advance time" in the V9.2 master need no explicit case:
     // state.time is already advanced by the shared preview loop.
     switch (slug) {
       case 'cassini-flow':

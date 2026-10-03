@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.17.2**
+**Current staging UI build → V0.18**
 
 **V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
 
@@ -22,13 +22,15 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 **V0.17.2 default sync:** HTML defaults are synchronized to the current V9.1 master after the catalogue pass. Scan Accumulator, Orbital Geometry, Lava Lamp, Electrostatic Field, Homer's Hair and Sticky Plants receive updated starting values; ranges, steps, Audio Sync exposure, color contracts and rendering logic are unchanged. The affected tool versions remain unchanged while these new v1.0 tools are still being tuned in staging.
 
+**V0.18 distribution + host-readiness pass:** the project now carries stable `toolId` and `toolType` metadata from the V9.2 master, adds a responsive two-line homepage hero title, documents the in-development Max for Live host on the About page, and adds a browser-generated **Download All** bundle that always resolves the current tool files from `data/tools.json`. Every canonical HTML source now carries a standardized INDEX HTML header/footer identity block. Topographic's Line Width default is synchronized to **50**.
+
 The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
 
 **INDEX HTML is currently in active staging.** The 20 standalone tool HTML files are the current code baseline; the GitHub Pages interface, catalogue copy and host contracts may continue to evolve while the public system is tested.
 
-The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and Sketch Audio Sync exposure. The optional second `sketchDraw(state, hostContext)` argument extends the same files with host-only context without changing the Sketch/standalone contract.
+The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer and now also carries each tool's stable `toolId` and structural `toolType`, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and Sketch Audio Sync exposure. The optional second `sketchDraw(state, hostContext)` argument extends the same files with host-only context without changing the Sketch/standalone contract.
 
 For INDEX Browser Host, declared manifest colors can receive independent normalized opacity through `hostContext.colorOpacity`. Missing host context, missing opacity data or missing color keys resolve to full opacity, so legacy `sketchDraw(state)` calls remain unchanged. This host-side opacity does **not** consume any of the numeric Sketch parameter slots.
 
@@ -59,6 +61,7 @@ index-html/
 ├── README.md
 ├── LICENSE.md
 ├── THIRD_PARTY_NOTICES.md
+├── INDEX-CONTROL-PROTOCOL.md
 ├── index.html
 ├── about.html
 ├── tool.html
@@ -91,7 +94,7 @@ index-html/
 └── sticky-plants/
 ```
 
-Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. The Pages layer includes the catalogue homepage (`index.html`), the `about.html` page and one generic `tool.html` page. The homepage builds all **20** catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The hero independently selects one eligible real tool at random on each page load and renders it continuously through the vector wordmark + claim mask on an 831 × 211 logical surface. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
+Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. Every tool also has a stable `IDX-###` identity and a structural `toolType` in `data/tools.json`; all current tools are `generator`. The Pages layer includes the catalogue homepage (`index.html`), the `about.html` page and one generic `tool.html` page. The homepage builds all **20** catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The hero independently selects one eligible real tool at random on each page load and renders it continuously through the vector wordmark + claim mask on an 831 × 211 logical surface. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
 
 ## How to use a tool
 
@@ -109,6 +112,14 @@ Open the same HTML file directly. Its local preview follows the browser viewport
 ### In INDEX Browser Host
 
 Call the same visual contract with `sketchDraw(state, hostContext)`. The optional `hostContext.colorOpacity` object can control the alpha of each color declared in `window.SKETCH_TOOL.colors` independently. Omitting `hostContext` preserves the normal standalone/Sketch rendering.
+
+### Download the current collection
+
+The Pages interface can build a ZIP directly in the browser from the current `data/tools.json` catalogue. The bundle contains the current canonical HTML files in a flat `tools/` directory plus licensing, a compact local manifest and INDEX HTML identity files. It is generated on demand rather than maintained as a separate static release asset.
+
+### Tool roles
+
+`toolType` is structural host metadata rather than a concept tag. The current vocabulary is `generator`, with `effect`, `compositor` and `source` reserved for future host-aware tools. These future roles do not change the current Sketch manifest contract. See `INDEX-CONTROL-PROTOCOL.md`.
 
 ## Provenance labels
 

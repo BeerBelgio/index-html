@@ -235,6 +235,24 @@ h1 {
   gap: 9px;
   padding-bottom: 1px;
 }
+.collection-download-link {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  align-self: flex-end;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 9.5px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: .07em;
+}
+.collection-download-link span:first-of-type { font-weight: 900; }
+.collection-download-link .arrow-icon { width: 11px; height: 11px; }
+.collection-download-link:hover,
+.collection-download-link:focus-visible { color: var(--orange); }
 .button {
   min-height: 44px;
   display: inline-flex;
@@ -683,6 +701,7 @@ body.is-standalone #standalone-page { display: block !important; }
   .hero-side { width: 100%; align-items: flex-start; }
   .meta-row { justify-content: flex-start; }
   .hero-actions { justify-content: flex-start; }
+  .collection-download-link { align-self: flex-start; justify-content: flex-start; }
   .workbench { grid-template-columns: 1fr; min-height: 0; }
   .preview-panel { min-height: 560px; height: auto; }
   .controls-panel { height: auto; }

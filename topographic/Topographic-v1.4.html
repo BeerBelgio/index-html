@@ -1,6 +1,13 @@
 <!--
-INDEX HTML — HTML Tool
-Project: https://github.com/BeerBelgio/index-html
+INDEX HTML — IDX-009
+Topographic v1.4
+
+Not like a pirate map, but if you look hard enough, maybe you'll find a treasure here too.
+
+Creative code for visual systems.
+Created by BeerBelgio
+https://beerbelgio.github.io/
+
 License: PolyForm Noncommercial 1.0.0
 https://polyformproject.org/licenses/noncommercial/1.0.0/
 Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://beerbelgio.github.io/
@@ -43,7 +50,7 @@ window.SKETCH_TOOL = {
     { key: "ruggedness",     label: "Roughness",      min: 0,   max: 100, step: 1, default: 34 },
     { key: "height_shift",   label: "Height Shift",   min: 0,   max: 100, step: 1, default: 0  },
     { key: "drift",          label: "Drift",          min: 0,   max: 100, step: 1, default: 0  },
-    { key: "line_width",     label: "Line Width",     min: 1,   max: 100, step: 1, default: 18 },
+    { key: "line_width",     label: "Line Width",     min: 1,   max: 100, step: 1, default: 50 },
     { key: "accent",         label: "Accent",         min: 0,   max: 10,  step: 0.1, default: 5  },
     { key: "rotation",       label: "Rotation",       min: 0,   max: 360, step: 1, default: 0  }
   ],
@@ -224,7 +231,7 @@ window.sketchDraw = function(state, hostContext){
   const rough = clamp01(readVal(state, 'ruggedness', 34) / 100);
   const heightShift = clamp01(readVal(state, 'height_shift', 0) / 100);
   const drift = clamp01(readVal(state, 'drift', 0) / 100);
-  const lineNorm = clamp01(readVal(state, 'line_width', 18) / 100);
+  const lineNorm = clamp01(readVal(state, 'line_width', 50) / 100);
   const accent = clamp(readVal(state, 'accent', 5), 0, 10);
   const accentNorm = accent / 10;
   const rotation = readVal(state, 'rotation', 0) * Math.PI / 180;
@@ -351,3 +358,13 @@ window.sketchDraw = function(state, hostContext){
 </script>
 </body>
 </html>
+
+<!--
+INDEX HTML
+Creative code for visual systems.
+
+BeerBelgio
+https://beerbelgio.github.io/
+
+Fun is a serious thing.
+-->

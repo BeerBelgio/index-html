@@ -3,6 +3,8 @@ Part of **[INDEX HTML](../README.md)** — a standalone HTML visual tool.
 
 **Current file:** `Topographic_Mask-v1.11.html`  
 **Version:** v1.11  
+**Tool ID:** `IDX-010`  
+**Tool type:** `generator`  
 **Renderer:** Canvas 2D  
 **Provenance:** `derived-from · inspired-by`  
 **Concept tags:** `field`, `shapes`
