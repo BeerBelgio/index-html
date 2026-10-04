@@ -152,8 +152,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   overflow: hidden;
   opacity: 0;
   background: var(--ink);
-  -webkit-mask: url("../branding/wordmark-claim.svg?v=0180") center / 100% 100% no-repeat;
-  mask: url("../branding/wordmark-claim.svg?v=0180") center / 100% 100% no-repeat;
+  -webkit-mask: url("../branding/wordmark-claim.svg?v=0181") center / 100% 100% no-repeat;
+  mask: url("../branding/wordmark-claim.svg?v=0181") center / 100% 100% no-repeat;
 }
 .hero-brand.is-rendered .hero-tool-mask { opacity: 1; }
 .hero-brand.is-rendered .hero-brand-fallback { opacity: 0; }
@@ -174,9 +174,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   line-height: .92;
   letter-spacing: .012em;
   font-weight: 600;
-  white-space: nowrap;
+  white-space: normal;
 }
-.hero-title-line { display: inline; }
 .hero-copy {
   width: 100%;
   max-width: none;
@@ -226,7 +225,10 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   opacity: .66;
 }
 
-.catalogue-heading { width: 100%; }
+.catalogue-heading {
+  width: 100%;
+  margin-bottom: 20px;
+}
 .catalogue-title-row {
   align-items: center;
   margin-bottom: 14px;
@@ -260,8 +262,10 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   transition: transform 140ms ease, background 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 .download-all-control:hover,
-.download-all-control:focus-visible {
-  background: var(--ink);
+.download-all-control:focus-visible,
+.download-all-control:active {
+  background: var(--orange);
+  border-color: var(--orange);
   color: var(--cream);
   transform: translateY(-1px);
 }
@@ -656,6 +660,18 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   font-weight: 800;
   text-underline-offset: 3px;
 }
+.inline-link:hover,
+.inline-link:focus-visible,
+.inline-link:active { color: var(--orange); }
+.max-contact-link {
+  display: inline-block;
+  line-height: 1.45;
+}
+.max-contact-link > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
 .mapping-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -710,10 +726,6 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   .hero-tool-mask { transition: none; }
 }
 
-@media (max-width: 1150px) {
-  .home-hero h1 { white-space: normal; }
-  .hero-title-line { display: block; white-space: nowrap; }
-}
 
 @media (max-width: 900px) {
   .about-use-grid { grid-template-columns: 1fr; }

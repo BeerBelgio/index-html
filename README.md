@@ -2,7 +2,7 @@
 
 **Creative code for visual systems.**
 
-A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio / Matteo Belgiovine**.
+A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio**.
 
 The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are compatible with **[Sketch](https://tools.sketchdesign.club/)**, standalone modern browsers and the native **INDEX Browser Host** contract, while remaining self-contained HTML files rather than belonging to a single host.
 
@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.18**
+**Current staging UI build → V0.18.1**
 
 **V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
 
@@ -24,6 +24,8 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 **V0.18 distribution + host-readiness pass:** the project now carries stable `toolId` and `toolType` metadata from the V9.2 master, adds a responsive two-line homepage hero title, documents the in-development Max for Live host on the About page, and adds a browser-generated **Download All** bundle that always resolves the current tool files from `data/tools.json`. Every canonical HTML source now carries a standardized INDEX HTML header/footer identity block. Topographic's Line Width default is synchronized to **50**.
 
+
+**V0.18.1 responsive + distribution polish:** the homepage hero title returns to natural responsive wrapping, the homepage Download All control is removed while catalogue spacing is restored, About interaction states are aligned with the rest of the site, and the generated collection bundle now ships one combined `LEGAL.md` plus the unified `INDEX-HTML_BEERBELGIO.svg` identity asset. The flat `tools/` directory remains the intended local-cache direction for the future Max host workflow.
 The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
@@ -115,7 +117,7 @@ Call the same visual contract with `sketchDraw(state, hostContext)`. The optiona
 
 ### Download the current collection
 
-The Pages interface can build a ZIP directly in the browser from the current `data/tools.json` catalogue. The bundle contains the current canonical HTML files in a flat `tools/` directory plus licensing, a compact local manifest and INDEX HTML identity files. It is generated on demand rather than maintained as a separate static release asset.
+The Pages interface can build a ZIP directly in the browser from the current `data/tools.json` catalogue. The bundle contains the current canonical HTML files in a flat `tools/` directory plus a combined `LEGAL.md`, a compact local manifest and one INDEX HTML / BeerBelgio identity SVG. It is generated on demand rather than maintained as a separate static release asset.
 
 ### Tool roles
 
@@ -189,5 +191,5 @@ See `LICENSE.md`, `THIRD_PARTY_NOTICES.md` and the staging [About / licensing pa
 ---
 
 **INDEX HTML**  
-Matteo Belgiovine / BeerBelgio  
+BeerBelgio  
 https://beerbelgio.github.io/

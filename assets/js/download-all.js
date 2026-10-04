@@ -3,6 +3,7 @@
 
   const utf8 = new TextEncoder();
   const ZIP_ROOT = 'INDEX-HTML';
+  const decoder = new TextDecoder('utf-8');
 
   const CRC_TABLE = (() => {
     const table = new Uint32Array(256);
@@ -109,7 +110,7 @@
   function bundleReadme(catalogue) {
     const build = catalogue?.project?.stagingBuild || 'current';
     const count = Array.isArray(catalogue?.tools) ? catalogue.tools.length : 0;
-    return `INDEX HTML\nCreative code for visual systems.\n\nCurrent bundle: ${build}\nTools: ${count}\n\nThis ZIP was generated from the current INDEX HTML catalogue when you clicked DOWNLOAD ALL.\nThe HTML files inside tools/ are the same canonical files offered by the individual DOWNLOAD HTML buttons.\n\nThe tools/ directory is intentionally flat and self-contained so it can be kept as a local collection or used by a compatible host/cache workflow.\n\nProject: https://github.com/BeerBelgio/index-html\nBeerBelgio: https://beerbelgio.github.io/\n\nOriginal code: PolyForm Noncommercial 1.0.0\nSee LICENSE.md and THIRD_PARTY_NOTICES.md.\n\nFun is a serious thing.\n`;
+    return `INDEX HTML\nCreative code for visual systems.\n\nCurrent bundle: ${build}\nTools: ${count}\n\nThis ZIP was generated from the current INDEX HTML catalogue when you clicked DOWNLOAD ALL.\nThe HTML files inside tools/ are the same canonical files offered by the individual DOWNLOAD HTML buttons.\n\nThe tools/ directory is intentionally flat and self-contained so it can be kept as a local collection or used by a compatible host/cache workflow.\n\nProject: https://github.com/BeerBelgio/index-html\nBeerBelgio: https://beerbelgio.github.io/\n\nOriginal code: PolyForm Noncommercial 1.0.0\nSee LEGAL.md.\n\nFun is a serious thing.\n`;
   }
 
   function localManifest(catalogue) {
@@ -146,23 +147,22 @@
     }));
 
     onProgress?.('PACKING FILES…');
-    const [license, notices, wordmark, claim] = await Promise.all([
+    const [license, notices, identity] = await Promise.all([
       fetchBytes('LICENSE.md'),
       fetchBytes('THIRD_PARTY_NOTICES.md'),
-      fetchBytes('assets/branding/wordmark.svg'),
-      fetchBytes('assets/branding/fun-is-a-serious-thing.svg')
+      fetchBytes('assets/branding/INDEX-HTML_BEERBELGIO.svg')
     ]);
+
+    const legal = `# INDEX HTML — LEGAL\n\nThis file combines the project licence and third-party notices shipped with this downloaded collection.\n\n---\n\n${decoder.decode(license).trim()}\n\n---\n\n${decoder.decode(notices).trim()}\n`;
 
     return {
       catalogue,
       entries: [
         ...toolEntries,
         { name: `${ZIP_ROOT}/README.txt`, bytes: utf8.encode(bundleReadme(catalogue)) },
-        { name: `${ZIP_ROOT}/LICENSE.md`, bytes: license },
-        { name: `${ZIP_ROOT}/THIRD_PARTY_NOTICES.md`, bytes: notices },
+        { name: `${ZIP_ROOT}/LEGAL.md`, bytes: utf8.encode(legal) },
         { name: `${ZIP_ROOT}/INDEX-HTML-MANIFEST.json`, bytes: utf8.encode(JSON.stringify(localManifest(catalogue), null, 2) + '\n') },
-        { name: `${ZIP_ROOT}/INDEX-HTML.svg`, bytes: wordmark },
-        { name: `${ZIP_ROOT}/FUN-IS-A-SERIOUS-THING.svg`, bytes: claim }
+        { name: `${ZIP_ROOT}/INDEX-HTML_BEERBELGIO.svg`, bytes: identity }
       ]
     };
   }

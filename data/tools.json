@@ -2,13 +2,13 @@
   "schemaVersion": 2,
   "project": {
     "name": "INDEX HTML",
-    "creator": "BeerBelgio / Matteo Belgiovine",
+    "creator": "BeerBelgio",
     "repository": "https://github.com/BeerBelgio/index-html",
     "dataset": "staging",
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
     "editorialSourceOfTruth": "index-html_content-inventory_v9.2.xlsx",
     "notes": "Technical controls, ranges, defaults, colors, Sketch Audio Sync exposure and native host color-opacity support live in each tool manifest. Stable tool identity/type metadata (toolId, toolType), public editorial copy and preview behaviour are synchronized from the V9.2 content inventory.",
-    "stagingBuild": "v0.18"
+    "stagingBuild": "v0.18.1"
   },
   "tools": [
     {
@@ -755,7 +755,7 @@
         {
           "relation": "internal sibling",
           "project": "FormCutter / shared Flash exploration",
-          "author": "BeerBelgio / Matteo Belgiovine",
+          "author": "BeerBelgio",
           "sourceLicence": "Internal — PolyForm Noncommercial 1.0.0",
           "publicText": "Developed alongside FormCutter from the same internal masking/cutting exploration; it is a sibling idea, not a code derivative.",
           "authorUrl": "https://github.com/BeerBelgio",
@@ -1094,7 +1094,7 @@
         {
           "relation": "derived-from",
           "project": "Topographic",
-          "author": "BeerBelgio / Matteo Belgiovine",
+          "author": "BeerBelgio",
           "sourceLicence": "Internal — PolyForm Noncommercial 1.0.0",
           "publicText": "Derived internally from Topographic, reworking the same procedural field into a filled-mask system.",
           "authorUrl": "https://github.com/BeerBelgio",
