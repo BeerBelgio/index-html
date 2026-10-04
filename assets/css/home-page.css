@@ -229,18 +229,6 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   width: 100%;
   margin-bottom: 20px;
 }
-.catalogue-title-row {
-  align-items: center;
-  margin-bottom: 14px;
-}
-.catalogue-title-row h2 {
-  font-family: var(--display-font);
-  margin: 0;
-  font-size: clamp(22px, 2.1vw, 28px);
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: .035em;
-}
 .download-all-control {
   min-height: 38px;
   display: inline-flex;
@@ -657,8 +645,10 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  color: var(--ink);
   font-weight: 800;
-  text-underline-offset: 3px;
+  text-decoration: none;
+  transition: color 140ms ease;
 }
 .inline-link:hover,
 .inline-link:focus-visible,
@@ -709,12 +699,11 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 
 .privacy-contact-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .35em; }
 .privacy-beerbelgio-link {
-  display: inline-flex;
-  align-items: center;
   gap: 5px;
-  font-weight: 800;
-  text-decoration: none;
 }
+.privacy-beerbelgio-link:hover,
+.privacy-beerbelgio-link:focus-visible,
+.privacy-beerbelgio-link:active { color: var(--orange); }
 .privacy-beerbelgio-link img { width: 22px; height: 22px; display: block; flex: 0 0 auto; }
 .privacy-updated {
   margin: 5px 0 0;

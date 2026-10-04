@@ -6,9 +6,9 @@
     "repository": "https://github.com/BeerBelgio/index-html",
     "dataset": "staging",
     "technicalSourceOfTruth": "Each tool's window.SKETCH_TOOL manifest",
-    "editorialSourceOfTruth": "index-html_content-inventory_v9.2.xlsx",
-    "notes": "Technical controls, ranges, defaults, colors, Sketch Audio Sync exposure and native host color-opacity support live in each tool manifest. Stable tool identity/type metadata (toolId, toolType), public editorial copy and preview behaviour are synchronized from the V9.2 content inventory.",
-    "stagingBuild": "v0.18.1"
+    "editorialSourceOfTruth": "index-html_content-inventory_v10.xlsx",
+    "notes": "Technical controls, ranges, defaults, colors, Sketch Audio Sync exposure and native host color-opacity support live in each tool manifest. Stable tool identity/type metadata (toolId, toolType), public editorial copy and preview behaviour remain synchronized with the V10 content inventory; V10 also adds the planning-only Technology Index.",
+    "stagingBuild": "v0.18.2"
   },
   "tools": [
     {
