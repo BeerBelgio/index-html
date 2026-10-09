@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const grid = document.getElementById('tool-grid') || document.getElementById('tools');
+  const grid = document.getElementById('tools');
   const errorBox = document.getElementById('home-error');
   const searchInput = document.getElementById('tool-search');
   const searchToggle = document.getElementById('tool-search-toggle');
@@ -500,6 +500,30 @@
     processPreviewQueue();
   }
 
+  // Position the first visible catalogue row in the viewport, even when arriving
+  // from About/Playground before the asynchronous catalogue has been rendered.
+  function focusCatalogueRow(animate = false) {
+    if (window.location.hash !== '#tools' || !catalogue.cards.length) return;
+    const first = catalogue.cards.find((card) => !card.hidden);
+    if (!first) return;
+    const rect = first.getBoundingClientRect();
+    const topSafe = (homeHeader?.getBoundingClientRect().height || 0) + 18;
+    const ideal = (window.innerHeight - rect.height) / 2;
+    const offset = Math.max(topSafe, Math.min(window.innerHeight * 0.28, ideal));
+    const destination = Math.max(0, window.scrollY + rect.top - offset);
+    window.scrollTo({ top: destination, behavior: animate && !prefersReducedMotion ? 'smooth' : 'instant' });
+  }
+
+  function shuffledCatalogue(tools) {
+    // Fisher-Yates: one shuffle per page load; filters do not reshuffle the cards.
+    const result = tools.slice();
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+  }
+
   function toolCard(tool) {
     const a = document.createElement('a');
     a.className = 'tool-card';
@@ -600,12 +624,17 @@
       buildTagFilters(tools);
 
       const frag = document.createDocumentFragment();
-      for (const tool of tools) {
+      for (const tool of shuffledCatalogue(tools)) {
         const card = toolCard(tool);
         catalogue.cards.push(card);
         frag.appendChild(card);
       }
       grid.replaceChildren(frag);
+
+      // Native anchor scrolling can run before this async grid exists.
+      if (window.location.hash === '#tools') {
+        requestAnimationFrame(() => focusCatalogueRow(false));
+      }
 
       searchToggle?.addEventListener('click', () => {
         const open = searchToggle.getAttribute('aria-expanded') === 'true';
@@ -645,6 +674,15 @@
 
   syncStickyHeader();
   window.addEventListener('scroll', syncStickyHeader, { passive: true });
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#tools') requestAnimationFrame(() => focusCatalogueRow(false));
+  });
+  document.querySelector('.home-nav a[href="#tools"]')?.addEventListener('click', (event) => {
+    if (!catalogue.cards.length) return;
+    event.preventDefault();
+    if (window.location.hash !== '#tools') history.pushState(null, '', '#tools');
+    focusCatalogueRow(true);
+  });
 
   document.addEventListener('visibilitychange', () => {
     if (!heroPreview?.ready) return;

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="color-scheme" content="light" />
-  <meta name="index-html-build" content="v0.19.0" />
+  <meta name="index-html-build" content="v0.19.1" />
 
   <title>INDEX HTML</title>
   <meta name="description" content="A growing collection of standalone visual tools." />
@@ -28,7 +28,7 @@
   <meta name="twitter:image" content="https://beerbelgio.github.io/index-html/assets/branding/index-html-og.png" />
 
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="assets/css/home-page.css?v=0190" />
+  <link rel="stylesheet" href="assets/css/home-page.css?v=0191" />
 </head>
 <body>
   <header class="home-header shell" id="home-header">
@@ -76,7 +76,7 @@
     </section>
 
     <section class="home-section catalogue-section">
-      <div id="tools" class="catalogue-heading">
+      <div class="catalogue-heading">
         <div class="catalogue-filters" aria-label="Filter tools">
           <div class="tool-search" id="tool-search-shell" role="search">
             <button id="tool-search-toggle" class="tool-search-toggle" type="button" aria-expanded="false" aria-controls="tool-search-field" aria-label="Search tools">
@@ -90,7 +90,7 @@
         </div>
       </div>
       <p id="tool-filter-empty" class="tool-filter-empty" hidden>No tools match this filter.</p>
-      <div id="tool-grid" class="tool-grid" aria-live="polite"></div>
+      <div id="tools" class="tool-grid" data-tool-grid aria-live="polite"></div>
     </section>
   </main>
 
@@ -109,6 +109,6 @@
   </footer>
 
   <div id="home-error" class="home-error" hidden></div>
-  <script src="assets/js/home-page.js?v=0190"></script>
+  <script src="assets/js/home-page.js?v=0191"></script>
 </body>
 </html>

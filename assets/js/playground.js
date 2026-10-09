@@ -1,12 +1,12 @@
 (() => {
 'use strict';
 const $=id=>document.getElementById(id);
-const ui={iframe:$('pg-iframe'),canvas:$('pg-effect'),stage:$('pg-stage'),empty:$('pg-empty'),params:$('pg-params'),colors:$('pg-colors'),drop:$('pg-drop'),file:$('pg-file'),select:$('pg-select'),load:$('pg-load'),status:$('pg-status'),log:$('pg-log'),title:$('pg-title'),role:$('pg-role'),fps:$('pg-fps'),play:$('pg-play'),reset:$('pg-reset'),ratio:$('pg-ratio')};
+const ui={iframe:$('pg-iframe'),canvas:$('pg-effect'),stage:$('pg-stage'),surface:$('pg-surface'),diagnostics:$('pg-diagnostics'),empty:$('pg-empty'),params:$('pg-params'),colors:$('pg-colors'),drop:$('pg-drop'),file:$('pg-file'),select:$('pg-select'),load:$('pg-load'),status:$('pg-status'),log:$('pg-log'),title:$('pg-title'),role:$('pg-role'),fps:$('pg-fps'),play:$('pg-play'),reset:$('pg-reset'),ratio:$('pg-ratio')};
 let sid=0,manifest=null,state=null,alpha={},running=false,last=0,clock=0,raf=0,fx=null,kind='',catalogue=[],frames=0,fpsFrom=0;
 const text=x=>String(x??'');
 function line(msg){ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+msg;ui.log.scrollTop=ui.log.scrollHeight;}
-function info(msg){ui.status.textContent=msg;ui.status.style.color='';}
-function error(msg){ui.status.textContent=msg;ui.status.style.color='#C94B2E';line('ERROR: '+msg);}
+function info(msg){ui.status.textContent=msg;ui.status.classList.remove('pg-status-error');}
+function error(msg){ui.status.textContent=msg;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;line('ERROR: '+msg);}
 function normalize(raw){if(!raw||!Array.isArray(raw.params)||!Array.isArray(raw.colors))throw Error('Manifest needs params[] and colors[].');const seen=new Set();for(const v of [...raw.params,...raw.colors]){if(!v.key||seen.has(v.key))throw Error('Duplicate or missing key: '+v.key);seen.add(v.key);}for(const p of raw.params)if(![p.min,p.max,p.step,p.default].every(n=>Number.isFinite(Number(n)))||Number(p.step)<=0||Number(p.min)>Number(p.max))throw Error('Invalid numeric param '+p.key);for(const c of raw.colors)if(!/^#[0-9a-f]{6}$/i.test(c.default))throw Error('Invalid hex color '+c.key);return {...raw,role:raw.index?.role||raw.role||'generator',effect:raw.index?.effect||raw.effect||null};}
 // Opaque-origin sandbox, no same-origin privileges. Execution and manifest inspection stay inside it.
 function srcdoc(html,id){
@@ -26,8 +26,34 @@ ui.select.addEventListener('change',()=>ui.load.disabled=!ui.select.value);
 ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;try{const r=await fetch(item.file,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);open(await r.text(),item.name)}catch(e){error(e.message)}});
 window.addEventListener('message',e=>{if(e.source!==ui.iframe.contentWindow)return;const msg=e.data;if(!msg||msg.indexPlayground!==sid)return;if(msg.type==='error'){error(text(msg.data).slice(0,1600));return}if(msg.type!=='ready')return;try{manifest=normalize(msg.data.manifest);kind=manifest.role;state={time:0};alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}ui.role.textContent=kind.toUpperCase()+(msg.data.native?' · INDEX':' · LEGACY');ui.title.textContent=manifest.name||'UNNAMED';controls();if(kind==='effect'){if(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string')throw Error('Effect needs a fragment GLSL shader.');ui.iframe.hidden=true;ui.canvas.hidden=false;fx=makeFx(manifest.effect.fragment)}else if(kind==='generator'){if(!msg.data.hasResize||!msg.data.hasDraw)throw Error('Missing draw or resize entrypoint.');ui.iframe.hidden=false;ui.canvas.hidden=true;}else throw Error('Role '+kind+' is planned, but an A/B input contract is not yet implemented.');ui.empty.hidden=true;resize();running=true;ui.play.disabled=false;ui.play.textContent='PAUSE';ui.reset.disabled=false;last=0;clock=0;frames=0;fpsFrom=0;info('Ready: '+(manifest.name||'Tool')+' · '+manifest.params.length+' parameters · '+manifest.colors.length+' colors');line((msg.data.native?'INDEX_TOOL prototype':'SKETCH_TOOL legacy')+' · '+kind);raf=requestAnimationFrame(tick);}catch(err){error(err.message);ui.empty.hidden=false;ui.iframe.hidden=true;ui.canvas.hidden=true}});
 function send(action,body){ui.iframe.contentWindow?.postMessage({indexCommand:sid,action,...body},'*')}
-function resize(){if(!state)return;const r=ui.stage.getBoundingClientRect(),scale=Math.min(2,devicePixelRatio||1);const w=Math.max(1,Math.round(r.width*scale)),h=Math.max(1,Math.round(r.height*scale));if(kind==='effect'&&fx)fx.resize(w,h);else if(kind==='generator')send('resize',{w,h})}
-const observer=new ResizeObserver(()=>resize());observer.observe(ui.stage);ui.ratio.addEventListener('change',()=>{ui.stage.dataset.ratio=ui.ratio.value;requestAnimationFrame(resize)});
+function fitSurface(){
+ const r=ui.stage.getBoundingClientRect();
+ if(!r.width||!r.height)return;
+ const [rw,rh]=(ui.ratio.value||'16:9').split(':').map(Number);
+ const width=Math.max(1,Math.min(r.width,r.height*rw/rh));
+ const height=Math.max(1,width*rh/rw);
+ ui.surface.style.width=width+'px';ui.surface.style.height=height+'px';
+}
+function resize(){
+ if(!state)return;
+ fitSurface();
+ const r=ui.surface.getBoundingClientRect(),scale=Math.min(2,devicePixelRatio||1);
+ const w=Math.max(1,Math.round(r.width*scale)),h=Math.max(1,Math.round(r.height*scale));
+ if(kind==='effect'&&fx)fx.resize(w,h);
+ else if(kind==='generator')send('resize',{w,h});
+}
+function matchParameterHeight(){
+ // The rendered area should grow with a long parameter list on desktop.
+ // Mobile keeps a bounded preview above the vertically stacked controls.
+ ui.stage.style.minHeight = window.innerWidth > 900 && manifest
+   ? Math.max(340, Math.ceil(ui.params.getBoundingClientRect().height)) + 'px'
+   : '';
+}
+const observer=new ResizeObserver(()=>resize());observer.observe(ui.stage);
+const controlsObserver=new ResizeObserver(()=>matchParameterHeight());controlsObserver.observe(ui.params);
+window.addEventListener('resize',matchParameterHeight,{passive:true});
+ui.ratio.addEventListener('change',()=>{ui.surface.dataset.ratio=ui.ratio.value;requestAnimationFrame(resize)});
+
 function draw(){if(!state)return;if(kind==='generator')send('draw',{state:{...state},context:{colorOpacity:{...alpha}}});else if(kind==='effect')fx?.draw(state,alpha)}
 function tick(now){if(!running)return;if(last)clock+=Math.min(.05,(now-last)/1000);last=now;state.time=clock;draw();frames++;if(!fpsFrom)fpsFrom=now;if(now-fpsFrom>=1000){ui.fps.textContent=Math.round(frames*1000/(now-fpsFrom))+' FPS';frames=0;fpsFrom=now}raf=requestAnimationFrame(tick)}
 ui.play.addEventListener('click',()=>{running=!running;ui.play.textContent=running?'PAUSE':'PLAY';last=0;if(running)raf=requestAnimationFrame(tick);else cancelAnimationFrame(raf)});
