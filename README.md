@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.18.2**
+**Current staging UI build → V0.19.0**
 
 **V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
 
@@ -28,6 +28,9 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 **V0.18.1 responsive + distribution polish:** the homepage hero title returns to natural responsive wrapping, the homepage Download All control is removed while catalogue spacing is restored, About interaction states are aligned with the rest of the site, and the generated collection bundle now ships one combined `LEGAL.md` plus the unified `INDEX-HTML_BEERBELGIO.svg` identity asset. The flat `tools/` directory remains the intended local-cache direction for the future Max host workflow.
 
 **V0.18.2 UI hotfix + V10 master sync:** the homepage catalogue returns to the title-free layout (search/tags directly above the cards), About inline links are normalized to the same no-underline bold/arrow interaction language including Privacy, and project metadata now points to the V10 content master. V10 adds the Technology Index as a planning map without changing the current 20 tool manifests or catalogue content.
+
+**V0.19.0 Playground + Bridge Help:** adds a public browser-local HTML testing Playground (legacy generator, provisional INDEX-native generator, Bridge-style fragment EFFECT preview), a publicly indexable Bridge 0.22.24 Help page with local mirror manifest, flattened M PLUS font assets and a prospective INDEX-native protocol migration note. None of the 20 canonical tool files are changed. Compositor A/B input and host native-manifest support remain future work.
+
 The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.
 
 **Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
@@ -69,6 +72,8 @@ index-html/
 ├── index.html
 ├── about.html
 ├── tool.html
+├── playground.html
+├── bridge-help.html
 ├── assets/
 │   ├── branding/
 │   ├── css/

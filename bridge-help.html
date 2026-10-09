@@ -1,0 +1,1372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>INDEX-HTML Bridge — Help | INDEX HTML</title>
+  <meta name="description" content="INDEX-HTML Bridge: user guide for layers, MIDI mapping, rendering, export and troubleshooting." />
+  <link rel="canonical" href="https://beerbelgio.github.io/index-html/bridge-help.html" />
+  <link rel="icon" href="assets/bridge-help/index-html-symbol.svg" type="image/svg+xml" />
+  <style>
+    @import url("assets/fonts/m-plus-rounded-1c/font.css");
+    @import url("assets/fonts/barlow-condensed/font.css");
+
+    :root {
+      --ink: #000000;
+      --paper: #f1f1ee;
+      --paper-2: #f4f4f0;
+      --panel: #fafaf7;
+      --accent: #ec6b2d;
+      --accent-deep: #c94b2e;
+      --green: #6a9e5d;
+      --muted: rgba(0, 0, 0, 0.64);
+      --hair: rgba(0, 0, 0, 0.11);
+      --hair-strong: rgba(0, 0, 0, 0.22);
+      --radius: 14px;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+      --content: 1120px;
+      --font-body: "M PLUS Rounded 1c", ui-rounded, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sticky-offset: 78px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.52;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    button, summary { font: inherit; }
+    .hero-brand,
+    h1,
+    .quick-header h2,
+    .quick-step h3,
+    .section-title,
+    .card h3,
+    .nav-link {
+      font-family: var(--font-display);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--hair-strong);
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .topbar-inner {
+      width: min(calc(100% - 20px), var(--content));
+      margin: 0 auto;
+      min-height: 62px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      flex: 0 0 auto;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .mini-logo-wrap {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      display: block;
+      flex: 0 0 auto;
+      transition: transform .15s ease;
+    }
+    .mini-logo {
+      position: absolute;
+      inset: 0;
+      width: 34px;
+      height: 34px;
+      display: block;
+      object-fit: contain;
+      transition: opacity .15s ease;
+    }
+    .mini-logo.orange { opacity: 0; }
+    .brand:hover .mini-logo.black,
+    .brand:focus-visible .mini-logo.black { opacity: 0; }
+    .brand:hover .mini-logo.orange,
+    .brand:focus-visible .mini-logo.orange { opacity: 1; }
+    .brand:active .mini-logo-wrap { transform: scale(.94); }
+
+    .sticky-nav {
+      display: none;
+      min-width: 0;
+      width: 100%;
+      padding: 2px 0;
+      gap: 6px;
+    }
+    body.nav-docked .sticky-nav {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 7px;
+      flex-wrap: nowrap;
+      justify-self: end;
+      white-space: nowrap;
+    }
+
+
+    .chip, .mini-button, .nav-link {
+      min-height: 30px;
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+
+    .mini-button {
+      cursor: pointer;
+      transition: background .15s ease, color .15s ease, transform .15s ease;
+    }
+    .mini-button:hover { background: var(--ink); color: var(--paper); }
+    .mini-button:active { transform: translateY(1px); }
+    .mini-button.is-negative {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .mini-button.is-negative:hover {
+      background: transparent;
+      color: var(--ink);
+    }
+main {
+      width: min(calc(100% - 28px), var(--content));
+      margin: 0 auto;
+      padding: 52px 0 90px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(340px, .88fr);
+      gap: 38px;
+      align-items: stretch;
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-deep);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(78px, 10.4vw, 136px);
+      line-height: .9;
+      letter-spacing: .025em;
+      font-weight: 900;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hero-lede {
+      max-width: 720px;
+      margin: 0;
+      font-size: clamp(17px, 1.9vw, 22px);
+      line-height: 1.34;
+      letter-spacing: -0.01em;
+      font-weight: 400;
+    }
+
+    .hero-copy {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .hero-brand {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(18px, 2.2vw, 28px);
+      line-height: 1;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .hero-menu {
+      align-self: stretch;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: 1fr;
+      gap: 10px;
+      padding: 0;
+    }
+
+    .hero-menu .nav-link {
+      min-height: 48px;
+      justify-content: flex-start;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .sticky-nav .nav-link {
+      width: 100%;
+      min-height: 32px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .045em;
+    }
+
+    .nav-link {
+      border-color: var(--hair-strong);
+      transition: border-color .15s ease, background .15s ease, color .15s ease;
+    }
+    .nav-link:hover { border-color: var(--ink); background: rgba(255,255,255,.18); }
+    .nav-link.active { border-color: var(--accent); background: var(--accent); color: var(--ink); }
+
+
+
+    .quick-start {
+      scroll-margin-top: var(--sticky-offset);
+      border: 2px solid var(--ink);
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+
+    .quick-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(28, 23, 19, .28);
+    }
+    .quick-header h2 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    .quick-header p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: .72;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .quick-step {
+      min-height: 238px;
+      padding: 18px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      border-right: 1px solid rgba(28, 23, 19, .28);
+      border-bottom: 1px solid rgba(28, 23, 19, .28);
+      grid-column: span 2;
+    }
+    .quick-step:nth-child(3) { border-right: 0; }
+    .quick-step:nth-child(4),
+    .quick-step:nth-child(5) {
+      grid-column: span 3;
+      border-bottom: 0;
+    }
+    .quick-step:nth-child(5) { border-right: 0; }
+    .quick-step.no-media { min-height: 168px; }
+    .quick-copy { min-width: 0; }
+    .quick-media {
+      margin: auto 0 0;
+      border: 1px solid rgba(28, 23, 19, .38);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255,255,255,.26);
+      min-height: 118px;
+      display: grid;
+      place-items: center;
+    }
+    .quick-media img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 210px;
+      object-fit: contain;
+    }
+    .step-no {
+      display: block;
+      width: 28px;
+      height: 28px;
+      border: 1.5px solid var(--ink);
+      border-radius: 50%;
+      line-height: 25px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 12px;
+      margin-bottom: 26px;
+    }
+    .quick-step h3 {
+      margin: 0 0 6px;
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: .035em;
+    }
+    .quick-step p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.46;
+    }
+
+    .manual {
+      display: grid;
+      gap: 10px;
+    }
+
+    details.manual-section {
+      border: 1px solid var(--hair-strong);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.18);
+      overflow: hidden;
+      scroll-margin-top: var(--sticky-offset);
+      transition: background .15s ease, border-color .15s ease;
+    }
+    details.manual-section[open] {
+      background: var(--panel);
+      border-color: var(--ink);
+    }
+    details.manual-section[open] .section-title { color: var(--accent); }
+
+    details.manual-section > summary {
+      list-style: none;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: minmax(150px, .55fr) minmax(0, 1.45fr) auto;
+      gap: 24px;
+      align-items: center;
+      min-height: 74px;
+      padding: 14px 18px;
+      user-select: none;
+    }
+    details.manual-section > summary::-webkit-details-marker { display: none; }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+    .section-summary {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .section-toggle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid var(--ink);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      line-height: 1;
+      transition: transform .18s ease, background .18s ease, color .18s ease;
+    }
+    details[open] .section-toggle {
+      transform: rotate(45deg);
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .section-body {
+      border-top: 1px solid var(--hair);
+      padding: 22px 18px 24px;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .section-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      border-top: 1px solid var(--ink);
+      padding: 11px 0 2px;
+    }
+    .card h3 {
+      margin: 0 0 7px;
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .055em;
+    }
+    .card p, .card li {
+      font-size: 15px;
+      color: var(--muted);
+    }
+    .card p { margin: 0; }
+    .card ul, .card ol { margin: 8px 0 0; padding-left: 18px; }
+    .card li + li { margin-top: 5px; }
+
+    .control-table {
+      display: grid;
+      grid-template-columns: minmax(120px, .58fr) minmax(0, 1.42fr);
+      border-top: 1px solid var(--ink);
+      margin-top: 4px;
+    }
+    .control-table > div {
+      padding: 9px 0;
+      border-bottom: 1px solid var(--hair);
+      font-size: 15px;
+    }
+    .control-table .label {
+      padding-right: 16px;
+      font-weight: 750;
+      letter-spacing: .02em;
+    }
+    .control-table .value { color: var(--muted); }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 9px;
+    }
+    .pill {
+      border: 1px solid var(--hair-strong);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: .025em;
+    }
+
+    .callout {
+      border: 1px solid var(--ink);
+      border-left-width: 7px;
+      border-radius: 10px;
+      padding: 13px 14px;
+      margin-top: 14px;
+      background: rgba(255,255,255,.18);
+    }
+    .callout.warning { border-left-color: var(--accent-deep); }
+    .callout.ok { border-left-color: var(--green); }
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+    .callout p { margin: 0; font-size: 15px; color: var(--muted); }
+
+    .status-line {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .state-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--hair-strong);
+    }
+    .state-dot.ok { background: var(--green); }
+    .state-dot.progress { background: var(--accent); }
+    .state-dot.planned { background: var(--accent-deep); }
+    .status-copy { font-size: 13.5px; color: var(--muted); }
+
+    code {
+      font-family: var(--mono);
+      font-size: .92em;
+      background: rgba(28,23,19,.07);
+      border-radius: 5px;
+      padding: 1px 4px;
+    }
+
+    .help-media {
+      margin-top: 16px;
+      border: 1px solid var(--hair-strong);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--panel);
+    }
+    .help-media img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .help-media figcaption {
+      padding: 9px 11px;
+      border-top: 1px solid var(--hair);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 16px;
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 2px solid var(--ink);
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .footer-left { justify-self: start; min-width: 0; }
+    .footer-center { justify-self: center; color: var(--ink); font-weight: 700; }
+    .footer-right { justify-self: end; }
+    .footer a { color: inherit; text-decoration: none; }
+    .footer a:hover, .footer a:focus-visible { color: var(--accent-deep); }
+    .footer-wordmark {
+      display: block;
+      width: 96px;
+      height: auto;
+    }
+
+    .manifest-error {
+      display: none;
+      margin: 18px 0;
+      border: 2px solid var(--accent-deep);
+      border-radius: var(--radius);
+      padding: 16px;
+      background: rgba(201,75,46,.07);
+      font-size: 14px;
+    }
+    .manifest-error.visible { display: block; }
+
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; align-items: start; }
+      .hero-menu { min-height: 260px; }
+      body.nav-docked .topbar-inner { grid-template-columns: auto minmax(0,1fr) auto; }
+      body.nav-docked .sticky-nav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+      body.nav-docked .sticky-nav .nav-link {
+        min-height: 34px;
+        padding: 6px 10px;
+        font-size: 15px;
+        letter-spacing: .045em;
+      }
+      .quick-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .quick-step,
+      .quick-step:nth-child(4),
+      .quick-step:nth-child(5) {
+        grid-column: auto;
+        border-right: 1px solid rgba(28, 23, 19, .28);
+        border-bottom: 1px solid rgba(28, 23, 19, .28);
+      }
+      .quick-step:nth-child(2n) { border-right: 0; }
+      .quick-step:last-child { grid-column: 1 / -1; border-right: 0; border-bottom: 0; }
+      .quick-media { min-height: 110px; }
+      details.manual-section > summary { grid-template-columns: minmax(130px,.6fr) 1fr auto; gap: 16px; }
+      .section-grid.three { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      :root { --sticky-offset: 128px; }
+      .topbar-inner { padding: 7px 0; gap: 7px; }
+      .top-actions { justify-self: end; gap: 5px; }
+      .chip, .mini-button { min-height: 28px; padding: 4px 8px; font-size: 10.5px; }
+      .mini-logo { width: 32px; height: 32px; }
+      body.nav-docked .sticky-nav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+        width: 100%;
+      }
+      .sticky-nav .nav-link {
+        min-height: 34px;
+        padding: 6px 6px;
+        font-size: 15px;
+        letter-spacing: .025em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .hero-menu { grid-template-columns: 1fr 1fr; min-height: 300px; }
+      .hero-menu .nav-link { font-size: 15px; min-height: 50px; }
+      main { padding-top: 34px; }
+      h1 { font-size: clamp(66px, 20vw, 96px); line-height: .92; letter-spacing: .02em; }
+      .quick-grid { grid-template-columns: 1fr; }
+      .quick-step,
+      .quick-step:nth-child(4),
+      .quick-step:nth-child(5),
+      .quick-step:nth-child(2n) {
+        grid-column: auto;
+        border-right: 0;
+        border-bottom: 1px solid rgba(28, 23, 19, .28);
+        padding: 18px;
+      }
+      .quick-step:last-child { border-bottom: 0; }
+      details.manual-section > summary { grid-template-columns: 1fr auto; gap: 10px; }
+      .section-summary { grid-column: 1 / -1; grid-row: 2; }
+      .section-grid, .section-grid.three { grid-template-columns: 1fr; }
+      .control-table { grid-template-columns: 1fr; }
+      .control-table .label { padding-bottom: 1px; border-bottom: 0; }
+      .control-table .value { padding-top: 1px; }
+      .footer {
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 6px;
+        font-size: clamp(8.5px, 2.45vw, 10.5px);
+      }
+      .footer-wordmark { width: clamp(62px, 18vw, 82px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="https://beerbelgio.github.io/index-html/" target="_blank" rel="noreferrer" aria-label="Open INDEX HTML">
+        <span class="mini-logo-wrap" aria-hidden="true">
+          <img class="mini-logo black" src="assets/bridge-help/index-html-symbol.svg" alt="" />
+          <img class="mini-logo orange" src="assets/bridge-help/index-html-symbol-orange.svg" alt="" />
+        </span>
+      </a>
+      <nav class="sticky-nav" aria-label="Sticky help sections">
+        <a class="nav-link" href="#quick-start">Quick</a>
+        <a class="nav-link" href="#layers">Layers</a>
+        <a class="nav-link" href="#params">Params</a>
+        <a class="nav-link" href="#color">Color</a>
+        <a class="nav-link" href="#midi">MIDI</a>
+        <a class="nav-link" href="#library">Library</a>
+        <a class="nav-link" href="#render">Render</a>
+        <a class="nav-link" href="#export">REC</a>
+        <a class="nav-link" href="#audio">Audio</a>
+        <a class="nav-link" href="#troubleshooting">Trouble</a>
+      </nav>
+      <div class="top-actions">
+        <button class="mini-button" type="button" id="info-toggle" aria-pressed="false">INFO +</button>
+        <span class="chip" id="build-chip">v—</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="hero-brand">&lt;INDEX HTML BRIDGE&gt;</p>
+        <h1>&lt;HELP/&gt;</h1>
+        <p class="hero-lede">Max decides what happens.<br />The browser decides how to render &amp; record it.</p>
+      </div>
+      <nav class="hero-menu" aria-label="Help sections">
+        <a class="nav-link" href="#quick-start">Quick start</a>
+        <a class="nav-link" href="#layers">Layers</a>
+        <a class="nav-link" href="#params">Params</a>
+        <a class="nav-link" href="#color">Color</a>
+        <a class="nav-link" href="#midi">MIDI</a>
+        <a class="nav-link" href="#library">Library</a>
+        <a class="nav-link" href="#render">Render</a>
+        <a class="nav-link" href="#export">REC / Export</a>
+        <a class="nav-link" href="#audio">Audio</a>
+        <a class="nav-link" href="#troubleshooting">Troubleshooting</a>
+      </nav>
+    </section>
+
+    <div class="manifest-error" id="manifest-error">
+      <strong>Help manifest unavailable.</strong><br />
+      The help manifest could not be loaded. Try refreshing this page.
+    </div>
+
+    <section class="quick-start" id="quick-start">
+      <div class="quick-header">
+        <h2>Quick start</h2>
+      </div>
+      <div class="quick-grid">
+        <article class="quick-step no-media">
+          <div class="quick-copy">
+            <span class="step-no">1</span>
+            <h3>Pick a layer</h3>
+            <p>Open L1–L5. Only one Layer editor is open at a time.</p>
+          </div>
+          
+        </article>
+        <article class="quick-step no-media">
+          <div class="quick-copy">
+            <span class="step-no">2</span>
+            <h3>Choose a tool</h3>
+            <p>Select it from the library, check its status, then LOAD / UPDATE / DOWNLOAD explicitly.</p>
+          </div>
+          
+        </article>
+        <article class="quick-step no-media">
+          <div class="quick-copy">
+            <span class="step-no">3</span>
+            <h3>Shape it</h3>
+            <p>Open PARAMETERS, COLORS &amp; BLEND and MIDI MAPPING in any combination.</p>
+          </div>
+          
+        </article>
+        <article class="quick-step no-media">
+          <div class="quick-copy">
+            <span class="step-no">4</span>
+            <h3>Render live</h3>
+            <p>RENDER opens the external Chromium compositor. Your five Layers are combined there.</p>
+          </div>
+          
+        </article>
+        <article class="quick-step no-media">
+          <div class="quick-copy">
+            <span class="step-no">5</span>
+            <h3>Export offline</h3>
+            <p>REC sets range, quality, ratio, FPS, output and audio. EXPORT runs the offline job.</p>
+          </div>
+          
+        </article>
+      </div>
+    </section>
+
+    <section class="manual" aria-label="INDEX-HTML Bridge manual">
+
+      <details class="manual-section" id="core">
+        <summary>
+          <span class="section-title">Core</span>
+          <span class="section-summary">The permanent strip: project, help, live output, REC and the five Layers.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="control-table" id="core-controls"></div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="layers">
+        <summary>
+          <span class="section-title">Layers</span>
+          <span class="section-summary">Five independent visual slots, composed from L1 upward. Effects process only what sits below them.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid three">
+            <div class="card">
+              <h3>One editor, five layers</h3>
+              <p>Open one Layer editor at a time. Layer visibility is independent from whether its editor is open.</p>
+            </div>
+            <div class="card">
+              <h3>Tool loading</h3>
+              <p>Choosing a tool in the dropdown only selects it. Loading is explicit, and loading a tool restores its manifest defaults.</p>
+            </div>
+            <div class="card">
+              <h3>Generator vs effect</h3>
+              <p>Generators draw their own canvas. Effects receive the composite of the Layers beneath them and process that result.</p>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>Remembered per layer</strong>
+            <p>Only the open/closed state of PARAMETERS, COLORS &amp; BLEND and MIDI MAPPING is remembered. Tool parameter values are not stored per tool.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="params">
+        <summary>
+          <span class="section-title">Parameters</span>
+          <span class="section-summary">Twelve numeric slots per Layer, mapped to each tool’s own manifest labels and ranges.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid">
+            <div class="card">
+              <h3>Native Live parameters</h3>
+              <p id="parameter-count-copy">The device exposes a stable Live parameter registry for automation and external modulation.</p>
+            </div>
+            <div class="card">
+              <h3>Reset & defaults</h3>
+              <p>Use the single reset beside a parameter for that control only. DEFAULT restores the loaded tool’s manifest defaults.</p>
+            </div>
+            <div class="card">
+              <h3>Effective values</h3>
+              <p>MIDI contributions are added to the base Live parameter value, then clamped and converted back through the tool’s native range.</p>
+            </div>
+            <div class="card">
+              <h3>Automation stays yours</h3>
+              <p>The base Live parameter remains the automation/modulation target even while MIDI is contributing to the value sent to the renderer.</p>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="color">
+        <summary>
+          <span class="section-title">Colors &amp; Blend</span>
+          <span class="section-summary">Up to four tool-defined colors, independent opacity and per-Layer blend mode.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid">
+            <div class="card">
+              <h3>Colors</h3>
+              <p id="color-copy">Each active color can be edited with the picker or six-digit HEX input. Unused manifest slots stay clearly marked.</p>
+            </div>
+            <div class="card">
+              <h3>Opacity</h3>
+              <p>Color opacity is a native host control and does not consume P01–P12. Missing host opacity keeps the standalone tool behaviour unchanged.</p>
+            </div>
+            <div class="card">
+              <h3>Blend</h3>
+              <div class="pill-list" id="blend-pills"></div>
+            </div>
+            <div class="card">
+              <h3>Effects</h3>
+              <p>Effect Layers do not use generator blend in the same way: their shader processes the lower composite directly.</p>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="midi">
+        <summary>
+          <span class="section-title">MIDI Mapping</span>
+          <span class="section-summary">Map NOTE or CC directly onto P01–P12 with amount and envelope/smoothing controls.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid three">
+            <div class="card">
+              <h3>Source</h3>
+              <div class="pill-list" id="midi-source-pills"></div>
+              <p style="margin-top:9px">Mappings start unassigned. Routing is user-managed through the native MIDI input/channel selectors.</p>
+            </div>
+            <div class="card">
+              <h3>NOTE</h3>
+              <p>Velocity becomes the modulation peak. Attack rises to that peak, then release returns automatically to zero.</p>
+            </div>
+            <div class="card">
+              <h3>CC</h3>
+              <p>The incoming 0–127 value becomes the target. Attack smooths upward movement; release smooths downward movement.</p>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>During offline export</strong>
+            <p>INDEX records the final effective renderer controls it actually receives. Raw MIDI is not re-mapped later during offline replay.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="library">
+        <summary>
+          <span class="section-title">Library</span>
+          <span class="section-summary">CHECK INDEX compares your local HTML tools with the INDEX catalogue. Nothing updates by itself.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid">
+            <div class="card">
+              <h3>Status</h3>
+              <div class="pill-list" id="library-status-pills"></div>
+            </div>
+            <div class="card">
+              <h3>CHECK INDEX</h3>
+              <p>Refreshes the remote catalogue and compares it with the flat local <code>tools/</code> library. It does not download tools automatically.</p>
+            </div>
+            <div class="card">
+              <h3>Selected tool</h3>
+              <p>Depending on state, the action becomes LOAD, UPDATE or DOWNLOAD. A dropdown selection alone never changes the running Layer.</p>
+            </div>
+            <div class="card">
+              <h3>UPDATE ALL</h3>
+              <p>Queues only MISSING and OUTDATED catalogue tools. CURRENT entries are left untouched; local-only fixtures remain local.</p>
+            </div>
+          </div>
+          <div class="status-line">
+            <span class="state-dot ok"></span>
+            <span class="status-copy" id="library-count-copy">Local library information loading…</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="render">
+        <summary>
+          <span class="section-title">Render</span>
+          <span class="section-summary">RENDER is the live window. It is separate from REC and the offline export engine.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid">
+            <div class="card">
+              <h3>Live output</h3>
+              <p>RENDER launches the localhost compositor in an external Chromium app window. Live state reaches one compositor SSE connection, then the five tool iframes through <code>postMessage</code>.</p>
+            </div>
+            <div class="card">
+              <h3>Requirements</h3>
+              <p>A ready local Node host, a supported installed Chromium browser and compatible Canvas/WebGL support are required.</p>
+            </div>
+          </div>
+          <div class="callout ok">
+            <strong>RENDER ≠ REC</strong>
+            <p>The live window does not need to be open for offline export. REC launches its own dedicated export renderer.</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="export">
+        <summary>
+          <span class="section-title">REC / Offline Export</span>
+          <span class="section-summary">Capture the effective Live controls, then rebuild the visual offline frame by frame.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="control-table" id="export-controls"></div>
+
+          <div class="section-grid three" style="margin-top:18px">
+            <div class="card">
+              <h3>1 · Acquire</h3>
+              <p>Live runs once through FROM BAR → TO BAR while INDEX records the effective controls that reach the renderer.</p>
+            </div>
+            <div class="card">
+              <h3>2 · Replay</h3>
+              <p>The export Chromium rebuilds the sequence at deterministic frame times. It may render slower than realtime without changing musical time.</p>
+            </div>
+            <div class="card">
+              <h3>3 · Encode</h3>
+              <p>PNG frames are always produced. If MP4 or MOV is selected, the bundled encoder builds and verifies the video afterwards.</p>
+            </div>
+          </div>
+
+          <div class="callout warning" id="export-current-note">
+            <strong>Current build note</strong>
+            <p>Loading current export status…</p>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <h3>Current output options</h3>
+            <div class="pill-list" id="output-pills"></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="audio">
+        <summary>
+          <span class="section-title">Audio</span>
+          <span class="section-summary">INPUT records the stereo signal entering INDEX in a second realtime pass. Final mux is a separate stage.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid">
+            <div class="card">
+              <h3>Source</h3>
+              <p>INDEX records its own stereo input. Put INDEX on Main after the effects you want captured, or route Main/Resampling into the INDEX track yourself.</p>
+            </div>
+            <div class="card">
+              <h3>Second pass</h3>
+              <p>Visual/control acquisition happens first. With AUDIO INPUT selected, Live then runs the chosen musical range again for native disk audio capture.</p>
+            </div>
+            <div class="card">
+              <h3>Files</h3>
+              <p>The native recorder creates <code>audio-capture.wav</code>; the finalizer trims and validates a separate <code>audio.wav</code> when the complete range passes.</p>
+            </div>
+            <div class="card">
+              <h3>Video audio</h3>
+              <p id="audio-mux-copy">The current MP4/MOV encoder produces silent video. Automatic mux is not yet available.</p>
+            </div>
+          </div>
+          <div class="callout warning" id="audio-status-note">
+            <strong>Testing status</strong>
+            <p>Loading current audio status…</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="troubleshooting">
+        <summary>
+          <span class="section-title">Troubleshooting</span>
+          <span class="section-summary">The useful failure boundaries, current limitations and what not to expect from this build.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid" id="issues-grid"></div>
+          <div class="card" style="margin-top:18px">
+            <h3>Current limitations</h3>
+            <ul id="limitations-list"></ul>
+          </div>
+        </div>
+      </details>
+
+      <details class="manual-section" id="architecture">
+        <summary>
+          <span class="section-title">Under the hood</span>
+          <span class="section-summary">Only if you care: how Max, Node and Chromium divide the work.</span>
+          <span class="section-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="section-body">
+          <div class="section-grid three">
+            <div class="card">
+              <h3>Max / Live</h3>
+              <p>Owns the device UI, Live parameter identities, MIDI mapping, transport acquisition and native stereo input recorder.</p>
+            </div>
+            <div class="card">
+              <h3>Node</h3>
+              <p>Owns the localhost bridge, library/filesystem state, Chromium launch, frozen export jobs, PNG persistence and media encoding/finalization.</p>
+            </div>
+            <div class="card">
+              <h3>Chromium</h3>
+              <p>Owns Canvas/WebGL drawing, five-Layer composition, effect processing and deterministic offline frame generation.</p>
+            </div>
+          </div>
+          <div class="callout">
+            <strong>No Jitter renderer</strong>
+            <p>INDEX HTML stays browser-native. The fundamental split is simple: Max decides what happens; the browser decides how to draw it.</p>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-left">&lt;INDEX HTML BRIDGE&gt; · © 2026 <a href="https://beerbelgio.github.io/" target="_blank" rel="noreferrer">BeerBelgio</a></div>
+      <div class="footer-center" id="footer-build">v—</div>
+      <div class="footer-right">
+        <a id="project-link" href="https://beerbelgio.github.io/index-html/" target="_blank" rel="noreferrer" aria-label="INDEX HTML">
+          <img class="footer-wordmark" src="assets/bridge-help/index-html-wordmark.svg" alt="INDEX HTML" />
+        </a>
+      </div>
+    </footer>
+  </main>
+
+  <script src="assets/js/bridge-help-manifest.js"></script>
+  <script>
+    (() => {
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+      const manifestUrl = 'data/bridge-help-manifest.json';
+      let manifest = null;
+      const fallbackManifest = window.INDEX_HELP_MANIFEST || null;
+
+      const friendlyStatus = (value) => String(value || '')
+        .replaceAll('_', ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+
+      const pill = (text) => {
+        const span = document.createElement('span');
+        span.className = 'pill';
+        span.textContent = text;
+        return span;
+      };
+
+      const addRow = (root, label, value) => {
+        const l = document.createElement('div');
+        l.className = 'label';
+        l.textContent = label;
+        const v = document.createElement('div');
+        v.className = 'value';
+        v.textContent = value;
+        root.append(l, v);
+      };
+
+      const coreControlMap = {
+        'project-link': ['INDEX HTML', 'Open the INDEX HTML project website.'],
+        'repository-link': ['?', 'Open this offline manual once the patch is linked to HELP.html.'],
+        'live-render': ['RENDER', 'Open the live external Chromium compositor.'],
+        'rec-panel': ['REC', 'Open the offline export panel. Opening REC closes the Layer editor.'],
+        'layer-visible': ['Layer visibility', 'Include or exclude L1–L5 from the composition independently from editor state.'],
+        'layer-editor': ['Layer editor', 'Open one Layer editor at a time; click the same control again to close it.']
+      };
+
+      function renderCore(d) {
+        const table = $('#core-controls');
+        table.innerHTML = '';
+        const controls = d.ui?.controls || [];
+        Object.entries(coreControlMap).forEach(([id, fallback]) => {
+          const found = controls.find(c => c.id === id);
+          addRow(table, fallback[0], id === 'repository-link' ? fallback[1] : (found?.action || fallback[1]));
+        });
+      }
+
+      function renderMeta(d) {
+        const build = d.device?.build || d.generatedForBuild || '—';
+        $('#build-chip').textContent = `v${String(build).replace(/^v/i, '')}`;
+        $('#footer-build').textContent = `v${String(build).replace(/^v/i, '')}`;
+
+        const project = d.ui?.controls?.find(c => c.id === 'project-link');
+        const repo = d.library?.remote?.repository;
+        if (project?.url) $('#project-link').href = project.url;
+        if (repo && $('#repo-link')) $('#repo-link').href = `https://github.com/${repo}`;
+      }
+
+      function renderParameters(d) {
+        const count = d.parameters?.liveParameterCount ?? d.device?.liveParameterCount;
+        const bank = d.parameters?.bankStructure || {};
+        if (count != null) {
+          $('#parameter-count-copy').textContent = `${count} established Live parameters stay identity-sensitive for automation and external modulation. The five Layers expose up to ${bank.numericSlotsPerLayer ?? 12} numeric slots each, plus host controls such as color opacity and visibility.`;
+        }
+      }
+
+      function renderColor(d) {
+        const c = d.colorsAndBlend || {};
+        $('#color-copy').textContent = `Up to ${c.maximumColorSlotsPerLayer ?? 4} manifest-defined colors per Layer. Edit them with the native picker or ${c.hexFormat || '#RRGGBB'} text; unused slots display UNUSED.`;
+        const root = $('#blend-pills');
+        root.innerHTML = '';
+        (c.blend?.visibleOptions || ['Normal', 'Add', 'Multiply', 'Screen']).forEach(x => root.appendChild(pill(x)));
+      }
+
+      function renderMidi(d) {
+        const root = $('#midi-source-pills');
+        root.innerHTML = '';
+        (d.midi?.sources || ['NONE', 'MIDI NOTE', 'MIDI CC']).forEach(x => root.appendChild(pill(x)));
+      }
+
+      function renderLibrary(d) {
+        const statusRoot = $('#library-status-pills');
+        statusRoot.innerHTML = '';
+        (d.library?.statuses || []).forEach(s => statusRoot.appendChild(pill(s.id)));
+        const local = d.library?.local || {};
+        $('#library-count-copy').textContent = `${local.htmlFileCount ?? '—'} local HTML files · ${local.cachedRemoteEntryCount ?? '—'} catalogue entries cached · selection never auto-loads.`;
+      }
+
+      function renderExport(d) {
+        const ex = d.offlineExport || {};
+        const ui = ex.ui || {};
+        const table = $('#export-controls');
+        table.innerHTML = '';
+        addRow(table, 'QUALITY', (ui.quality || []).join(' / ') || '—');
+        addRow(table, 'FORMAT', (ui.format || []).join(' / ') || '—');
+        addRow(table, 'FPS', (ui.fps || []).join(' / ') || '—');
+        addRow(table, 'FROM BAR → TO BAR', 'Musical range. FROM is inclusive; TO is exclusive and must be greater than FROM.');
+        addRow(table, 'OUTPUT', (ui.output || []).join(' / ') || '—');
+        addRow(table, 'AUDIO', (ui.audio || []).join(' / ') || '—');
+
+        const outputRoot = $('#output-pills');
+        outputRoot.innerHTML = '';
+        (ex.videoEncoding?.formats || []).forEach(x => outputRoot.appendChild(pill(x.label || x.codec || 'Output')));
+
+        const note = $('#export-current-note p');
+        const rv = ex.runtimeValidation || 'unknown';
+        const val = ex.validationBasis || '';
+        note.textContent = `Visual PNG export and selectable video encoding are implemented. Runtime status: ${friendlyStatus(rv)}.${val ? ' ' + val : ''}`;
+      }
+
+      function renderAudio(d) {
+        const a = d.audio || {};
+        const mux = a.mux || {};
+        $('#audio-mux-copy').textContent = mux.implementationStatus === 'implemented'
+          ? `Automatic audio/video mux is implemented. Current build device validation: ${friendlyStatus(mux.deviceWorkflowValidation || 'awaiting_test')}.`
+          : 'Automatic audio/video mux is not currently implemented.';
+
+        const note = $('#audio-status-note p');
+        const blocker = a.rangeCapture?.currentBlocker || 'Native range capture still requires runtime acceptance.';
+        note.textContent = `${friendlyStatus(a.implementationStatus)} · ${friendlyStatus(a.runtimeValidation)}. ${blocker}`;
+      }
+
+      function renderIssues(d) {
+        const grid = $('#issues-grid');
+        grid.innerHTML = '';
+        (d.knownIssues || []).forEach(issue => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const h = document.createElement('h3');
+          h.textContent = friendlyStatus(issue.id);
+          const p = document.createElement('p');
+          p.textContent = issue.fact;
+          const status = document.createElement('div');
+          status.className = 'status-line';
+          const dot = document.createElement('span');
+          dot.className = 'state-dot progress';
+          const copy = document.createElement('span');
+          copy.className = 'status-copy';
+          copy.textContent = `${friendlyStatus(issue.implementationStatus)} · ${friendlyStatus(issue.runtimeValidation)}`;
+          status.append(dot, copy);
+          card.append(h, p, status);
+          grid.appendChild(card);
+        });
+
+        const list = $('#limitations-list');
+        list.innerHTML = '';
+        (d.limitations || []).forEach(lim => {
+          const li = document.createElement('li');
+          li.textContent = lim.fact;
+          list.appendChild(li);
+        });
+      }
+
+      function render(d) {
+        manifest = d;
+        renderMeta(d);
+        renderCore(d);
+        renderParameters(d);
+        renderColor(d);
+        renderMidi(d);
+        renderLibrary(d);
+        renderExport(d);
+        renderAudio(d);
+        renderIssues(d);
+      }
+
+      async function loadManifest() {
+        try {
+          const response = await fetch(manifestUrl, { cache: 'no-store' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          render(data);
+        } catch (err) {
+          if (fallbackManifest) {
+            console.warn('INDEX HELP live manifest unavailable; using local JS mirror:', err);
+            render(fallbackManifest);
+          } else {
+            console.warn('INDEX HELP manifest unavailable:', err);
+            $('#manifest-error').classList.add('visible');
+          }
+        }
+      }
+
+      const manualSections = () => $$('details.manual-section');
+
+      function updateInfoToggle() {
+        const sections = manualSections();
+        const anyOpen = sections.some(d => d.open);
+        const button = $('#info-toggle');
+        button.textContent = anyOpen ? 'INFO −' : 'INFO +';
+        button.classList.toggle('is-negative', anyOpen);
+        button.setAttribute('aria-pressed', anyOpen ? 'true' : 'false');
+        button.setAttribute('aria-label', anyOpen ? 'Collapse all information' : 'Expand all information');
+      }
+
+      $('#info-toggle').addEventListener('click', () => {
+        const sections = manualSections();
+        const anyOpen = sections.some(d => d.open);
+        sections.forEach(d => d.open = !anyOpen);
+        clearTargetState();
+        updateInfoToggle();
+      });
+
+
+      function updateStickyOffset() {
+        const bar = $('.topbar');
+        const h = bar ? Math.ceil(bar.getBoundingClientRect().height) : 58;
+        document.documentElement.style.setProperty('--sticky-offset', `${h + 14}px`);
+      }
+
+      function clearTargetState() {
+        $$('.nav-link').forEach(a => a.classList.remove('active'));
+      }
+
+      function scrollTargetIntoView(target) {
+        const bar = $('.topbar');
+        const offset = (bar ? Math.ceil(bar.getBoundingClientRect().height) : 62) + 14;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      }
+
+      function goToSection(id, updateHash = true) {
+        const target = document.getElementById(id);
+        if (!target) return;
+        clearTargetState();
+
+        const sections = manualSections();
+        if (target.matches('details.manual-section')) {
+          sections.forEach(section => { section.open = section === target; });
+          $$(`.nav-link[href="#${id}"]`).forEach(link => link.classList.add('active'));
+        } else if (id === 'quick-start') {
+          sections.forEach(section => { section.open = false; });
+          $$(`.nav-link[href="#${id}"]`).forEach(link => link.classList.add('active'));
+        }
+
+        updateInfoToggle();
+        requestAnimationFrame(() => {
+          updateStickyOffset();
+          scrollTargetIntoView(target);
+          if (updateHash) history.replaceState(null, '', `#${id}`);
+          setTimeout(() => scrollTargetIntoView(target), 220);
+        });
+      }
+
+      $$('.nav-link').forEach(link => {
+        link.addEventListener('click', (event) => {
+          const id = link.getAttribute('href')?.replace(/^#/, '');
+          if (!id) return;
+          event.preventDefault();
+          goToSection(id);
+        });
+      });
+
+      $$('details.manual-section').forEach(section => {
+        section.addEventListener('toggle', () => {
+          const id = section.id;
+          if (!section.open) {
+            $$(`.nav-link[href="#${id}"]`).forEach(link => link.classList.remove('active'));
+          }
+          updateInfoToggle();
+        });
+      });
+
+      function updateDockedNavigation() {
+        const hero = $('.hero');
+        const bar = $('.topbar');
+        if (!hero || !bar) return;
+        const docked = hero.getBoundingClientRect().bottom <= Math.ceil(bar.getBoundingClientRect().height) + 4;
+        document.body.classList.toggle('nav-docked', docked);
+        updateStickyOffset();
+      }
+
+      window.addEventListener('scroll', updateDockedNavigation, { passive: true });
+      window.addEventListener('resize', () => { updateStickyOffset(); updateDockedNavigation(); }, { passive: true });
+      updateStickyOffset();
+      updateDockedNavigation();
+      updateInfoToggle();
+
+      if (location.hash) {
+        window.addEventListener('load', () => {
+          const id = location.hash.slice(1);
+          setTimeout(() => goToSection(id, false), 60);
+        }, { once: true });
+      }
+
+      loadManifest();
+    })();
+  </script>
+</body>
+</html>

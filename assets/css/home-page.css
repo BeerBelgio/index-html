@@ -1,4 +1,4 @@
-@import url("../fonts/m-plus-rounded-1c/m-plus-rounded-1c/font.css");
+@import url("../fonts/m-plus-rounded-1c/font.css");
 @import url("../fonts/barlow-condensed/font.css");
 
 :root {
@@ -791,3 +791,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .catalogue-section { padding-top: 56px; }
 #tools { scroll-margin-top: 110px; }
 .home-footer, .home-footer a { color: #000; }
+
+/* V0.19: Max for Live documentation links share the site's interaction language. */
+.max-links { display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-top:16px; }
+.max-links .inline-link { white-space:normal; }
