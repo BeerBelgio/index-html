@@ -49,3 +49,11 @@
   .pg-colors-grid .pg-control:nth-child(odd) { padding-right: 12px; border-right:1px solid var(--soft-line); }
   .pg-console #pg-status { max-width: 58%; }
 }
+
+/* V0.19.2 — true adaptive canvas, no aspect-ratio selector. */
+.pg-stage { overflow: hidden; }
+.pg-surface { inset: 0; width: 100% !important; height: 100% !important; top: 0; left: 0; transform: none; aspect-ratio: auto; }
+.pg-empty { padding: 18px; }
+.pg-empty img { display: block; max-width: min(86%, 580px); max-height: 78%; width: auto; height: auto; object-fit: contain; }
+.pg-row button { display: inline-flex; align-items: center; justify-content: center; text-align: center; min-width: 78px; }
+.pg-intro p:last-child { max-width: none; }

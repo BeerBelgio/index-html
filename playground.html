@@ -1,23 +1,23 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="index-html-build" content="v0.19.1">
+<meta name="index-html-build" content="v0.19.2">
 <link rel="canonical" href="https://beerbelgio.github.io/index-html/playground.html"><meta name="description" content="Test standalone visual HTML tools locally in INDEX Playground.">
 <title>INDEX HTML — Playground</title>
 <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/home-page.css?v=0191">
-<link rel="stylesheet" href="assets/css/playground.css?v=0191">
+<link rel="stylesheet" href="assets/css/home-page.css?v=0192">
+<link rel="stylesheet" href="assets/css/playground.css?v=0192">
 </head><body>
 <header class="home-header shell pg-header">
-<a class="home-brand about-header-brand" href="./" aria-label="INDEX HTML home"><span class="home-brand-sticky is-always"><img class="home-brand-wordmark" src="assets/branding/wordmark.svg" alt="INDEX HTML"><span class="home-brand-claim">CREATIVE CODE FOR VISUAL SYSTEMS</span></span></a>
+<a class="home-brand about-header-brand" href="./" aria-label="INDEX HTML home"><span class="home-brand-compact"><img src="assets/branding/favicon.svg" alt="" aria-hidden="true"></span></a>
 <nav class="home-nav" aria-label="Main navigation"><a href="./#tools">TOOLS</a><a href="playground.html" aria-current="page">PLAYGROUND</a><a href="about.html">ABOUT</a></nav>
 </header>
 <main class="shell pg-main">
-<section class="pg-intro"><h1 class="pg-intro-art"><img src="assets/branding/playground.svg?v=0191" alt="PLAYGROUND"></h1><p>Drop an HTML tool, or load one from INDEX.<br>Test the parameters, colors and host behaviour.<br>Local uploads stay in your browser.</p></section>
+<section class="pg-intro"><h1 class="pg-intro-art"><img src="assets/branding/playground.svg?v=0192" alt="PLAYGROUND"></h1><p>Drop an HTML tool here or load one from INDEX. // Test the parameters, colors and host behaviour. // Local uploads mean everything stays in your browser.</p></section>
 <section id="pg-drop" class="pg-drop" aria-label="Load a tool">
 <div><strong>DROP AN HTML FILE</strong><p>or <label class="pg-file-link" for="pg-file">CHOOSE A FILE ↗</label></p><input id="pg-file" type="file" accept=".html,.htm,text/html" hidden></div>
 <div class="pg-divider"></div>
-<div><label class="pg-micro" for="pg-select">TRY A CATALOGUE TOOL</label><div class="pg-row"><select id="pg-select"><option value="">Select a tool…</option></select><button id="pg-load" disabled type="button">LOAD ↗</button></div></div>
+<div><label class="pg-micro" for="pg-select">TRY A CATALOGUE TOOL</label><div class="pg-row"><select id="pg-select"><option value="">Select a tool…</option></select><button id="pg-load" disabled type="button">LOAD</button></div></div>
 </section>
 <section class="pg-workbench" aria-label="Playground live preview and tool controls">
   <div class="pg-preview">
@@ -26,14 +26,14 @@
       <div class="pg-surface" id="pg-surface" data-ratio="16:9">
         <iframe id="pg-iframe" sandbox="allow-scripts" referrerpolicy="no-referrer" title="Isolated visual tool preview" hidden></iframe>
         <canvas id="pg-effect" hidden></canvas>
-        <div id="pg-empty" class="pg-empty"><strong>INDEX</strong><span>DROP A TOOL TO START</span></div>
+        <div id="pg-empty" class="pg-empty"><img src="assets/branding/playground_NOTOOL.svg?v=0192" alt="Drop a tool to start"></div>
       </div>
     </div>
     <div class="pg-colors-dock">
       <div class="pg-bar"><span>COLORS</span><span>OPACITY</span></div>
       <div class="pg-colors-grid" id="pg-colors"><p>No declared colors.</p></div>
     </div>
-    <div class="pg-bottom"><label>RATIO <select id="pg-ratio"><option>16:9</option><option>1:1</option><option>4:3</option><option>9:16</option></select></label><button id="pg-play" disabled>PAUSE</button><button id="pg-reset" disabled>RESET</button><output id="pg-fps">— FPS</output></div>
+    <div class="pg-bottom"><button id="pg-play" disabled>PAUSE</button><button id="pg-reset" disabled>RESET</button><output id="pg-fps">— FPS</output></div>
   </div>
   <aside class="pg-controls">
     <div class="pg-bar"><span>PARAMETERS</span><span id="pg-title">NO TOOL</span></div>
@@ -46,5 +46,5 @@
 </details>
 </main>
 <footer class="home-footer shell"><div class="footer-signature">© 2026 BeerBelgio · FUN IS A SERIOUS THING</div><nav class="footer-links"><a href="./">INDEX HTML</a><a href="about.html">ABOUT</a></nav></footer>
-<script src="assets/js/playground.js?v=0191"></script>
+<script src="assets/js/playground.js?v=0192"></script>
 </body></html>

@@ -795,3 +795,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 /* V0.19: Max for Live documentation links share the site's interaction language. */
 .max-links { display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-top:16px; }
 .max-links .inline-link { white-space:normal; }
+
+/* V0.19.2 — compact navigation branding, including the sticky home header. */
+.home-header.is-scrolled .home-brand-compact { display: inline-flex; }
+.home-header.is-scrolled .home-brand-sticky { display: none; }

@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.19.1 RC**
+**Current staging UI build → V0.19.2 RC**
 
 **V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
 
@@ -31,7 +31,9 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 **V0.19.0 Playground + Bridge Help:** adds a public browser-local HTML testing Playground (legacy generator, provisional INDEX-native generator, Bridge-style fragment EFFECT preview), a publicly indexable Bridge 0.22.24 Help page with local mirror manifest, flattened M PLUS font assets and a prospective INDEX-native protocol migration note. None of the 20 canonical tool files are changed. Compositor A/B input and host native-manifest support remain future work.
 
-**V0.19.1 Playground usability hotfix:** catalogue row anchoring centers the first tool row after asynchronous loading, catalogue cards shuffle on every homepage visit, the tool-page header links to the Playground, and Playground moves colors below the renderer while aligning its preview column with the parameter list. Diagnostics is collapsed until needed; redundant lab copy is removed. No canonical tool changes. A new Playground title SVG is pending delivery from the project owner.
+**V0.19.1 Playground usability hotfix:** catalogue row anchoring centers the first tool row after asynchronous loading, catalogue cards shuffle on every homepage visit, the tool-page header links to the Playground, and Playground moves colors below the renderer while aligning its preview column with the parameter list. Diagnostics is collapsed until needed; redundant lab copy is removed. No canonical tool changes. The original Playground title SVG supplied by the project owner is now integrated.
+
+**V0.19.2 Playground runtime and UI hotfix:** adds the owner-provided empty-preview SVG, removes the Ratio selector, lets render fill the parameter-aligned stage, revises Playground introduction copy, centers the LOAD button, uses a compact favicon in sticky/narrow headers, and fixes the slow Cassini Flow switch/pause by replacing the sandbox iframe per load and waiting for draw completion before posting another frame. This is still a one-tool Playground; five-layer composition is a separate planned feature, not silently included in this hotfix. The 20 canonical HTML tools remain unchanged.
 
 The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.
 
