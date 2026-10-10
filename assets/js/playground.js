@@ -2,11 +2,11 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const ui={iframe:$('pg-iframe'),canvas:$('pg-effect'),stage:$('pg-stage'),surface:$('pg-surface'),diagnostics:$('pg-diagnostics'),empty:$('pg-empty'),params:$('pg-params'),colors:$('pg-colors'),drop:$('pg-drop'),file:$('pg-file'),select:$('pg-select'),load:$('pg-load'),status:$('pg-status'),log:$('pg-log'),title:$('pg-title'),role:$('pg-role'),fps:$('pg-fps'),play:$('pg-play'),reset:$('pg-reset')};
-let sid=0,manifest=null,state=null,alpha={},running=false,last=0,clock=0,raf=0,fx=null,kind='',catalogue=[],frames=0,fpsFrom=0,drawPending=false,drawDirty=false,loadSequence=0;
+let sid=0,manifest=null,state=null,alpha={},running=false,last=0,clock=0,raf=0,fx=null,kind='',catalogue=[],frames=0,fpsFrom=0,drawPending=false,drawDirty=false,loadSequence=0,awaitingFirstFrame=false,loadStarted=0,loadTimer=0,firstFrameTimer=0,lastLoadingName='';
 const text=x=>String(x??'');
 function line(msg){ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+msg;ui.log.scrollTop=ui.log.scrollHeight;}
 function info(msg){ui.status.textContent=msg;ui.status.classList.remove('pg-status-error');}
-function error(msg){ui.status.textContent=msg;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;line('ERROR: '+msg);}
+function error(msg){clearTimeout(loadTimer);loadTimer=0;running=false;cancelAnimationFrame(raf);raf=0;drawPending=false;ui.empty.hidden=false;ui.empty.removeAttribute('aria-busy');ui.status.textContent=msg;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;line('ERROR: '+msg);}
 function normalize(raw){if(!raw||!Array.isArray(raw.params)||!Array.isArray(raw.colors))throw Error('Manifest needs params[] and colors[].');const seen=new Set();for(const v of [...raw.params,...raw.colors]){if(!v.key||seen.has(v.key))throw Error('Duplicate or missing key: '+v.key);seen.add(v.key);}for(const p of raw.params)if(![p.min,p.max,p.step,p.default].every(n=>Number.isFinite(Number(n)))||Number(p.step)<=0||Number(p.min)>Number(p.max))throw Error('Invalid numeric param '+p.key);for(const c of raw.colors)if(!/^#[0-9a-f]{6}$/i.test(c.default))throw Error('Invalid hex color '+c.key);return {...raw,role:raw.index?.role||raw.role||'generator',effect:raw.index?.effect||raw.effect||null};}
 // Opaque-origin sandbox, no same-origin privileges. Execution and manifest inspection stay inside it.
 function srcdoc(html,id){
@@ -16,15 +16,70 @@ function srcdoc(html,id){
  if(/<head\b[^>]*>/i.test(html))html=html.replace(/<head\b[^>]*>/i,m=>m+policy+boot);else html=policy+boot+html;
  if(/<\/body>/i.test(html))return html.replace(/<\/body>/i,done+'</body>');return html+done;
 }
-function stop(){running=false;cancelAnimationFrame(raf);if(fx)fx.dispose();fx=null;ui.iframe.hidden=true;ui.canvas.hidden=true;ui.play.disabled=true;ui.reset.disabled=true;manifest=null;state=null;kind='';last=0;clock=0;drawPending=false;drawDirty=false;ui.fps.textContent='— FPS';}
-function open(html,name){if(html.length>2*1024*1024)throw Error('Maximum supported HTML size is 2 MB.');stop();sid++;ui.log.textContent='';ui.title.textContent=name;ui.role.textContent='LOADING';ui.empty.hidden=false;const previous=ui.iframe;const fresh=previous.cloneNode(false);previous.replaceWith(fresh);ui.iframe=fresh;fresh.hidden=false;fresh.srcdoc=srcdoc(html,sid);line('Loading '+name+' in isolated iframe');info('Inspecting manifest…');}
-async function local(file){const request=++loadSequence;try{if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html'))throw Error('Choose an HTML file.');if(file.size>2*1024*1024)throw Error('Maximum file size: 2 MB.');const html=await file.text();if(request===loadSequence)open(html,file.name);}catch(e){error(e.message)}}
-ui.file.addEventListener('change',()=>{if(ui.file.files[0])local(ui.file.files[0]);ui.file.value=''});
+function stop(){
+ running=false;cancelAnimationFrame(raf);raf=0;
+ if(fx)fx.dispose();fx=null;
+ clearTimeout(loadTimer);clearTimeout(firstFrameTimer);loadTimer=firstFrameTimer=0;
+ ui.iframe.hidden=true;ui.canvas.hidden=true;ui.play.disabled=true;ui.reset.disabled=true;
+ manifest=null;state=null;kind='';last=0;clock=0;drawPending=false;drawDirty=false;awaitingFirstFrame=false;
+ ui.fps.textContent='— FPS';
+}
+// Never clone an iframe with srcdoc: it would clone the previous tool's entire
+// HTML, potentially starting that expensive runtime AGAIN during replacement.
+function freshIframe(){
+ const frame=document.createElement('iframe');
+ frame.id='pg-iframe';frame.setAttribute('sandbox','allow-scripts');
+ frame.setAttribute('referrerpolicy','no-referrer');
+ frame.title='Isolated visual tool preview';frame.hidden=true;
+ ui.iframe.replaceWith(frame);ui.iframe=frame;
+ return frame;
+}
+function startLoading(name){
+ stop();sid++;freshIframe();
+ lastLoadingName=name;loadStarted=performance.now();
+ ui.log.textContent='';ui.title.textContent=name;ui.role.textContent='LOADING';
+ ui.empty.hidden=false;ui.empty.setAttribute('aria-busy','true');
+ info('Loading '+name+'…');line('Loading '+name);
+ loadTimer=setTimeout(()=>{
+   if(ui.role.textContent==='LOADING' || awaitingFirstFrame){
+     error('The tool has not produced its first frame yet. Check whether its drawing is blocking the browser.');
+   }
+ },16000);
+}
+function open(html,name,prepared=false){
+ if(html.length>2*1024*1024)throw Error('Maximum supported HTML size is 2 MB.');
+ if(!prepared)startLoading(name);
+ ui.iframe.hidden=false;
+ // The SVG remains above the iframe until an actual drawing acknowledgement.
+ info('Inspecting manifest…');
+ ui.iframe.srcdoc=srcdoc(html,sid);
+}
+async function local(file){
+ const request=++loadSequence;
+ try{
+  if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html'))throw Error('Choose an HTML file.');
+  if(file.size>2*1024*1024)throw Error('Maximum file size: 2 MB.');
+  startLoading(file.name);
+  const html=await file.text();if(request===loadSequence)open(html,file.name,true);
+ }catch(e){if(request===loadSequence)error(e.message)}
+}
+ui.file.addEventListener('change',()=>{if(ui.file.files[0])local(ui.file.files[0]);ui.file.value=''});ui.file.previousElementSibling?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ui.file.click()}});
 for(const evt of ['dragenter','dragover'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.add('drag')});for(const evt of ['dragleave','drop'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.remove('drag')});ui.drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])local(e.dataTransfer.files[0])});
 fetch('data/tools.json').then(r=>{if(!r.ok)throw Error('Catalogue HTTP '+r.status);return r.json()}).then(d=>{catalogue=d.tools||[];for(const tool of catalogue){const o=document.createElement('option');o.value=tool.toolId;o.textContent=tool.name+' · '+tool.version;ui.select.append(o)}}).catch(e=>line('Catalogue unavailable: '+e.message));
 ui.select.addEventListener('change',()=>ui.load.disabled=!ui.select.value);
-ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;const request=++loadSequence;ui.load.disabled=true;try{const r=await fetch(item.file,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const html=await r.text();if(request!==loadSequence)return;open(html,item.name)}catch(e){if(request===loadSequence)error(e.message)}finally{if(request===loadSequence)ui.load.disabled=!ui.select.value}});
-window.addEventListener('message',e=>{if(e.source!==ui.iframe.contentWindow)return;const msg=e.data;if(!msg||msg.indexPlayground!==sid)return;if(msg.type==='error'){drawPending=false;error(text(msg.data).slice(0,1600));return}if(msg.type==='drawDone'){drawPending=false;frames++;if(drawDirty){drawDirty=false;if(!running)draw()}return}if(msg.type!=='ready')return;try{manifest=normalize(msg.data.manifest);kind=manifest.role;state={time:0};alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}ui.role.textContent=kind.toUpperCase()+(msg.data.native?' · INDEX':' · LEGACY');ui.title.textContent=manifest.name||'UNNAMED';controls();if(kind==='effect'){if(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string')throw Error('Effect needs a fragment GLSL shader.');ui.iframe.hidden=true;ui.canvas.hidden=false;fx=makeFx(manifest.effect.fragment)}else if(kind==='generator'){if(!msg.data.hasResize||!msg.data.hasDraw)throw Error('Missing draw or resize entrypoint.');ui.iframe.hidden=false;ui.canvas.hidden=true;}else throw Error('Role '+kind+' is planned, but an A/B input contract is not yet implemented.');ui.empty.hidden=true;resize();running=true;ui.play.disabled=false;ui.play.textContent='PAUSE';ui.reset.disabled=false;last=0;clock=0;frames=0;fpsFrom=0;info('Ready: '+(manifest.name||'Tool')+' · '+manifest.params.length+' parameters · '+manifest.colors.length+' colors');line((msg.data.native?'INDEX_TOOL prototype':'SKETCH_TOOL legacy')+' · '+kind);raf=requestAnimationFrame(tick);}catch(err){error(err.message);ui.empty.hidden=false;ui.iframe.hidden=true;ui.canvas.hidden=true}});
+ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;const request=++loadSequence;ui.load.disabled=true;startLoading(item.name);try{const r=await fetch(item.file,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const html=await r.text();if(request!==loadSequence)return;open(html,item.name,true)}catch(e){if(request===loadSequence)error(e.message)}finally{if(request===loadSequence)ui.load.disabled=!ui.select.value}});
+window.addEventListener('message',e=>{if(e.source!==ui.iframe.contentWindow)return;const msg=e.data;if(!msg||msg.indexPlayground!==sid)return;if(msg.type==='error'){drawPending=false;error(text(msg.data).slice(0,1600));return}if(msg.type==='drawDone'){drawPending=false;frames++;if(awaitingFirstFrame)finishFirstFrame();if(drawDirty){drawDirty=false;if(!running)draw()}return}if(msg.type!=='ready')return;try{manifest=normalize(msg.data.manifest);kind=manifest.role;state={time:0};alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}ui.role.textContent=kind.toUpperCase()+(msg.data.native?' · INDEX':' · LEGACY');ui.title.textContent=manifest.name||'UNNAMED';controls();if(kind==='effect'){if(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string')throw Error('Effect needs a fragment GLSL shader.');ui.iframe.hidden=true;ui.canvas.hidden=false;fx=makeFx(manifest.effect.fragment)}else if(kind==='generator'){if(!msg.data.hasResize||!msg.data.hasDraw)throw Error('Missing draw or resize entrypoint.');ui.iframe.hidden=false;ui.canvas.hidden=true;}else throw Error('Role '+kind+' is planned, but an A/B input contract is not yet implemented.');awaitingFirstFrame=true;ui.empty.hidden=false;info('Preparing first frame…');resize();running=true;ui.play.disabled=false;ui.play.textContent='PAUSE';ui.reset.disabled=false;last=0;clock=0;frames=0;fpsFrom=0;line((msg.data.native?'INDEX_TOOL prototype':'SKETCH_TOOL legacy')+' · '+kind);raf=requestAnimationFrame(tick);}catch(err){error(err.message);ui.empty.hidden=false;ui.iframe.hidden=true;ui.canvas.hidden=true}});
+function finishFirstFrame(){
+ if(!awaitingFirstFrame)return;
+ awaitingFirstFrame=false;clearTimeout(loadTimer);loadTimer=0;
+ // Wait for Chromium to commit a paint before removing the SVG placeholder.
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   if(!manifest||awaitingFirstFrame)return;
+   ui.empty.hidden=true;ui.empty.removeAttribute('aria-busy');
+   info('Ready: '+(manifest.name||'Tool')+' · '+manifest.params.length+' parameters · '+manifest.colors.length+' colors');
+   line('First frame displayed after '+Math.round(performance.now()-loadStarted)+' ms');
+ }));
+}
 function send(action,body){ui.iframe.contentWindow?.postMessage({indexCommand:sid,action,...body},'*')}
 function resize(){
  if(!state)return;
@@ -45,7 +100,7 @@ const controlsObserver=new ResizeObserver(()=>matchParameterHeight());controlsOb
 window.addEventListener('resize',matchParameterHeight,{passive:true});
 
 
-function draw(){if(!state)return;if(kind==='generator'){if(drawPending){drawDirty=true;return}drawPending=true;drawDirty=false;send('draw',{state:{...state},context:{colorOpacity:{...alpha}}})}else if(kind==='effect'){fx?.draw(state,alpha);frames++}}
+function draw(){if(!state)return;if(kind==='generator'){if(drawPending){drawDirty=true;return}drawPending=true;drawDirty=false;send('draw',{state:{...state},context:{colorOpacity:{...alpha}}})}else if(kind==='effect'){fx?.draw(state,alpha);frames++;if(awaitingFirstFrame)finishFirstFrame()}}
 function tick(now){if(!running)return;if(last)clock+=Math.min(.05,(now-last)/1000);last=now;state.time=clock;draw();if(!fpsFrom)fpsFrom=now;if(now-fpsFrom>=1000){ui.fps.textContent=Math.round(frames*1000/(now-fpsFrom))+' FPS';frames=0;fpsFrom=now}raf=requestAnimationFrame(tick)}
 ui.play.addEventListener('click',()=>{if(!state)return;running=!running;ui.play.textContent=running?'PAUSE':'PLAY';last=0;cancelAnimationFrame(raf);if(running)raf=requestAnimationFrame(tick);else ui.fps.textContent='PAUSED'});
 ui.reset.addEventListener('click',()=>{if(!manifest)return;clock=0;state.time=0;for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}controls();if(!running)draw()});$('pg-clear').addEventListener('click',()=>ui.log.textContent='');

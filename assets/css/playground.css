@@ -57,3 +57,16 @@
 .pg-empty img { display: block; max-width: min(86%, 580px); max-height: 78%; width: auto; height: auto; object-fit: contain; }
 .pg-row button { display: inline-flex; align-items: center; justify-content: center; text-align: center; min-width: 78px; }
 .pg-intro p:last-child { max-width: none; }
+
+
+/* V0.19.3 — predictable changeover, filename action and loading placeholder. */
+.pg-drop-action { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.28em; row-gap:.12em; font:800 32px/1.1 var(--display-font); }
+.pg-drop-action strong { font:inherit; transition:color 150ms ease; }
+.pg-drop-action .pg-file-link { display:inline-flex; align-items:baseline; font:inherit; color:var(--ink); text-decoration:none; outline-offset:4px; }
+.pg-drop-action .pg-file-link:hover,.pg-drop-action .pg-file-link:focus-visible,.pg-drop-action .pg-file-link:active { color:var(--orange); }
+.pg-drop-action:has(.pg-file-link:hover) strong,.pg-drop-action:has(.pg-file-link:focus-visible) strong,.pg-drop-action:has(.pg-file-link:active) strong { color:var(--orange); }
+.pg-file-arrow { display:inline-block; width:0; opacity:0; overflow:hidden; white-space:nowrap; transform:translateX(-5px); transition:width 150ms ease,opacity 150ms ease,transform 150ms ease; }
+.pg-file-link:hover .pg-file-arrow,.pg-file-link:focus-visible .pg-file-arrow,.pg-file-link:active .pg-file-arrow { width:1em; opacity:1; transform:none; }
+.pg-surface .pg-empty { z-index:5; background:#1c1713; pointer-events:none; }
+.pg-surface .pg-empty[hidden] { display:none !important; }
+.pg-surface .pg-empty img { opacity:1; }
