@@ -71,38 +71,49 @@
 .pg-surface .pg-empty[hidden] { display:none !important; }
 .pg-surface .pg-empty img { opacity:1; }
 
-/* V0.19.4 — uploader micro-interaction and performance diagnostics. */
+/* V0.19.5 — compact, accessible performance gauges in preview; no history graph. */
 .pg-drop-action:has(.pg-file-link:hover) strong,
 .pg-drop-action:has(.pg-file-link:focus-visible) strong,
-.pg-drop-action:has(.pg-file-link:active) strong { color: var(--ink); }
-.pg-file-arrow { font-size: .9em; margin-left: .16em; transform: translateX(-4px); }
-.pg-file-link:hover .pg-file-arrow,
-.pg-file-link:focus-visible .pg-file-arrow,
-.pg-file-link:active .pg-file-arrow { transform: translateX(0); width: 1.15em; }
-.pg-perf-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
-.pg-perf-toolbar strong { font-size:11px; font-weight:800; letter-spacing:.075em; margin-right:auto; }
-.pg-perf-toolbar label { font-size:10px; font-weight:800; letter-spacing:.06em; }
-.pg-perf-toolbar select { border:1px solid var(--ink); border-radius:7px; color:var(--ink); padding:6px 8px; background:var(--cream); font-family:inherit; font-size:11px; font-weight:700; line-height:1.2; }
-.pg-perf-values { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:17px 0 12px; }
-.pg-perf-values > div { display:flex; flex-direction:column; gap:6px; min-width:0; }
-.pg-perf-values span { font-size:9px; letter-spacing:.08em; font-weight:800; color:#666; }
-.pg-perf-values output { font-size:clamp(13px,1.5vw,20px); line-height:1.15; font-weight:800; font-variant-numeric:tabular-nums; white-space:nowrap; }
-#pg-perf-health { color:var(--ink); }
-.pg-performance[data-health="warning"] #pg-perf-health,
-.pg-performance[data-health="warning"] .pg-perf-fill { color:var(--orange-deep); background:var(--orange); }
-.pg-performance[data-health="critical"] #pg-perf-health,
-.pg-performance[data-health="critical"] .pg-perf-fill { color:#ad3628; background:#ad3628; }
-.pg-performance[data-health="good"] #pg-perf-health { color:#3f7446; }
-.pg-perf-meter { height:9px; background:rgba(0,0,0,.10); border-radius:99px; overflow:hidden; }
-.pg-perf-fill { height:100%; width:0%; background:#6a9e5d; border-radius:99px; transition:width 220ms ease; }
-.pg-perf-graph { height:106px; margin-top:13px; border:1px solid var(--soft-line); background:var(--cream-deep); border-radius:8px; overflow:hidden; }
-.pg-perf-graph canvas { display:block; width:100%; height:100%; }
-.pg-perf-note { margin:11px 0 0; color:#555; font-size:11px; line-height:1.55; }
-.pg-log-header { display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--soft-line); padding-top:14px; margin-top:16px; }
-.pg-log-header span { font-size:10px; font-weight:800; letter-spacing:.08em; }
+.pg-drop-action:has(.pg-file-link:active) strong { color:var(--ink); }
+.pg-drop-action .pg-file-link { gap:.32em; }
+.pg-file-arrow { display:inline-block; width:0; height:.73em; flex:0 0 auto; opacity:0; margin:0; background:currentColor;
+ -webkit-mask:url("../icon-arrow-up-right.svg") center/contain no-repeat;
+ mask:url("../icon-arrow-up-right.svg") center/contain no-repeat;
+ transform:translateX(-3px); transition:width .15s ease,opacity .15s ease,transform .15s ease; }
+.pg-file-link:hover .pg-file-arrow,.pg-file-link:focus-visible .pg-file-arrow,.pg-file-link:active .pg-file-arrow {
+ width:.73em; opacity:1; transform:translateX(0); }
+.pg-bottom { display:flex; align-items:center; flex-wrap:wrap; gap:12px 16px; padding:12px 15px; }
+.pg-bottom-actions { display:flex; flex:0 0 auto; gap:8px; }
+.pg-target-control { display:flex; flex:0 0 auto; align-items:center; gap:7px; font-size:10px; font-weight:800; letter-spacing:.055em; white-space:nowrap; }
+.pg-target-control select { min-width:72px; padding:7px 8px; border:1px solid var(--ink); border-radius:8px; background:var(--cream); color:var(--ink); font-family:inherit; font-size:11px; font-weight:700; line-height:1.2; cursor:pointer; }
+.pg-compact-meters { margin-left:auto; display:flex; align-items:flex-end; justify-content:flex-end; gap:12px; flex:1 1 300px; min-width:0; }
+.pg-mini-meter { display:flex; flex:1 1 0; flex-direction:column; align-items:center; min-width:90px; max-width:132px; gap:3px; --meter-color:#6a9e5d; }
+.pg-mini-meter[data-health="idle"],.pg-mini-meter[data-health="monitoring"],.pg-mini-meter[data-health="paused"] { --meter-color:#777; }
+.pg-mini-meter[data-health="warning"] { --meter-color:#ec6b2d; }
+.pg-mini-meter[data-health="critical"] { --meter-color:#c94b2e; }
+.pg-mini-label { text-align:center; font-size:9px; font-weight:800; letter-spacing:.04em; white-space:nowrap; }
+.pg-mini-gauge { position:relative; width:100%; max-width:100px; height:56px; }
+.pg-mini-gauge svg { display:block; width:100%; height:100%; overflow:visible; }
+.pg-gauge-track,.pg-gauge-progress { fill:none; stroke-width:7; stroke-linecap:round; }
+.pg-gauge-track { stroke:rgba(0,0,0,.13); }
+.pg-gauge-progress { stroke:var(--meter-color); transition:stroke-dashoffset .25s ease,stroke .25s ease; }
+.pg-gauge-value { position:absolute; display:block; bottom:0; left:0; width:100%; font-size:14px; line-height:1.15; font-weight:800; text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.pg-diagnostics-body .pg-perf-note { margin:0 0 14px; padding:0; font-size:11px; color:#555; line-height:1.45; }
+.pg-log-header { display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--soft-line); padding-top:13px; }
+.pg-log-header span { font-size:10px; font-weight:800; letter-spacing:.07em; }
 .pg-diagnostics-body .pg-log-header #pg-clear { margin:0; }
-@media(max-width:620px){
-  .pg-perf-values { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:16px; }
-  .pg-perf-values output { font-size:17px; }
-  .pg-perf-toolbar strong { flex-basis:100%; }
+@media(max-width:1150px){
+ .pg-compact-meters { flex-basis:100%; justify-content:flex-start; margin-left:0; }
+ .pg-mini-meter { flex:0 1 110px; }
+}
+@media(max-width:650px){
+ .pg-bottom { gap:13px; }
+ .pg-compact-meters { gap:6px; justify-content:space-between; }
+ .pg-mini-meter { flex:1 1 0; min-width:0; }
+ .pg-mini-label { font-size:8px; }
+ .pg-gauge-value { font-size:12px; }
+ .pg-target-control { flex:1 1 auto; justify-content:flex-end; }
+}
+@media(prefers-reduced-motion:reduce){
+ .pg-gauge-progress,.pg-file-arrow { transition:none; }
 }

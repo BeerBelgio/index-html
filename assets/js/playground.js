@@ -1,8 +1,8 @@
 (() => {
 'use strict';
 const $=id=>document.getElementById(id);
-const ui={iframe:$('pg-iframe'),canvas:$('pg-effect'),stage:$('pg-stage'),surface:$('pg-surface'),diagnostics:$('pg-diagnostics'),empty:$('pg-empty'),params:$('pg-params'),colors:$('pg-colors'),drop:$('pg-drop'),file:$('pg-file'),select:$('pg-select'),load:$('pg-load'),status:$('pg-status'),log:$('pg-log'),title:$('pg-title'),role:$('pg-role'),fps:$('pg-fps'),fpsTarget:$('pg-fps-target'),perf:$('pg-performance'),perfFps:$('pg-perf-fps'),perfCpu:$('pg-perf-cpu'),perfBudget:$('pg-perf-budget'),perfHealth:$('pg-perf-health'),perfFill:$('pg-perf-fill'),perfChart:$('pg-perf-chart'),placeholderArt:$('pg-placeholder-art'),play:$('pg-play'),reset:$('pg-reset')};
-let sid=0,manifest=null,state=null,alpha={},running=false,last=0,clock=0,raf=0,fx=null,kind='',catalogue=[],frames=0,fpsFrom=0,drawPending=false,drawDirty=false,loadSequence=0,awaitingFirstFrame=false,loadStarted=0,loadTimer=0,firstFrameTimer=0,lastLoadingName='',lastDrawAt=0,scheduledAt=0,frameCosts=[],lastPerfUpdate=0,observedFps=0,perfSamples=[],perfStart=0,cpuAverage=0,paintCount=0;
+const ui={iframe:$('pg-iframe'),canvas:$('pg-effect'),stage:$('pg-stage'),surface:$('pg-surface'),diagnostics:$('pg-diagnostics'),empty:$('pg-empty'),params:$('pg-params'),colors:$('pg-colors'),drop:$('pg-drop'),file:$('pg-file'),select:$('pg-select'),load:$('pg-load'),status:$('pg-status'),log:$('pg-log'),title:$('pg-title'),role:$('pg-role'),fpsTarget:$('pg-fps-target'),perf:$('pg-performance'),perfFps:$('pg-perf-fps'),perfCpu:$('pg-perf-cpu'),perfBudget:$('pg-perf-budget'),gaugeFps:$('pg-gauge-fps'),gaugeCpu:$('pg-gauge-cpu'),gaugeBudget:$('pg-gauge-budget'),placeholderArt:$('pg-placeholder-art'),play:$('pg-play'),reset:$('pg-reset')};
+let sid=0,manifest=null,state=null,alpha={},running=false,last=0,clock=0,raf=0,fx=null,kind='',catalogue=[],frames=0,fpsFrom=0,drawPending=false,drawDirty=false,loadSequence=0,awaitingFirstFrame=false,loadStarted=0,loadTimer=0,firstFrameTimer=0,lastLoadingName='',scheduledAt=0,frameCosts=[],observedFps=0,perfStart=0,cpuAverage=0,paintCount=0,performanceWindows=0,autoTicks=[],previousTick=0;
 const text=x=>String(x??'');
 const idleArt='assets/branding/playground_NOTOOL.svg?v=0192';
 const loadingArt='assets/branding/playground_LOADING-TOOL.svg?v=0194';
@@ -11,30 +11,28 @@ function placeholder(loading){
  ui.placeholderArt.alt=loading?'Loading tool':'Drop a tool to start';
 }
 const fpsCap=()=>ui.fpsTarget.value==='auto'?0:Number(ui.fpsTarget.value);
-const resetPerf=()=>{
- frameCosts=[];perfSamples=[];perfStart=0;lastPerfUpdate=0;observedFps=0;cpuAverage=0;paintCount=0;scheduledAt=0;lastDrawAt=0;
- ui.perfFps.textContent='—';ui.perfCpu.textContent='— ms';ui.perfBudget.textContent=fpsCap()?`${(1000/fpsCap()).toFixed(1)} ms`:'AUTO';
- ui.perfHealth.textContent='IDLE';ui.perf.dataset.health='idle';ui.perfFill.style.width='0%';
- paintPerfGraph();
+const setGauge=(key,value,unit,ratio,health='idle')=>{
+ const output=ui['perf'+key[0].toUpperCase()+key.slice(1)];
+ const arc=ui['gauge'+key[0].toUpperCase()+key.slice(1)];
+ if(output)output.textContent=value===null?'—'+(unit?' '+unit:''):value+((unit&&value!==null)?' '+unit:'');
+ if(arc)arc.style.strokeDashoffset=(100-Math.max(0,Math.min(1,ratio||0))*100).toFixed(1);
+ const meter=arc?.closest('.pg-mini-meter');if(meter)meter.dataset.health=health;
 };
+const autoBudget=()=>{
+ if(!autoTicks.length)return null;
+ const sorted=[...autoTicks].sort((a,b)=>a-b);
+ return sorted[Math.floor(sorted.length/2)];
+};
+function resetPerf(){
+ frameCosts=[];perfStart=0;observedFps=0;cpuAverage=0;paintCount=0;scheduledAt=0;performanceWindows=0;autoTicks=[];previousTick=0;
+ setGauge('fps',null,'',0);
+ setGauge('cpu',null,'ms',0);
+ const cap=fpsCap();setGauge('budget',cap?(1000/cap).toFixed(1):null,'ms',0);
+ ui.perf.dataset.health='idle';
+}
 function recordFrame(cost){
  paintCount++;
  if(Number.isFinite(cost)&&cost>=0){frameCosts.push(Math.min(10000,cost));if(frameCosts.length>90)frameCosts.shift();}
-}
-function paintPerfGraph(){
- const cv=ui.perfChart;if(!cv)return;
- const ctx=cv.getContext('2d');if(!ctx)return;
- const dpr=Math.min(2,devicePixelRatio||1),w=Math.max(1,Math.round(cv.clientWidth*dpr)),h=Math.max(1,Math.round(cv.clientHeight*dpr));
- if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
- ctx.clearRect(0,0,w,h);
- const cap=fpsCap(),max=Math.max(30,cap||0, ...perfSamples.map(s=>s.fps),observedFps)*1.12;
- ctx.strokeStyle='rgba(0,0,0,.10)';ctx.lineWidth=dpr;
- for(let row=1;row<4;row++){const y=h*row/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
- if(cap){ctx.strokeStyle='#c94b2e';ctx.setLineDash([4*dpr,4*dpr]);const y=h-(cap/max)*h;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();ctx.setLineDash([]);}
- if(!perfSamples.length)return;
- const xStep=w/Math.max(1,perfSamples.length-1);
- ctx.strokeStyle='#3f7446';ctx.lineWidth=2*dpr;ctx.beginPath();
- perfSamples.forEach((sample,i)=>{const x=i*xStep,y=h-(sample.fps/max)*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
 }
 function updatePerformance(now){
  if(!running)return;
@@ -44,33 +42,27 @@ function updatePerformance(now){
  const fps=paintCount*1000/elapsed;
  observedFps=fps;
  cpuAverage=frameCosts.length?frameCosts.reduce((a,b)=>a+b,0)/frameCosts.length:0;
- const cap=fpsCap(),budget=1000/(cap||60),pct=Math.min(100,cpuAverage/budget*100);
- ui.perfFps.textContent=fps.toFixed(1);
- ui.perfCpu.textContent=frameCosts.length?`${cpuAverage.toFixed(2)} ms`:'— ms';
- ui.perfBudget.textContent=cap?`${budget.toFixed(1)} ms`:'AUTO';
- ui.perfFill.style.width=`${pct.toFixed(1)}%`;
- let health='monitoring',label='MONITORING';
- if(cap&&perfSamples.length>=2){
-   if(fps<cap*.68||cpuAverage>budget*1.1){health='critical';label='STRUGGLING';}
-   else if(fps<cap*.90||cpuAverage>budget*.78){health='warning';label='TIGHT';}
-   else{health='good';label='ON TARGET';}
- }else if(!cap&&perfSamples.length>=2){
-   if(cpuAverage>16.7){health='warning';label='HEAVY';}
-   else{health='good';label='LIVE';}
- }
- ui.perf.dataset.health=health;ui.perfHealth.textContent=label;
- perfSamples.push({fps,cpu:cpuAverage});if(perfSamples.length>50)perfSamples.shift();
- if(ui.diagnostics.open)paintPerfGraph();
- ui.fps.textContent=Math.round(fps)+' FPS';
+ const cap=fpsCap(),auto=autoBudget();
+ const budget=cap?1000/cap:auto;
+ const capacity=cap||(auto?1000/auto:60);
+ const fpsFraction=Math.min(1,fps/Math.max(1,capacity));
+ const cpuFraction=budget?Math.min(1,cpuAverage/budget):0;
+ const headroom=budget?Math.max(0,1-cpuAverage/budget):0;
+ const health=(cap&&performanceWindows>=1&&fps<cap*.72)||cpuFraction>.96?'critical'
+              : (cap&&performanceWindows>=1&&fps<cap*.90)||cpuFraction>.78?'warning':'good';
+ ui.perf.dataset.health=health;
+ setGauge('fps',fps.toFixed(1),'',fpsFraction,health);
+ setGauge('cpu',frameCosts.length?cpuAverage.toFixed(2):null,'ms',cpuFraction,cpuFraction>.96?'critical':cpuFraction>.78?'warning':'good');
+ setGauge('budget',budget?budget.toFixed(1):null,'ms',headroom,health);
+ performanceWindows++;
  paintCount=0;perfStart=now;frameCosts=[];
 }
 ui.fpsTarget.addEventListener('change',()=>{
- scheduledAt=0;perfSamples=[];perfStart=0;paintCount=0;frameCosts=[];
- ui.perfBudget.textContent=fpsCap()?`${(1000/fpsCap()).toFixed(1)} ms`:'AUTO';
- ui.perfHealth.textContent=(!running&&state)?'PAUSED':'MONITORING';ui.perf.dataset.health='monitoring';
- paintPerfGraph();
+ scheduledAt=0;perfStart=0;paintCount=0;frameCosts=[];performanceWindows=0;
+ setGauge('fps',null,'',0);setGauge('cpu',null,'ms',0);
+ const cap=fpsCap();setGauge('budget',cap?(1000/cap).toFixed(1):(autoBudget()?.toFixed(1)||null),'ms',0);
+ ui.perf.dataset.health=running?'monitoring':'idle';
 });
-ui.diagnostics.addEventListener('toggle',()=>{if(ui.diagnostics.open)paintPerfGraph()});
 function line(msg){ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+msg;ui.log.scrollTop=ui.log.scrollHeight;}
 function info(msg){ui.status.textContent=msg;ui.status.classList.remove('pg-status-error');}
 function error(msg){clearTimeout(loadTimer);loadTimer=0;running=false;cancelAnimationFrame(raf);raf=0;drawPending=false;ui.empty.hidden=false;ui.empty.removeAttribute('aria-busy');placeholder(false);ui.status.textContent=msg;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;line('ERROR: '+msg);}
@@ -89,7 +81,7 @@ function stop(){
  clearTimeout(loadTimer);clearTimeout(firstFrameTimer);loadTimer=firstFrameTimer=0;
  ui.iframe.hidden=true;ui.canvas.hidden=true;ui.play.disabled=true;ui.reset.disabled=true;
  manifest=null;state=null;kind='';last=0;clock=0;drawPending=false;drawDirty=false;awaitingFirstFrame=false;
- ui.fps.textContent='— FPS';resetPerf();
+ resetPerf();
 }
 // Never clone an iframe with srcdoc: it would clone the previous tool's entire
 // HTML, potentially starting that expensive runtime AGAIN during replacement.
@@ -170,6 +162,8 @@ window.addEventListener('resize',matchParameterHeight,{passive:true});
 function draw(){if(!state)return;if(kind==='generator'){if(drawPending){drawDirty=true;return}drawPending=true;drawDirty=false;send('draw',{state:{...state},context:{colorOpacity:{...alpha}}})}else if(kind==='effect'){const start=performance.now();fx?.draw(state,alpha);recordFrame(performance.now()-start);frames++;if(awaitingFirstFrame)finishFirstFrame()}}
 function tick(now){
  if(!running)return;
+ if(previousTick){const delta=now-previousTick;if(delta>=4&&delta<=80){autoTicks.push(delta);if(autoTicks.length>60)autoTicks.shift();}}
+ previousTick=now;
  if(last)clock+=Math.min(.05,(now-last)/1000);
  last=now;state.time=clock;
  const cap=fpsCap(),interval=cap?1000/cap:0;
@@ -180,7 +174,7 @@ function tick(now){
  updatePerformance(now);
  raf=requestAnimationFrame(tick);
 }
-ui.play.addEventListener('click',()=>{if(!state)return;running=!running;ui.play.textContent=running?'PAUSE':'PLAY';last=0;scheduledAt=0;perfStart=0;paintCount=0;cancelAnimationFrame(raf);if(running){ui.perfHealth.textContent='MONITORING';ui.perf.dataset.health='monitoring';raf=requestAnimationFrame(tick)}else{ui.fps.textContent='PAUSED';ui.perfHealth.textContent='PAUSED';ui.perf.dataset.health='idle'}});
+ui.play.addEventListener('click',()=>{if(!state)return;running=!running;ui.play.textContent=running?'PAUSE':'PLAY';last=0;previousTick=0;scheduledAt=0;perfStart=0;paintCount=0;cancelAnimationFrame(raf);if(running){ui.perf.dataset.health='monitoring';setGauge('fps',null,'',0,'monitoring');raf=requestAnimationFrame(tick)}else{ui.perf.dataset.health='paused';setGauge('fps','0.0','',0,'paused');}});
 ui.reset.addEventListener('click',()=>{if(!manifest)return;clock=0;state.time=0;for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}controls();if(!running)draw()});$('pg-clear').addEventListener('click',()=>ui.log.textContent='');
 function controls(){for(const [root,items,isColor] of [[ui.params,manifest.params,false],[ui.colors,manifest.colors,true]]){root.textContent='';if(!items.length){const p=document.createElement('p');p.textContent='None exposed.';root.append(p)}for(const item of items){const row=document.createElement('div');row.className='pg-control'+(isColor?' pg-color':'');const title=document.createElement('div');title.className='pg-control-label';const label=document.createElement('span');label.textContent=item.label||item.key;const output=document.createElement('output');output.textContent=state[item.key];title.append(label,output);row.append(title);if(isColor){const picker=document.createElement('input');picker.type='color';picker.value=state[item.key];picker.setAttribute('aria-label',label.textContent);picker.addEventListener('input',()=>{state[item.key]=picker.value;output.textContent=picker.value;if(!running)draw()});row.append(picker)}const range=document.createElement('input');range.type='range';range.min=isColor?0:item.min;range.max=isColor?1:item.max;range.step=isColor?.01:item.step;range.value=isColor?alpha[item.key]:state[item.key];range.setAttribute('aria-label',label.textContent+(isColor?' opacity':''));range.addEventListener('input',()=>{if(isColor)alpha[item.key]=Number(range.value);else{state[item.key]=Number(range.value);output.textContent=range.value}if(!running)draw()});row.append(range);root.append(row)}}}
 function makeFx(fragment){const canvas=ui.canvas;const gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false});if(!gl)throw Error('WebGL not available.');const VS='attribute vec2 aPos;attribute vec2 aUV;varying vec2 vUV;void main(){vUV=aUV;gl_Position=vec4(aPos,0.,1.);}';function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error('GLSL: '+gl.getShaderInfoLog(s));return s}const vs=shader(gl.VERTEX_SHADER,VS),fs=shader(gl.FRAGMENT_SHADER,fragment),program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('GLSL link: '+gl.getProgramInfoLog(program));gl.deleteShader(vs);gl.deleteShader(fs);const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,0,0,1,-1,1,0,-1,1,0,1,1,1,1,1]),gl.STATIC_DRAW);const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);for(const [param,value] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,param,value);const src=document.createElement('canvas'),ctx=src.getContext('2d');const loc=x=>gl.getUniformLocation(program,x);return {resize(w,h){canvas.width=w;canvas.height=h;src.width=w;src.height=h},draw(s,a){const w=canvas.width,h=canvas.height;if(!w||!h)return;const grad=ctx.createLinearGradient(0,0,w,h);grad.addColorStop(0,'#1c1713');grad.addColorStop(.5,'#6a9e5d');grad.addColorStop(1,'#ec6b2d');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.lineWidth=Math.max(2,w*.006);for(let i=0;i<11;i++){ctx.strokeStyle=i%2?'#e6d2b8':'#16120d';ctx.beginPath();for(let x=0;x<=w;x+=7)ctx.lineTo(x,h*(i+.5)/11+Math.sin(x/w*12+i+s.time)*h*.035);ctx.stroke()}ctx.fillStyle='#e6d2b8';ctx.font=`bold ${Math.max(14,w*.09)}px sans-serif`;ctx.fillText('INDEX',w*.07,h*.59);gl.viewport(0,0,w,h);gl.useProgram(program);gl.bindBuffer(gl.ARRAY_BUFFER,buf);for(const [name,offset] of [['aPos',0],['aUV',8]]){const n=gl.getAttribLocation(program,name);if(n>=0){gl.enableVertexAttribArray(n);gl.vertexAttribPointer(n,2,gl.FLOAT,false,16,offset)}}gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,0);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);if(loc('uInput')!==null)gl.uniform1i(loc('uInput'),0);if(loc('uResolution')!==null)gl.uniform2f(loc('uResolution'),w,h);if(loc('uTime')!==null)gl.uniform1f(loc('uTime'),s.time);for(const p of manifest.params){const n=loc('u_'+p.key);if(n!==null)gl.uniform1f(n,s[p.key])}for(const c of manifest.colors){const n=loc('u_'+c.key);if(n!==null){const hex=s[c.key],rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);gl.uniform4f(n,...rgb,a[c.key]??1)}}gl.drawArrays(gl.TRIANGLE_STRIP,0,4)},dispose(){gl.deleteTexture(tex);gl.deleteBuffer(buf);gl.deleteProgram(program)}}}
