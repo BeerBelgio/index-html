@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.19.5 RC**
+**Current staging UI build → V0.20.0 RC**
 
 **V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
 
@@ -38,6 +38,8 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 **V0.19.4 Playground performance telemetry:** adds AUTO / 30 / 60 requested-frame limits, measured completed FPS, JavaScript draw-time estimates and a performance history view. Adds the owner's separate loading SVG while preserving the existing empty-state art.
 
 **V0.19.5 Compact performance controls:** moves FPS TARGET into the Preview control strip beside PAUSE and RESET, replaces Diagnostics charts with three small semicircular gauges (actual FPS, draw CPU, estimated frame budget and headroom), preserves diagnostics for loading errors and logs, and switches the CHOOSE A FILE hover arrow to the site's standard SVG. Tool rendering and all 20 canonical HTML files remain unchanged.
+
+**V0.20.0 Playground five-layer RC:** the existing public Playground now provides five independent visual layers (L1→L5), layer-specific catalogue/local HTML loading, visibility, opacity dial and typed percentage, Normal/Add/Multiply/Screen blending, independent manifest parameters and color controls, global Pause/Play, FPS target and composite performance monitoring. Tool content executes in sandboxed iframes; the browser composites transferable canvas frames. The existing 20 canonical HTML files stay byte-for-byte unchanged. Generator composition has local Chromium test coverage; fragment FX processing requires WebGL hardware/runtime verification and compositor A/B tool contracts remain future work.
 
 
 The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.

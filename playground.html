@@ -1,36 +1,40 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="index-html-build" content="v0.19.5">
+<meta name="index-html-build" content="v0.20.0">
 <link rel="canonical" href="https://beerbelgio.github.io/index-html/playground.html"><meta name="description" content="Test standalone visual HTML tools locally in INDEX Playground.">
 <title>INDEX HTML — Playground</title>
 <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/home-page.css?v=0192">
-<link rel="stylesheet" href="assets/css/playground.css?v=0195">
+<link rel="stylesheet" href="assets/css/playground.css?v=0200">
 </head><body>
 <header class="home-header shell pg-header">
 <a class="home-brand about-header-brand" href="./" aria-label="INDEX HTML home"><span class="home-brand-compact"><img src="assets/branding/favicon.svg" alt="" aria-hidden="true"></span></a>
 <nav class="home-nav" aria-label="Main navigation"><a href="./#tools">TOOLS</a><a href="playground.html" aria-current="page">PLAYGROUND</a><a href="about.html">ABOUT</a></nav>
 </header>
 <main class="shell pg-main">
-<section class="pg-intro"><h1 class="pg-intro-art"><img src="assets/branding/playground.svg?v=0192" alt="PLAYGROUND"></h1><p>Drop an HTML tool here or load one from INDEX. // Test the parameters, colors and host behaviour. // Files you drop stay in your browser: they are never uploaded.</p></section>
+<section class="pg-intro"><h1 class="pg-intro-art"><img src="assets/branding/playground.svg?v=0192" alt="PLAYGROUND"></h1><p>Drop an HTML tool here or load one from INDEX. // Test parameters, colors and how tools interact across five layers. // Local files stay in your browser: they are never uploaded.</p></section>
+<section class="pg-layer-rack" aria-labelledby="pg-layer-heading">
+ <div class="pg-layer-heading"><h2 id="pg-layer-heading">LAYERS</h2><p>Choose a layer before loading a tool. Layers run from L1 (bottom) to L5 (top).</p></div>
+ <div class="pg-layer-grid" id="pg-layers" aria-label="Five independent visual layers"></div>
+</section>
 <section id="pg-drop" class="pg-drop" aria-label="Load a tool">
-<div><div class="pg-drop-action"><strong>DROP A CODE OR</strong> <label class="pg-file-link" for="pg-file" tabindex="0">CHOOSE A FILE<span class="pg-file-arrow" aria-hidden="true"></span></label></div><input id="pg-file" type="file" accept=".html,.htm,text/html" hidden></div>
+<div><span class="pg-drop-target" id="pg-load-target">LOAD TO L1</span><div class="pg-drop-action"><strong>DROP A CODE OR</strong> <label class="pg-file-link" for="pg-file" tabindex="0">CHOOSE A FILE<span class="pg-file-arrow" aria-hidden="true"></span></label></div><input id="pg-file" type="file" accept=".html,.htm,text/html" hidden></div>
 <div class="pg-divider"></div>
 <div><label class="pg-micro" for="pg-select">TRY A CATALOGUE TOOL</label><div class="pg-row"><select id="pg-select"><option value="">Select a tool…</option></select><button id="pg-load" disabled type="button">LOAD</button></div></div>
 </section>
 <section class="pg-workbench" aria-label="Playground live preview and tool controls">
   <div class="pg-preview">
-    <div class="pg-bar"><span>LIVE PREVIEW</span><span id="pg-role">NO TOOL</span></div>
+    <div class="pg-bar"><span>COMPOSITE PREVIEW</span><span id="pg-role">NO LAYERS</span></div>
     <div class="pg-stage" id="pg-stage">
-      <div class="pg-surface" id="pg-surface" data-ratio="16:9">
-        <iframe id="pg-iframe" sandbox="allow-scripts" referrerpolicy="no-referrer" title="Isolated visual tool preview" hidden></iframe>
-        <canvas id="pg-effect" hidden></canvas>
+      <div class="pg-surface" id="pg-surface">
+        <div id="pg-frame-host" class="pg-frame-host" aria-hidden="true"></div>
+        <canvas id="pg-composite" aria-label="Composited visual output from active layers"></canvas>
         <div id="pg-empty" class="pg-empty"><img id="pg-placeholder-art" src="assets/branding/playground_NOTOOL.svg?v=0192" alt="Drop a tool to start"></div>
       </div>
     </div>
     <div class="pg-colors-dock">
-      <div class="pg-bar"><span>COLORS</span><span>OPACITY</span></div>
+      <div class="pg-bar"><span>COLORS · <span id="pg-colors-layer">L1</span></span><span>OPACITY</span></div>
       <div class="pg-colors-grid" id="pg-colors"><p>No declared colors.</p></div>
     </div>
     <div class="pg-bottom">
@@ -71,19 +75,19 @@
     </div>
   </div>
   <aside class="pg-controls">
-    <div class="pg-bar"><span>PARAMETERS</span><span id="pg-title">NO TOOL</span></div>
+    <div class="pg-bar"><span>PARAMETERS · <span id="pg-params-layer">L1</span></span><span id="pg-title">NO TOOL</span></div>
     <div class="pg-fields" id="pg-params"><p>Load a tool to inspect its manifest.</p></div>
   </aside>
 </section>
 <details class="pg-console" id="pg-diagnostics">
   <summary class="pg-bar"><span>DIAGNOSTICS</span><span id="pg-status" role="status">Ready for a standalone HTML file.</span></summary>
   <div class="pg-diagnostics-body">
-    <p class="pg-perf-note">Renderer timings are estimates. DRAW CPU measures JavaScript work, not total GPU time; background tabs may throttle FPS.</p>
+    <p class="pg-perf-note">Renderer performance is estimated from completed composite frames, layer JavaScript drawing and composition cost. GPU execution and bitmap transfers are not fully measured; background tabs may throttle FPS.</p>
     <div class="pg-log-header"><span>EVENT LOG</span><button type="button" id="pg-clear">CLEAR LOG</button></div>
     <pre id="pg-log">Awaiting tool…</pre>
   </div>
 </details>
 </main>
 <footer class="home-footer shell"><div class="footer-signature">© 2026 BeerBelgio · FUN IS A SERIOUS THING</div><nav class="footer-links"><a href="./">INDEX HTML</a><a href="about.html">ABOUT</a></nav></footer>
-<script src="assets/js/playground.js?v=0195"></script>
+<script src="assets/js/playground.js?v=0200"></script>
 </body></html>
