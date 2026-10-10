@@ -1,17 +1,84 @@
 (() => {
 'use strict';
 const $=id=>document.getElementById(id);
-const ui={iframe:$('pg-iframe'),canvas:$('pg-effect'),stage:$('pg-stage'),surface:$('pg-surface'),diagnostics:$('pg-diagnostics'),empty:$('pg-empty'),params:$('pg-params'),colors:$('pg-colors'),drop:$('pg-drop'),file:$('pg-file'),select:$('pg-select'),load:$('pg-load'),status:$('pg-status'),log:$('pg-log'),title:$('pg-title'),role:$('pg-role'),fps:$('pg-fps'),play:$('pg-play'),reset:$('pg-reset')};
-let sid=0,manifest=null,state=null,alpha={},running=false,last=0,clock=0,raf=0,fx=null,kind='',catalogue=[],frames=0,fpsFrom=0,drawPending=false,drawDirty=false,loadSequence=0,awaitingFirstFrame=false,loadStarted=0,loadTimer=0,firstFrameTimer=0,lastLoadingName='';
+const ui={iframe:$('pg-iframe'),canvas:$('pg-effect'),stage:$('pg-stage'),surface:$('pg-surface'),diagnostics:$('pg-diagnostics'),empty:$('pg-empty'),params:$('pg-params'),colors:$('pg-colors'),drop:$('pg-drop'),file:$('pg-file'),select:$('pg-select'),load:$('pg-load'),status:$('pg-status'),log:$('pg-log'),title:$('pg-title'),role:$('pg-role'),fps:$('pg-fps'),fpsTarget:$('pg-fps-target'),perf:$('pg-performance'),perfFps:$('pg-perf-fps'),perfCpu:$('pg-perf-cpu'),perfBudget:$('pg-perf-budget'),perfHealth:$('pg-perf-health'),perfFill:$('pg-perf-fill'),perfChart:$('pg-perf-chart'),placeholderArt:$('pg-placeholder-art'),play:$('pg-play'),reset:$('pg-reset')};
+let sid=0,manifest=null,state=null,alpha={},running=false,last=0,clock=0,raf=0,fx=null,kind='',catalogue=[],frames=0,fpsFrom=0,drawPending=false,drawDirty=false,loadSequence=0,awaitingFirstFrame=false,loadStarted=0,loadTimer=0,firstFrameTimer=0,lastLoadingName='',lastDrawAt=0,scheduledAt=0,frameCosts=[],lastPerfUpdate=0,observedFps=0,perfSamples=[],perfStart=0,cpuAverage=0,paintCount=0;
 const text=x=>String(x??'');
+const idleArt='assets/branding/playground_NOTOOL.svg?v=0192';
+const loadingArt='assets/branding/playground_LOADING-TOOL.svg?v=0194';
+function placeholder(loading){
+ ui.placeholderArt.src=loading?loadingArt:idleArt;
+ ui.placeholderArt.alt=loading?'Loading tool':'Drop a tool to start';
+}
+const fpsCap=()=>ui.fpsTarget.value==='auto'?0:Number(ui.fpsTarget.value);
+const resetPerf=()=>{
+ frameCosts=[];perfSamples=[];perfStart=0;lastPerfUpdate=0;observedFps=0;cpuAverage=0;paintCount=0;scheduledAt=0;lastDrawAt=0;
+ ui.perfFps.textContent='—';ui.perfCpu.textContent='— ms';ui.perfBudget.textContent=fpsCap()?`${(1000/fpsCap()).toFixed(1)} ms`:'AUTO';
+ ui.perfHealth.textContent='IDLE';ui.perf.dataset.health='idle';ui.perfFill.style.width='0%';
+ paintPerfGraph();
+};
+function recordFrame(cost){
+ paintCount++;
+ if(Number.isFinite(cost)&&cost>=0){frameCosts.push(Math.min(10000,cost));if(frameCosts.length>90)frameCosts.shift();}
+}
+function paintPerfGraph(){
+ const cv=ui.perfChart;if(!cv)return;
+ const ctx=cv.getContext('2d');if(!ctx)return;
+ const dpr=Math.min(2,devicePixelRatio||1),w=Math.max(1,Math.round(cv.clientWidth*dpr)),h=Math.max(1,Math.round(cv.clientHeight*dpr));
+ if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+ ctx.clearRect(0,0,w,h);
+ const cap=fpsCap(),max=Math.max(30,cap||0, ...perfSamples.map(s=>s.fps),observedFps)*1.12;
+ ctx.strokeStyle='rgba(0,0,0,.10)';ctx.lineWidth=dpr;
+ for(let row=1;row<4;row++){const y=h*row/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+ if(cap){ctx.strokeStyle='#c94b2e';ctx.setLineDash([4*dpr,4*dpr]);const y=h-(cap/max)*h;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();ctx.setLineDash([]);}
+ if(!perfSamples.length)return;
+ const xStep=w/Math.max(1,perfSamples.length-1);
+ ctx.strokeStyle='#3f7446';ctx.lineWidth=2*dpr;ctx.beginPath();
+ perfSamples.forEach((sample,i)=>{const x=i*xStep,y=h-(sample.fps/max)*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();
+}
+function updatePerformance(now){
+ if(!running)return;
+ if(!perfStart){perfStart=now;return;}
+ const elapsed=now-perfStart;
+ if(elapsed<1000)return;
+ const fps=paintCount*1000/elapsed;
+ observedFps=fps;
+ cpuAverage=frameCosts.length?frameCosts.reduce((a,b)=>a+b,0)/frameCosts.length:0;
+ const cap=fpsCap(),budget=1000/(cap||60),pct=Math.min(100,cpuAverage/budget*100);
+ ui.perfFps.textContent=fps.toFixed(1);
+ ui.perfCpu.textContent=frameCosts.length?`${cpuAverage.toFixed(2)} ms`:'— ms';
+ ui.perfBudget.textContent=cap?`${budget.toFixed(1)} ms`:'AUTO';
+ ui.perfFill.style.width=`${pct.toFixed(1)}%`;
+ let health='monitoring',label='MONITORING';
+ if(cap&&perfSamples.length>=2){
+   if(fps<cap*.68||cpuAverage>budget*1.1){health='critical';label='STRUGGLING';}
+   else if(fps<cap*.90||cpuAverage>budget*.78){health='warning';label='TIGHT';}
+   else{health='good';label='ON TARGET';}
+ }else if(!cap&&perfSamples.length>=2){
+   if(cpuAverage>16.7){health='warning';label='HEAVY';}
+   else{health='good';label='LIVE';}
+ }
+ ui.perf.dataset.health=health;ui.perfHealth.textContent=label;
+ perfSamples.push({fps,cpu:cpuAverage});if(perfSamples.length>50)perfSamples.shift();
+ if(ui.diagnostics.open)paintPerfGraph();
+ ui.fps.textContent=Math.round(fps)+' FPS';
+ paintCount=0;perfStart=now;frameCosts=[];
+}
+ui.fpsTarget.addEventListener('change',()=>{
+ scheduledAt=0;perfSamples=[];perfStart=0;paintCount=0;frameCosts=[];
+ ui.perfBudget.textContent=fpsCap()?`${(1000/fpsCap()).toFixed(1)} ms`:'AUTO';
+ ui.perfHealth.textContent=(!running&&state)?'PAUSED':'MONITORING';ui.perf.dataset.health='monitoring';
+ paintPerfGraph();
+});
+ui.diagnostics.addEventListener('toggle',()=>{if(ui.diagnostics.open)paintPerfGraph()});
 function line(msg){ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+msg;ui.log.scrollTop=ui.log.scrollHeight;}
 function info(msg){ui.status.textContent=msg;ui.status.classList.remove('pg-status-error');}
-function error(msg){clearTimeout(loadTimer);loadTimer=0;running=false;cancelAnimationFrame(raf);raf=0;drawPending=false;ui.empty.hidden=false;ui.empty.removeAttribute('aria-busy');ui.status.textContent=msg;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;line('ERROR: '+msg);}
+function error(msg){clearTimeout(loadTimer);loadTimer=0;running=false;cancelAnimationFrame(raf);raf=0;drawPending=false;ui.empty.hidden=false;ui.empty.removeAttribute('aria-busy');placeholder(false);ui.status.textContent=msg;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;line('ERROR: '+msg);}
 function normalize(raw){if(!raw||!Array.isArray(raw.params)||!Array.isArray(raw.colors))throw Error('Manifest needs params[] and colors[].');const seen=new Set();for(const v of [...raw.params,...raw.colors]){if(!v.key||seen.has(v.key))throw Error('Duplicate or missing key: '+v.key);seen.add(v.key);}for(const p of raw.params)if(![p.min,p.max,p.step,p.default].every(n=>Number.isFinite(Number(n)))||Number(p.step)<=0||Number(p.min)>Number(p.max))throw Error('Invalid numeric param '+p.key);for(const c of raw.colors)if(!/^#[0-9a-f]{6}$/i.test(c.default))throw Error('Invalid hex color '+c.key);return {...raw,role:raw.index?.role||raw.role||'generator',effect:raw.index?.effect||raw.effect||null};}
 // Opaque-origin sandbox, no same-origin privileges. Execution and manifest inspection stay inside it.
 function srcdoc(html,id){
  const policy=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' blob:; style-src 'unsafe-inline'; img-src blob: data:; font-src data:; media-src blob: data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">`;
- const boot=`<script>(function(){const token=${id};const send=(type,data)=>parent.postMessage({indexPlayground:token,type,data},'*');addEventListener('error',e=>send('error',e.message));addEventListener('unhandledrejection',e=>send('error',String(e.reason)));addEventListener('message',e=>{const m=e.data;if(e.source!==parent||!m||m.indexCommand!==token)return;try{if(m.action==='resize'){const fn=indexResizeFn();if(fn)fn(m.w,m.h)}if(m.action==='draw'){try{const fn=indexDrawFn();if(fn)fn(m.state,m.context)}finally{send('drawDone',null)}}}catch(err){send('error',String(err.stack||err))}});function indexResizeFn(){return window.indexResize||window.sketchResize}function indexDrawFn(){return window.indexDraw||window.sketchDraw}})();</script>`;
+ const boot=`<script>(function(){const token=${id};const send=(type,data)=>parent.postMessage({indexPlayground:token,type,data},'*');addEventListener('error',e=>send('error',e.message));addEventListener('unhandledrejection',e=>send('error',String(e.reason)));addEventListener('message',e=>{const m=e.data;if(e.source!==parent||!m||m.indexCommand!==token)return;try{if(m.action==='resize'){const fn=indexResizeFn();if(fn)fn(m.w,m.h)}if(m.action==='draw'){const started=performance.now();try{const fn=indexDrawFn();if(fn)fn(m.state,m.context)}finally{send('drawDone',{drawMs:performance.now()-started})}}}catch(err){send('error',String(err.stack||err))}});function indexResizeFn(){return window.indexResize||window.sketchResize}function indexDrawFn(){return window.indexDraw||window.sketchDraw}})();</script>`;
  const done=`<script>(function(){try{const raw=window.INDEX_TOOL||window.SKETCH_TOOL;if(!raw)throw Error('INDEX_TOOL/SKETCH_TOOL not found');const manifest=JSON.parse(JSON.stringify(raw));parent.postMessage({indexPlayground:${id},type:'ready',data:{manifest,native:!!window.INDEX_TOOL,hasDraw:typeof(window.indexDraw||window.sketchDraw)==='function',hasResize:typeof(window.indexResize||window.sketchResize)==='function'}},'*')}catch(e){parent.postMessage({indexPlayground:${id},type:'error',data:String(e)},'*')}})();</script>`;
  if(/<head\b[^>]*>/i.test(html))html=html.replace(/<head\b[^>]*>/i,m=>m+policy+boot);else html=policy+boot+html;
  if(/<\/body>/i.test(html))return html.replace(/<\/body>/i,done+'</body>');return html+done;
@@ -22,7 +89,7 @@ function stop(){
  clearTimeout(loadTimer);clearTimeout(firstFrameTimer);loadTimer=firstFrameTimer=0;
  ui.iframe.hidden=true;ui.canvas.hidden=true;ui.play.disabled=true;ui.reset.disabled=true;
  manifest=null;state=null;kind='';last=0;clock=0;drawPending=false;drawDirty=false;awaitingFirstFrame=false;
- ui.fps.textContent='— FPS';
+ ui.fps.textContent='— FPS';resetPerf();
 }
 // Never clone an iframe with srcdoc: it would clone the previous tool's entire
 // HTML, potentially starting that expensive runtime AGAIN during replacement.
@@ -38,7 +105,7 @@ function startLoading(name){
  stop();sid++;freshIframe();
  lastLoadingName=name;loadStarted=performance.now();
  ui.log.textContent='';ui.title.textContent=name;ui.role.textContent='LOADING';
- ui.empty.hidden=false;ui.empty.setAttribute('aria-busy','true');
+ ui.empty.hidden=false;ui.empty.setAttribute('aria-busy','true');placeholder(true);
  info('Loading '+name+'…');line('Loading '+name);
  loadTimer=setTimeout(()=>{
    if(ui.role.textContent==='LOADING' || awaitingFirstFrame){
@@ -68,7 +135,7 @@ for(const evt of ['dragenter','dragover'])ui.drop.addEventListener(evt,e=>{e.pre
 fetch('data/tools.json').then(r=>{if(!r.ok)throw Error('Catalogue HTTP '+r.status);return r.json()}).then(d=>{catalogue=d.tools||[];for(const tool of catalogue){const o=document.createElement('option');o.value=tool.toolId;o.textContent=tool.name+' · '+tool.version;ui.select.append(o)}}).catch(e=>line('Catalogue unavailable: '+e.message));
 ui.select.addEventListener('change',()=>ui.load.disabled=!ui.select.value);
 ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;const request=++loadSequence;ui.load.disabled=true;startLoading(item.name);try{const r=await fetch(item.file,{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const html=await r.text();if(request!==loadSequence)return;open(html,item.name,true)}catch(e){if(request===loadSequence)error(e.message)}finally{if(request===loadSequence)ui.load.disabled=!ui.select.value}});
-window.addEventListener('message',e=>{if(e.source!==ui.iframe.contentWindow)return;const msg=e.data;if(!msg||msg.indexPlayground!==sid)return;if(msg.type==='error'){drawPending=false;error(text(msg.data).slice(0,1600));return}if(msg.type==='drawDone'){drawPending=false;frames++;if(awaitingFirstFrame)finishFirstFrame();if(drawDirty){drawDirty=false;if(!running)draw()}return}if(msg.type!=='ready')return;try{manifest=normalize(msg.data.manifest);kind=manifest.role;state={time:0};alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}ui.role.textContent=kind.toUpperCase()+(msg.data.native?' · INDEX':' · LEGACY');ui.title.textContent=manifest.name||'UNNAMED';controls();if(kind==='effect'){if(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string')throw Error('Effect needs a fragment GLSL shader.');ui.iframe.hidden=true;ui.canvas.hidden=false;fx=makeFx(manifest.effect.fragment)}else if(kind==='generator'){if(!msg.data.hasResize||!msg.data.hasDraw)throw Error('Missing draw or resize entrypoint.');ui.iframe.hidden=false;ui.canvas.hidden=true;}else throw Error('Role '+kind+' is planned, but an A/B input contract is not yet implemented.');awaitingFirstFrame=true;ui.empty.hidden=false;info('Preparing first frame…');resize();running=true;ui.play.disabled=false;ui.play.textContent='PAUSE';ui.reset.disabled=false;last=0;clock=0;frames=0;fpsFrom=0;line((msg.data.native?'INDEX_TOOL prototype':'SKETCH_TOOL legacy')+' · '+kind);raf=requestAnimationFrame(tick);}catch(err){error(err.message);ui.empty.hidden=false;ui.iframe.hidden=true;ui.canvas.hidden=true}});
+window.addEventListener('message',e=>{if(e.source!==ui.iframe.contentWindow)return;const msg=e.data;if(!msg||msg.indexPlayground!==sid)return;if(msg.type==='error'){drawPending=false;error(text(msg.data).slice(0,1600));return}if(msg.type==='drawDone'){drawPending=false;recordFrame(Number(msg.data?.drawMs));frames++;if(awaitingFirstFrame)finishFirstFrame();if(drawDirty){drawDirty=false;if(!running)draw()}return}if(msg.type!=='ready')return;try{manifest=normalize(msg.data.manifest);kind=manifest.role;state={time:0};alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}ui.role.textContent=kind.toUpperCase()+(msg.data.native?' · INDEX':' · LEGACY');ui.title.textContent=manifest.name||'UNNAMED';controls();if(kind==='effect'){if(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string')throw Error('Effect needs a fragment GLSL shader.');ui.iframe.hidden=true;ui.canvas.hidden=false;fx=makeFx(manifest.effect.fragment)}else if(kind==='generator'){if(!msg.data.hasResize||!msg.data.hasDraw)throw Error('Missing draw or resize entrypoint.');ui.iframe.hidden=false;ui.canvas.hidden=true;}else throw Error('Role '+kind+' is planned, but an A/B input contract is not yet implemented.');awaitingFirstFrame=true;ui.empty.hidden=false;info('Preparing first frame…');resize();running=true;ui.play.disabled=false;ui.play.textContent='PAUSE';ui.reset.disabled=false;last=0;clock=0;frames=0;fpsFrom=0;line((msg.data.native?'INDEX_TOOL prototype':'SKETCH_TOOL legacy')+' · '+kind);raf=requestAnimationFrame(tick);}catch(err){error(err.message);ui.empty.hidden=false;ui.iframe.hidden=true;ui.canvas.hidden=true}});
 function finishFirstFrame(){
  if(!awaitingFirstFrame)return;
  awaitingFirstFrame=false;clearTimeout(loadTimer);loadTimer=0;
@@ -100,9 +167,20 @@ const controlsObserver=new ResizeObserver(()=>matchParameterHeight());controlsOb
 window.addEventListener('resize',matchParameterHeight,{passive:true});
 
 
-function draw(){if(!state)return;if(kind==='generator'){if(drawPending){drawDirty=true;return}drawPending=true;drawDirty=false;send('draw',{state:{...state},context:{colorOpacity:{...alpha}}})}else if(kind==='effect'){fx?.draw(state,alpha);frames++;if(awaitingFirstFrame)finishFirstFrame()}}
-function tick(now){if(!running)return;if(last)clock+=Math.min(.05,(now-last)/1000);last=now;state.time=clock;draw();if(!fpsFrom)fpsFrom=now;if(now-fpsFrom>=1000){ui.fps.textContent=Math.round(frames*1000/(now-fpsFrom))+' FPS';frames=0;fpsFrom=now}raf=requestAnimationFrame(tick)}
-ui.play.addEventListener('click',()=>{if(!state)return;running=!running;ui.play.textContent=running?'PAUSE':'PLAY';last=0;cancelAnimationFrame(raf);if(running)raf=requestAnimationFrame(tick);else ui.fps.textContent='PAUSED'});
+function draw(){if(!state)return;if(kind==='generator'){if(drawPending){drawDirty=true;return}drawPending=true;drawDirty=false;send('draw',{state:{...state},context:{colorOpacity:{...alpha}}})}else if(kind==='effect'){const start=performance.now();fx?.draw(state,alpha);recordFrame(performance.now()-start);frames++;if(awaitingFirstFrame)finishFirstFrame()}}
+function tick(now){
+ if(!running)return;
+ if(last)clock+=Math.min(.05,(now-last)/1000);
+ last=now;state.time=clock;
+ const cap=fpsCap(),interval=cap?1000/cap:0;
+ if(!cap||!scheduledAt||now-scheduledAt>=interval-0.75){
+   scheduledAt=now;
+   draw();
+ }
+ updatePerformance(now);
+ raf=requestAnimationFrame(tick);
+}
+ui.play.addEventListener('click',()=>{if(!state)return;running=!running;ui.play.textContent=running?'PAUSE':'PLAY';last=0;scheduledAt=0;perfStart=0;paintCount=0;cancelAnimationFrame(raf);if(running){ui.perfHealth.textContent='MONITORING';ui.perf.dataset.health='monitoring';raf=requestAnimationFrame(tick)}else{ui.fps.textContent='PAUSED';ui.perfHealth.textContent='PAUSED';ui.perf.dataset.health='idle'}});
 ui.reset.addEventListener('click',()=>{if(!manifest)return;clock=0;state.time=0;for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1}controls();if(!running)draw()});$('pg-clear').addEventListener('click',()=>ui.log.textContent='');
 function controls(){for(const [root,items,isColor] of [[ui.params,manifest.params,false],[ui.colors,manifest.colors,true]]){root.textContent='';if(!items.length){const p=document.createElement('p');p.textContent='None exposed.';root.append(p)}for(const item of items){const row=document.createElement('div');row.className='pg-control'+(isColor?' pg-color':'');const title=document.createElement('div');title.className='pg-control-label';const label=document.createElement('span');label.textContent=item.label||item.key;const output=document.createElement('output');output.textContent=state[item.key];title.append(label,output);row.append(title);if(isColor){const picker=document.createElement('input');picker.type='color';picker.value=state[item.key];picker.setAttribute('aria-label',label.textContent);picker.addEventListener('input',()=>{state[item.key]=picker.value;output.textContent=picker.value;if(!running)draw()});row.append(picker)}const range=document.createElement('input');range.type='range';range.min=isColor?0:item.min;range.max=isColor?1:item.max;range.step=isColor?.01:item.step;range.value=isColor?alpha[item.key]:state[item.key];range.setAttribute('aria-label',label.textContent+(isColor?' opacity':''));range.addEventListener('input',()=>{if(isColor)alpha[item.key]=Number(range.value);else{state[item.key]=Number(range.value);output.textContent=range.value}if(!running)draw()});row.append(range);root.append(row)}}}
 function makeFx(fragment){const canvas=ui.canvas;const gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false});if(!gl)throw Error('WebGL not available.');const VS='attribute vec2 aPos;attribute vec2 aUV;varying vec2 vUV;void main(){vUV=aUV;gl_Position=vec4(aPos,0.,1.);}';function shader(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error('GLSL: '+gl.getShaderInfoLog(s));return s}const vs=shader(gl.VERTEX_SHADER,VS),fs=shader(gl.FRAGMENT_SHADER,fragment),program=gl.createProgram();gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('GLSL link: '+gl.getProgramInfoLog(program));gl.deleteShader(vs);gl.deleteShader(fs);const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,0,0,1,-1,1,0,-1,1,0,1,1,1,1,1]),gl.STATIC_DRAW);const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);for(const [param,value] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,param,value);const src=document.createElement('canvas'),ctx=src.getContext('2d');const loc=x=>gl.getUniformLocation(program,x);return {resize(w,h){canvas.width=w;canvas.height=h;src.width=w;src.height=h},draw(s,a){const w=canvas.width,h=canvas.height;if(!w||!h)return;const grad=ctx.createLinearGradient(0,0,w,h);grad.addColorStop(0,'#1c1713');grad.addColorStop(.5,'#6a9e5d');grad.addColorStop(1,'#ec6b2d');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);ctx.lineWidth=Math.max(2,w*.006);for(let i=0;i<11;i++){ctx.strokeStyle=i%2?'#e6d2b8':'#16120d';ctx.beginPath();for(let x=0;x<=w;x+=7)ctx.lineTo(x,h*(i+.5)/11+Math.sin(x/w*12+i+s.time)*h*.035);ctx.stroke()}ctx.fillStyle='#e6d2b8';ctx.font=`bold ${Math.max(14,w*.09)}px sans-serif`;ctx.fillText('INDEX',w*.07,h*.59);gl.viewport(0,0,w,h);gl.useProgram(program);gl.bindBuffer(gl.ARRAY_BUFFER,buf);for(const [name,offset] of [['aPos',0],['aUV',8]]){const n=gl.getAttribLocation(program,name);if(n>=0){gl.enableVertexAttribArray(n);gl.vertexAttribPointer(n,2,gl.FLOAT,false,16,offset)}}gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,0);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);if(loc('uInput')!==null)gl.uniform1i(loc('uInput'),0);if(loc('uResolution')!==null)gl.uniform2f(loc('uResolution'),w,h);if(loc('uTime')!==null)gl.uniform1f(loc('uTime'),s.time);for(const p of manifest.params){const n=loc('u_'+p.key);if(n!==null)gl.uniform1f(n,s[p.key])}for(const c of manifest.colors){const n=loc('u_'+c.key);if(n!==null){const hex=s[c.key],rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);gl.uniform4f(n,...rgb,a[c.key]??1)}}gl.drawArrays(gl.TRIANGLE_STRIP,0,4)},dispose(){gl.deleteTexture(tex);gl.deleteBuffer(buf);gl.deleteProgram(program)}}}

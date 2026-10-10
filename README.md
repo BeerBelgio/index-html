@@ -14,7 +14,7 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 
 ## Project status
 
-**Current staging UI build → V0.19.3 RC**
+**Current staging UI build → V0.19.4 RC**
 
 **V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
 
@@ -34,6 +34,8 @@ In this repository, **BG** is shorthand for **background**. After this note, doc
 **V0.19.1 Playground usability hotfix:** catalogue row anchoring centers the first tool row after asynchronous loading, catalogue cards shuffle on every homepage visit, the tool-page header links to the Playground, and Playground moves colors below the renderer while aligning its preview column with the parameter list. Diagnostics is collapsed until needed; redundant lab copy is removed. No canonical tool changes. The original Playground title SVG supplied by the project owner is now integrated.
 
 **V0.19.3 Playground load-state hotfix:** fixes repeated tool switching by disposing the previous iframe as soon as a new load is requested and creating a genuinely blank sandbox iframe instead of cloning the previous srcdoc. Keeps the supplied empty-state SVG visible until the first frame completes, with a timeout/error fallback. Clarifies local-upload privacy language and updates the CHOOSE A FILE hover action. No canonical tool files changed. The same single Playground will grow to five layers after the load/render lifecycle is accepted.
+
+**V0.19.4 Playground performance monitor:** adds measured FPS, approximate JavaScript draw CPU timing, visual history and frame-budget meter to collapsible Diagnostics, with AUTO/30/60 frame-rate caps. Separates initial/idle and tool-loading SVGs, refines the CHOOSE A FILE hover state, and clarifies local upload privacy with a colon. The five-layer editor remains a separate future implementation. No canonical tool files changed.
 
 The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.
 

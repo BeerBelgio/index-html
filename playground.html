@@ -1,19 +1,19 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="index-html-build" content="v0.19.3">
+<meta name="index-html-build" content="v0.19.4">
 <link rel="canonical" href="https://beerbelgio.github.io/index-html/playground.html"><meta name="description" content="Test standalone visual HTML tools locally in INDEX Playground.">
 <title>INDEX HTML — Playground</title>
 <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/home-page.css?v=0192">
-<link rel="stylesheet" href="assets/css/playground.css?v=0193">
+<link rel="stylesheet" href="assets/css/playground.css?v=0194">
 </head><body>
 <header class="home-header shell pg-header">
 <a class="home-brand about-header-brand" href="./" aria-label="INDEX HTML home"><span class="home-brand-compact"><img src="assets/branding/favicon.svg" alt="" aria-hidden="true"></span></a>
 <nav class="home-nav" aria-label="Main navigation"><a href="./#tools">TOOLS</a><a href="playground.html" aria-current="page">PLAYGROUND</a><a href="about.html">ABOUT</a></nav>
 </header>
 <main class="shell pg-main">
-<section class="pg-intro"><h1 class="pg-intro-art"><img src="assets/branding/playground.svg?v=0192" alt="PLAYGROUND"></h1><p>Drop an HTML tool here or load one from INDEX. // Test the parameters, colors and host behaviour. // Files you drop stay in your browser — they are never uploaded.</p></section>
+<section class="pg-intro"><h1 class="pg-intro-art"><img src="assets/branding/playground.svg?v=0192" alt="PLAYGROUND"></h1><p>Drop an HTML tool here or load one from INDEX. // Test the parameters, colors and host behaviour. // Files you drop stay in your browser: they are never uploaded.</p></section>
 <section id="pg-drop" class="pg-drop" aria-label="Load a tool">
 <div><div class="pg-drop-action"><strong>DROP A CODE OR</strong> <label class="pg-file-link" for="pg-file" tabindex="0">CHOOSE A FILE<span class="pg-file-arrow" aria-hidden="true"> ↗</span></label></div><input id="pg-file" type="file" accept=".html,.htm,text/html" hidden></div>
 <div class="pg-divider"></div>
@@ -26,7 +26,7 @@
       <div class="pg-surface" id="pg-surface" data-ratio="16:9">
         <iframe id="pg-iframe" sandbox="allow-scripts" referrerpolicy="no-referrer" title="Isolated visual tool preview" hidden></iframe>
         <canvas id="pg-effect" hidden></canvas>
-        <div id="pg-empty" class="pg-empty"><img src="assets/branding/playground_NOTOOL.svg?v=0192" alt="Drop a tool to start"></div>
+        <div id="pg-empty" class="pg-empty"><img id="pg-placeholder-art" src="assets/branding/playground_NOTOOL.svg?v=0192" alt="Drop a tool to start"></div>
       </div>
     </div>
     <div class="pg-colors-dock">
@@ -42,9 +42,28 @@
 </section>
 <details class="pg-console" id="pg-diagnostics">
   <summary class="pg-bar"><span>DIAGNOSTICS</span><span id="pg-status" role="status">Ready for a standalone HTML file.</span></summary>
-  <div class="pg-diagnostics-body"><button type="button" id="pg-clear">CLEAR LOG</button><pre id="pg-log">Awaiting tool…</pre></div>
+  <div class="pg-diagnostics-body">
+    <div class="pg-performance" id="pg-performance" aria-label="Renderer performance monitor">
+      <div class="pg-perf-toolbar">
+        <strong>PERFORMANCE MONITOR</strong>
+        <label for="pg-fps-target">FPS TARGET</label>
+        <select id="pg-fps-target" aria-label="Frame rate target"><option value="auto">AUTO</option><option value="30">30</option><option value="60">60</option></select>
+      </div>
+      <div class="pg-perf-values">
+        <div><span>ACTUAL FPS</span><output id="pg-perf-fps">—</output></div>
+        <div><span>DRAW CPU</span><output id="pg-perf-cpu">— ms</output></div>
+        <div><span>FRAME BUDGET</span><output id="pg-perf-budget">AUTO</output></div>
+        <div><span>STATUS</span><output id="pg-perf-health">IDLE</output></div>
+      </div>
+      <div class="pg-perf-meter"><div id="pg-perf-fill" class="pg-perf-fill"></div></div>
+      <div class="pg-perf-graph"><canvas id="pg-perf-chart" width="700" height="104" role="img" aria-label="History of measured frames per second compared with selected target"></canvas></div>
+      <p class="pg-perf-note">ACTUAL FPS counts completed frames. DRAW CPU is JavaScript render time, not GPU time. AUTO follows browser pacing; 30/60 set maximum requested rates, not guaranteed FPS. Background tabs can be throttled.</p>
+    </div>
+    <div class="pg-log-header"><span>EVENT LOG</span><button type="button" id="pg-clear">CLEAR LOG</button></div>
+    <pre id="pg-log">Awaiting tool…</pre>
+  </div>
 </details>
 </main>
 <footer class="home-footer shell"><div class="footer-signature">© 2026 BeerBelgio · FUN IS A SERIOUS THING</div><nav class="footer-links"><a href="./">INDEX HTML</a><a href="about.html">ABOUT</a></nav></footer>
-<script src="assets/js/playground.js?v=0193"></script>
+<script src="assets/js/playground.js?v=0194"></script>
 </body></html>
