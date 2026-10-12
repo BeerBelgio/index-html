@@ -9,6 +9,8 @@
 **Expected:** Continuous procedural cell boundaries and cores.  
 **Suspected causes:** WebGL1/GLSL execution and GPU/driver differences are candidates, **not confirmed**. Native migration kept the shader intact.
 
+**Source-code finding (not yet causal proof):** The Cellular Field fragment shader includes a reversed-edge call `smoothstep(1.25, 0.20, ...)` in its vignette calculation. GLSL ES specifies undefined results when `edge0 >= edge1`; different GPU/backend implementations may diverge. This is a concrete portability defect to isolate in a separate tool bugfix, not evidence that it alone explains the observed membrane/core discontinuities.
+
 **Impact:** Medium for standalone output quality of this tool, not an INDEX platform-wide load failure.
 
 **GPU diagnostic (2026-10-12):** Chrome 155.0.8059.40 on macOS 15.7.5 reports Intel UHD Graphics 630 via ANGLE Metal; WebGL is hardware accelerated, with GPU process crash count 0. The report also logs repeated `SharedImageManager::ProduceOverlay` / `Invalid mailbox` events and Intel-specific rendering workarounds. No causal connection to the Cellular Field geometry defect has been established.
