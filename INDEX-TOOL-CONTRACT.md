@@ -1,13 +1,13 @@
-# INDEX HTML — Native Tool Contract v1.0 RC2 (capability declarations)
+# INDEX HTML — Native Tool Contract v1.0 (generator contract)
 
-**Status:** RC2 extends the RC manifest with mandatory machine-readable `capabilities`; migration candidate for local tests; **not yet a published/frozen Bridge API**.  
+**Status:** **Generator contract v1.0 frozen and published** with INDEX HTML 0.21.0 (2026-10-12), including required `capabilities`, native manifest and generator entrypoints. Fragment FX descriptors remain **provisional** until dedicated compatibility testing; two-source compositor and direct audio-input APIs are not defined. The Bridge follows its own release cycle.  
 **Basis:** evolves `INDEX-TOOL-CONTRACT-PROPOSAL.md` (prototype 0.1) and remains separate from `INDEX-CONTROL-PROTOCOL.md` (host communication) and the Submission Contract v0.2 (provenance, packaging and FREEZE).
 
 ## 1. Purpose and boundaries
 
 `window.INDEX_TOOL` is the **canonical** description of an INDEX HTML visual tool. The format is host-independent: an INDEX tool must run as a self-contained, offline HTML document. A host may add controls/compositing/audio modulation but must not impose creative or algorithmic limits on the INDEX source.
 
-**Executable runtime roles in v1.0:** `generator`, `effect` (fragment FX). `compositor` with A/B visual sources, `source`, direct audio input/waveform/FFT, and audio-driven runtime contracts are **not specified** here. They require independent proposals and compatibility tests. Do not label a tool as a supported v1 compositor just because a host can stack layers.
+**Documented runtime roles:** `generator` (**stable v1.0**) and `effect` (fragment FX, **provisional**). `compositor` with A/B visual sources, `source`, direct audio input/waveform/FFT, and audio-driven runtime contracts are **not specified** here. They require independent proposals and compatibility tests. Do not label a tool as a supported v1 compositor just because a host can stack layers.
 
 **Technical role** (`role`) is separate from **public catalogue family** (GENERATOR / FX / COMPOSITOR / AUDIO-DRIVEN) and **input requirements** (visual/audio). A tool modulated by audio is *not automatically* AUDIO-DRIVEN. Public classification stays in repository metadata (`data/tools.json`) until a versioned metadata agreement says otherwise.
 
@@ -55,7 +55,7 @@ Optional `audio: string[]` lists existing control keys eligible for *host modula
 
 The host must reject unknown `schemaVersion` and unsupported `role` with a readable error rather than silently executing a different contract. Manifest content is data: no required functions, remote imports or nonserializable members within `INDEX_TOOL`.
 
-## 2A. Capability declarations (added in RC2)
+## 2A. Capability declarations (required in v1.0)
 
 A **required**, JSON-serializable `capabilities` object describes what a compatible host must provide, and what the tool optionally understands. The declaration belongs **only** in canonical `INDEX_TOOL`: do not add it to the legacy Sketch mirror. For all 20 current generator tools:
 
@@ -72,7 +72,7 @@ capabilities: {
 }
 ```
 
-**Normative v1 RC2 values and validation:**
+**v1 capability values and validation:** Generator fields and values are frozen; fragment-FX requirements remain provisional.
 
 | Path | Required type | Allowed v1 values | Meaning |
 | --- | --- | --- | --- |
@@ -104,9 +104,9 @@ const host = {
 // Check supports.colorOpacity separately as an optional UI/host feature.
 ```
 
-A future compositor with 2 visual sources or a direct FFT/audio tool will introduce new **explicitly specified** capability values and runtime contracts. Do not claim those values are available or supported under v1 RC2. Reserve no arbitrary "12 params / 4 colors" limit in capabilities. Adding a new host requires implementing the host-side reader and renderer: **the 20 tool manifest declarations do not need to change.**
+A future compositor with 2 visual sources or a direct FFT/audio tool will introduce new **explicitly specified** capability values and runtime contracts. Do not claim those future values are available under the stable generator v1.0 contract. Reserve no arbitrary "12 params / 4 colors" limit in capabilities. Adding a new host requires implementing the host-side reader and renderer: **the 20 tool manifest declarations do not need to change.**
 
-Compatibility with pre-RC2 experimental `INDEX_TOOL` fixtures lacking `capabilities` is a separate **opt-in compatibility mode**, never a silent claim of complete v1 support. If provided, hosts must label the missing declaration as `legacy INDEX draft / capabilities unknown` and independently check the rendering paths; canonical RC2 files must always include it.
+Compatibility with pre-v1 experimental `INDEX_TOOL` fixtures lacking `capabilities` is a separate **opt-in compatibility mode**, never a silent claim of complete v1 support. If provided, hosts must label the missing declaration as `legacy INDEX draft / capabilities unknown` and independently check the rendering paths; canonical v1 files must always include it.
 
 ## 3. Generator entrypoints
 
@@ -171,7 +171,7 @@ window.INDEX_TOOL = {
 
 Output alpha must be deliberate; opacity and blend are controlled by the layer host. There is no generic A/B source interface yet. A standalone FX document should explain or demonstrate its effect without pretending to process a non-existent lower layer; actual FX validation happens in a compatible host.
 
-**Important compatibility distinction:** the existing test FX in Bridge may use `SKETCH_TOOL.index.effect`; the native canonical path is **top-level** `INDEX_TOOL.effect`. Bridge 0.23.4 has no guaranteed native reader. Older experimental diagnostics may omit `apiVersion`; such fixtures are *not* the final v1 template. The local RC2 tests include updated INDEX-only generator/FX fixtures with capabilities and `effect.apiVersion:1`.
+**Important compatibility distinction:** the existing test FX in Bridge may use `SKETCH_TOOL.index.effect`; the native canonical path is **top-level** `INDEX_TOOL.effect`. Bridge 0.23.6 was tested with the native generator reader; the Bridge remains independently versioned and is not declared stable by this document. Older experimental diagnostics may omit `apiVersion`; such fixtures are *not* the final v1 template. INDEX-only generator/FX diagnostics include capabilities and `effect.apiVersion:1`; this does not constitute a freeze of the FX runtime contract.
 
 ## 6. Sketch compatibility adapter (generators)
 
@@ -199,32 +199,33 @@ Sketch's supported number/types of controls are a host concern, not an INDEX con
 
 FX tools are **not asserted Sketch-compatible** until Sketch provides an upstream visual-input contract suitable for such processing.
 
-## 7. Compatibility and migration acceptance
+## 7. Compatibility and regression acceptance
 
-Compatibility table for this v1 candidate:
+INDEX HTML 0.21.0 publishes 20 generator tools with canonical `INDEX_TOOL`, required capability declarations and a derived `SKETCH_TOOL` adapter. The project maintainer reports testing the migrated tools in Chrome, Sketch, INDEX Playground and INDEX-HTML Bridge 0.23.6 on Intel and Apple Silicon (M5) Macs. These manual results do not certify every browser, GPU or future Bridge version.
 
-| Environment | Native `INDEX_TOOL` | Legacy `SKETCH_TOOL` | Status |
+| Environment | Native INDEX support | Legacy Sketch support | Release observations |
 | --- | --- | --- | --- |
-| INDEX Playground V0.20.1 RC | generator + fragment effect supported by code | supported | User tested diagnostics and FX; broad per-tool migration not yet run |
-| Direct standalone browser | generator self-preview provided by HTML | existing generator self-preview | Must retest every migrated file |
-| Sketch | via generated Sketch adapter, generators only | existing workflow | **Not certified until user imports each migrated generator** |
-| INDEX-HTML Bridge 0.23.4 | **not yet** | supported | Codex adapter required before tests |
+| Standalone Chrome | Generator self-preview included in each HTML | Same underlying creative code | Tested; CF-001 remains open for Cellular Field on Intel. |
+| Sketch | Through the bundled Sketch adapter for generators | Supported | All 20 generator imports reported working by the maintainer. |
+| INDEX Playground 0.20.1+ | Generator supported; fragment FX pathway available but provisional | Supported | All migrated generators reported working. |
+| INDEX-HTML Bridge 0.23.6 (testing candidate) | Generator supported | Supported | Migrated generators reported working; Bridge state recall remains a separate blocking issue. |
 
-Per migrated tool, hold constant `toolId`, creative version/file name (in local overlay), param order, keys, labels, min/max/step/default, HEX defaults, audio eligibility, visuals, time semantics, resize, layers/colors and memory behaviour. Then:
+For subsequent edits and releases, check:
 
-1. Static/manifest mirror equality; JS syntax; HTML self-containment and no remote runtime dependencies.
-2. Browser standalone: resize, frame animation and identical defaults versus canonical original.
-3. Playground local: manifest displays native; colors 100→50→0→100 with HEX-change-at-0 test; pause/reset; multiple instances/layers, rapid replacement (especially Cassini Flow), blend/opacity.
-4. Sketch import: parameter mapping/defaults, audio modulation, rendering, resize and repeat load. Evidence captured as PASS/FAIL (user runtime test; not inferred from code).
-5. Later, after Codex Bridge adapter: manually install the **local** migrated HTML copies in a **backup** of the Bridge's `tools/` directory; test five-layer Live, automation/state recall, MIDI/audio modulation, FX, and unchanged offline output as appropriate. Do not let CHECK/SYNC overwrite the trial copies during tests.
-6. Only after user approval update original INDEX HTML repository and catalogue references; never simultaneously migrate+publish unvalidated code.
+1. Canonical manifest validity, stable tool identity, generated Sketch adapter parity, syntax and self-containment.
+2. Standalone browser: visual defaults, resize, animation, GPU behaviour and transparent outputs where applicable.
+3. Playground: controls, 100→50→0→100 color opacity, pause/reset, multiple layers, fast tool replacement and FX/layer compositing.
+4. Sketch: import, controls/defaults, audio modulation and resize on supported generator tools.
+5. Bridge: host-capability detection, five-layer rendering, state recall, automation/MIDI, FX and offline export as appropriate; the Bridge has an independent release gate.
 
-## 8. Scope control and versioning
+## 8. Contract versioning and scope
 
-This specification is a **contract RC**, not a declaration that the twenty tools have been migrated or that the Bridge 0.23.4 can load them. Its `schemaVersion:1` is the tool schema, **not** a site release number or Bridge version. No metadata, generated HTML, Bridge patch, submission/license files, or current canonical tool was modified in this kit.
+The `schemaVersion: 1` generator interface and mandatory `capabilities` are stable from INDEX HTML 0.21.0. This number is **not** the INDEX site version, a tool's creative version or a Bridge device version.
 
-The `INDEX-CONTROL-PROTOCOL.md` remains responsible for cross-host communication; this file supersedes only the **experimental native manifest/entrypoint proposal once approved**. Submission Contract v0.2 is not replaced. After Sketch + first Bridge-native pilot, freeze the contract including mandatory capability declarations; changes with incompatible semantics require a new schema revision rather than silent changes to v1.
+The `INDEX-CONTROL-PROTOCOL.md` governs host communication; the Submission Contract governs provenance, delivery and FREEZE. This document supersedes the earlier experimental `INDEX-TOOL-CONTRACT-PROPOSAL.md`.
 
-## RC2 delta / migration note
+Fragment FX remains provisionally specified and will require its own explicit acceptance/freeze. Two-input compositors, native PCM/FFT audio and future renderer types must be introduced through reviewed extensions, not silently interpreted as already supported in generator v1.0. Incompatible changes to frozen generator semantics require a new schema revision.
 
-RC2 adds only the `capabilities` field to the canonical manifest of each of the 20 migrated generator files. Original generator algorithms, entrypoints, static Sketch mirror, tool keys/defaults/audio lists, file names and IDs remain unchanged. Bridge Codex 0.23.5 integration must read this field and test host capability mismatch diagnostics. Do not publish the 20 originals or RC2 variants before user runtime approval.
+## 9. v1.0 release note
+
+Twenty INDEX-native generator manifests with capabilities are published, alongside the generated Sketch adapters. Generator algorithms, identifiers, creative filenames and parameter ranges remain those of the migrated tools; the approved Orbital Geometry `Scale` default changes to 100. Known issue CF-001 documents a Chrome/Intel standalone rendering difference; no shader fix is asserted. This contract was frozen following maintainer testing on 2026-10-12.
