@@ -1,7 +1,7 @@
 # INDEX HTML — Native Tool Contract v1.0 (generator contract)
 
 **Status:** **Generator contract v1.0 frozen and published** with INDEX HTML 0.21.0 (2026-10-12), including required `capabilities`, native manifest and generator entrypoints. Fragment FX descriptors remain **provisional** until dedicated compatibility testing; two-source compositor and direct audio-input APIs are not defined. The Bridge follows its own release cycle.  
-**Basis:** evolves `INDEX-TOOL-CONTRACT-PROPOSAL.md` (prototype 0.1) and remains separate from `INDEX-CONTROL-PROTOCOL.md` (host communication) and the Submission Contract v0.2 (provenance, packaging and FREEZE).
+**Basis:** consolidates the earlier native-manifest and host-control prototypes, preserved in Git history and the `0.21.0` release tag. It remains distinct from the Submission Contract v0.2 (provenance, packaging and FREEZE).
 
 ## 1. Purpose and boundaries
 
@@ -41,7 +41,7 @@ Required:
 | `schemaVersion` | integer | Exactly `1` for this revision. No fallback to a different version. |
 | `name` | nonempty string | Human-readable display name. |
 | `role` | string | `generator` or `effect` (v1). No implicit role in new tools. |
-| `capabilities` | object | Required in finalized v1 candidate. Explicit rendering/input requirements and optional features; see §2A. |
+| `capabilities` | object | Required in the stable generator v1.0 contract. Explicit rendering/input requirements and optional features; see §2A. |
 | `params` | array | Required, may be empty. Unique stable keys. |
 | `colors` | array | Required, may be empty. Keys unique across both arrays. |
 
@@ -175,7 +175,7 @@ Output alpha must be deliberate; opacity and blend are controlled by the layer h
 
 ## 6. Sketch compatibility adapter (generators)
 
-**Policy: every generator whose controls and rendering fit the actual Sketch host must remain Sketch-compatible.** The existing 20 generators are migration targets, not disposable legacy code. Native `INDEX_TOOL` is the sole authoring source of truth; Sketch is a supported export/profile, not a ceiling for INDEX algorithm design.
+**Policy: every generator whose controls and rendering fit the actual Sketch host must remain Sketch-compatible.** The existing 20 generators are published INDEX-native tools, not disposable legacy code. Native `INDEX_TOOL` is the sole authoring source of truth; Sketch is a supported export/profile, not a ceiling for INDEX algorithm design.
 
 For Sketch-compatible generators, the **same single HTML** additionally exposes:
 
@@ -195,7 +195,7 @@ window.sketchDraw = (state, hostContext) => window.indexDraw(state, hostContext)
 
 The generated Sketch mirror deliberately **omits `capabilities`** (a native INDEX declaration, not a Sketch field). The static literal is a **generated compatibility artifact**, not a second independently editable manifest. A static literal is required for conservative compatibility with the **existing Bridge parser**, which extracts `window.SKETCH_TOOL = { ... }` as source; direct aliases such as `window.SKETCH_TOOL = window.INDEX_TOOL` cannot be assumed parseable there. Whether Sketch itself requires literal or accepts runtime aliases is not yet verified: Sketch import/runtime acceptance must be tested on the actual service. The generated mirror must have exact parity for names, parameter order/keys/ranges/steps/defaults, colors/order/defaults, and `audio` key membership. Compatibility wrappers must not alter the rendering implementation.
 
-Sketch's supported number/types of controls are a host concern, not an INDEX contract limit. If a future INDEX generator exposes features Sketch cannot support, mark Sketch compatibility partial/unsupported explicitly; do not silently hide parameters, substitute defaults or degrade its INDEX version to satisfy Sketch. All twenty current tool behaviours and Sketch integration require a real before/after test.
+Sketch's supported number/types of controls are a host concern, not an INDEX contract limit. If a future INDEX generator exposes features Sketch cannot support, mark Sketch compatibility partial/unsupported explicitly; do not silently hide parameters, substitute defaults or degrade its INDEX version to satisfy Sketch. Any subsequent change to a published tool requires regression checks of its behaviour and Sketch integration.
 
 FX tools are **not asserted Sketch-compatible** until Sketch provides an upstream visual-input contract suitable for such processing.
 
@@ -222,10 +222,17 @@ For subsequent edits and releases, check:
 
 The `schemaVersion: 1` generator interface and mandatory `capabilities` are stable from INDEX HTML 0.21.0. This number is **not** the INDEX site version, a tool's creative version or a Bridge device version.
 
-The `INDEX-CONTROL-PROTOCOL.md` governs host communication; the Submission Contract governs provenance, delivery and FREEZE. This document supersedes the earlier experimental `INDEX-TOOL-CONTRACT-PROPOSAL.md`.
+The Submission Contract governs provenance, delivery and FREEZE. Host communication transports, message envelopes and discovery/synchronization workflows are **not** standardized by the generator v1.0 API; they belong to host integration specifications. The earlier experimental Control Protocol and Tool Contract Proposal were retired from the active repository in documentation patch 0.21.1; both remain recoverable from the `0.21.0` tag and Git history.
 
 Fragment FX remains provisionally specified and will require its own explicit acceptance/freeze. Two-input compositors, native PCM/FFT audio and future renderer types must be introduced through reviewed extensions, not silently interpreted as already supported in generator v1.0. Incompatible changes to frozen generator semantics require a new schema revision.
 
+### Existing host and distribution conventions (informative)
+
+- `toolId` is the immutable INDEX identity in `data/tools.json` and must not be reassigned when filenames or creative versions change. Catalogue `toolType` and visible category are distinct from the rendering runtime's declared `role`.
+- Hosts own timing, scheduling and routing. In hosted mode, `state.time` is authoritative in seconds; a tool must not run a competing animation clock. Optional `hostContext.colorOpacity` follows §4.
+- A downloaded local tool collection may use a flat `tools/` directory plus an inventory such as `INDEX-HTML-MANIFEST.json` to map IDs and filenames. This is a **packaging convention**, not a required manifest field or a finalized host-control wire protocol.
+- A host may combine generator layers independently of a tool's `compositor` role. Two-input compositor messages and native audio sample transfer remain undefined until separately specified.
+
 ## 9. v1.0 release note
 
-Twenty INDEX-native generator manifests with capabilities are published, alongside the generated Sketch adapters. Generator algorithms, identifiers, creative filenames and parameter ranges remain those of the migrated tools; the approved Orbital Geometry `Scale` default changes to 100. Known issue CF-001 documents a Chrome/Intel standalone rendering difference; no shader fix is asserted. This contract was frozen following maintainer testing on 2026-10-12.
+Twenty INDEX-native generator manifests with capabilities are published, alongside the generated Sketch adapters. Generator algorithms, identifiers, creative filenames and parameter ranges remain those of the migrated tools; the approved Orbital Geometry `Scale` default changes to 100. Known issue CF-001 documents an Intel standalone rendering difference reproduced in Chrome and Safari; no shader fix is asserted. This contract was frozen following maintainer testing on 2026-10-12.
