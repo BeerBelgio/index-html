@@ -4,12 +4,12 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
-No promoted changes recorded yet.
+No changes recorded since 0.21.0.
 
-## [0.21.0-rc.1] — 2026-10-12 (release candidate, NOT PROMOTED)
+## [0.21.0] — 2026-10-12 (first promoted release)
 
 ### Added
-- INDEX Tool Contract v1.0 RC2 and technical capability declarations for 20 generators.
+- Frozen INDEX Tool Contract v1.0 for generators, with technical capability declarations for 20 tools; fragment FX remains provisional.
 - INDEX-native canonical manifests with retained Sketch-compatible adapters.
 - Release policy, known issues and concise project changelog.
 
@@ -18,10 +18,10 @@ No promoted changes recorded yet.
 - Catalog technical source of truth moved to `INDEX_TOOL` while editorial metadata stays in `data/tools.json`.
 - Orbital Geometry `Scale` default: 150 → 100 (both manifests).
 - README reorganized to reflect current features rather than serving as a development diary.
-- Removed the staging `noindex` metadata from the main public pages (effective only upon deployment).
+- Removed the staging `noindex` metadata from the main public pages.
 
 ### Compatibility
-- Tested by project maintainer on Intel and M5 in standalone Chrome, Sketch, INDEX Playground and Bridge 0.23.6; automated checks and site smoke tests still required for this combined candidate.
+- Tested by the project maintainer on Intel and M5 in standalone Chrome, Sketch, INDEX Playground and Bridge 0.23.6; cross-platform/browser end-to-end certification is not claimed.
 - Sketch generator support preserved; Bridge maintains its own independent release cycle.
 
 ### Known issues
