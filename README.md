@@ -6,7 +6,7 @@ An independently developed, source-available collection of 20 standalone HTML vi
 - **Website:** https://beerbelgio.github.io/index-html/
 - **Playground:** https://beerbelgio.github.io/index-html/playground.html
 - **Repository:** https://github.com/BeerBelgio/index-html
-- **Current release:** `0.21.0` (INDEX-native generator contract v1.0)
+- **Current release:** `0.21.1` (documentation maintenance; generator contract v1.0 remains unchanged)
 
 ## What INDEX is
 
@@ -27,7 +27,7 @@ The tool's color `hostContext.colorOpacity` values range from 0 to 1 without con
 - Browse the site, open a tool page, or download an individual HTML from its catalog entry.
 - Run HTML directly in a browser, or import generator files into Sketch.
 - Load tools into [INDEX Playground](https://beerbelgio.github.io/index-html/playground.html) to test controls and combine up to five layers.
-- Developers integrating a host should use the INDEX Tool Contract and [Control Protocol](INDEX-CONTROL-PROTOCOL.md).
+- Developers integrating a host should use the [INDEX Tool Contract](INDEX-TOOL-CONTRACT.md) for manifests and rendering. Host communication transports remain integration-specific; no cross-host wire protocol is frozen yet.
 - Tool paths, identifiers, categories, editorial copy and lineage are recorded in [`data/tools.json`](data/tools.json). Parameters and defaults must be read from the HTML manifest.
 
 ## Project structure
@@ -37,16 +37,15 @@ The tool's color `hostContext.colorOpacity` values range from 0 to 1 without con
 - `assets/`: site UI, scripts, styles, artwork and bundled fonts.
 - `index.html`, `tool.html`, `about.html`, `playground.html`: public site pages.
 - `INDEX-TOOL-CONTRACT.md`: technical manifest and runtime contract.
-- `INDEX-CONTROL-PROTOCOL.md`: host communication requirements.
 - `CHANGELOG.md`: chronological release history.
 - `RELEASE_POLICY.md`: versions, tags and promotion gates.
 - `KNOWN_ISSUES.md`: current reproducible limitations and workarounds.
 
 ## Development and compatibility
 
-Version `0.21.0` aligns the browser catalog and tool pages with the INDEX-native manifest; the legacy adapter is retained for Sketch and existing host clients. The 20 generator algorithms and their creative parameter ranges have not been redesigned. Orbital Geometry's approved `Scale` default changes from 150 to 100.
+Version `0.21.0` aligned the browser catalog and tool pages with the INDEX-native manifest; the legacy adapter remains available for Sketch and existing host clients. Version `0.21.1` only consolidates documentation; no generator, Playground or site runtime code changed. The 20 generator algorithms and their creative parameter ranges have not been redesigned. Orbital Geometry's approved `Scale` default changes from 150 to 100.
 
-The release is based on successful user testing of 20 INDEX-native generators in Chrome, Sketch, Playground and Bridge on M5 and Intel machines. Those tests do not prove all hardware configurations or every standalone WebGL edge case. See [Known issues](KNOWN_ISSUES.md) before relying on uniform GPU output. Do not confuse tests of Bridge 0.23.6 with approval of a future Bridge release; its Set recall defect remains tracked separately.
+The INDEX-native migration was based on successful user testing of 20 generators in Chrome, Sketch, Playground and Bridge on M5 and Intel machines. Those tests do not prove all hardware configurations or every standalone WebGL edge case. See [Known issues](KNOWN_ISSUES.md) before relying on uniform GPU output. Do not confuse tests of Bridge 0.23.6 with approval of a future Bridge release; its Set recall defect remains tracked separately.
 
 ## License and provenance
 
