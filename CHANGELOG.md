@@ -4,7 +4,22 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
-No changes recorded since 0.21.0.
+No changes recorded since 0.21.1.
+
+## [0.21.1] — 2026-10-12 (documentation-only maintenance)
+
+### Changed
+- Consolidated still-relevant host integration and local-bundle conventions in `INDEX-TOOL-CONTRACT.md` without changing the frozen generator v1.0 API.
+- Updated README and documentation references to reflect the current release and remove obsolete links.
+- Expanded known issue `CF-001`: Cellular Field standalone discontinuities were also reproduced in Safari on the Intel Mac mini; the underlying cause remains unconfirmed.
+- Clarified that documentation-only maintenance qualifies as a PATCH release.
+
+### Removed
+- Retired `INDEX-CONTROL-PROTOCOL.md` (staging-era host research) and `INDEX-TOOL-CONTRACT-PROPOSAL.md` (superseded prototype) from the active root. Both remain available from the immutable `0.21.0` tag and Git history.
+
+### Compatibility
+- Documentation changes only. No changes to tool HTML, manifest schemas, algorithms, defaults, Playground, website runtime, or INDEX-HTML Bridge.
+
 
 ## [0.21.0] — 2026-10-12 (first promoted release)
 
