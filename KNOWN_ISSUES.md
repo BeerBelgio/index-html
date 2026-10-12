@@ -11,6 +11,8 @@
 
 **Impact:** Medium for standalone output quality of this tool, not an INDEX platform-wide load failure.
 
-**Suggested comparisons:** Check Chrome hardware acceleration and `chrome://gpu`; retest at similar window sizes and identical defaults; compare another Chrome rendering mode or Safari on the same Intel Mac. Capture renderer/ANGLE string, browser version and macOS version; check console shader warnings. Avoid changing shader mathematics without controlled pixel comparisons with M5/Sketch/Playground.
+**GPU diagnostic (2026-10-12):** Chrome 155.0.8059.40 on macOS 15.7.5 reports Intel UHD Graphics 630 via ANGLE Metal; WebGL is hardware accelerated, with GPU process crash count 0. The report also logs repeated `SharedImageManager::ProduceOverlay` / `Invalid mailbox` events and Intel-specific rendering workarounds. No causal connection to the Cellular Field geometry defect has been established.
+
+**Suggested comparisons:** Retest with identical defaults and similar viewport sizes; compare Safari and Chrome on the same Intel Mac, and inspect shader compiler/log warnings. If the error is browser/backend-dependent, narrow it down before changing the canonical shader. Avoid changing shader mathematics without controlled pixel comparisons with M5/Sketch/Playground.
 
 **Workaround:** Use INDEX Playground or Bridge on affected hardware when they render correctly. No algorithm fix is claimed.
