@@ -6,7 +6,7 @@ An independently developed, source-available collection of 20 standalone HTML vi
 - **Website:** https://beerbelgio.github.io/index-html/
 - **Playground:** https://beerbelgio.github.io/index-html/playground.html
 - **Repository:** https://github.com/BeerBelgio/index-html
-- **Current candidate:** `0.21.0-rc.1` (not a promoted GitHub Release)
+- **Current release:** `0.21.0` (INDEX-native generator contract v1.0)
 
 ## What INDEX is
 
@@ -18,7 +18,7 @@ INDEX Playground is a five-layer browser environment for loading catalog or loca
 
 The canonical manifest is `window.INDEX_TOOL`, with `indexDraw(state, hostContext)` and `indexResize(width, height)` for generator tools. Each manifest declares `role`, `toolId`, `capabilities`, controls and defaults. See [INDEX Tool Contract](INDEX-TOOL-CONTRACT.md).
 
-All 20 generators also expose a Sketch-compatible *derived mirror* (`SKETCH_TOOL`, `sketchDraw`, `sketchResize`) inside the same HTML. INDEX provides backwards compatibility for legacy Sketch manifests; new development uses INDEX as the source of truth. The current 20 generators require either Canvas2D or WebGL1; host capabilities determine support. FX fragment support exists in the Playground and Bridge; compositors with two inputs and direct audio-driven engines remain future work.
+All 20 generators also expose a Sketch-compatible *derived mirror* (`SKETCH_TOOL`, `sketchDraw`, `sketchResize`) inside the same HTML. INDEX provides backwards compatibility for legacy Sketch manifests; new development uses INDEX as the source of truth. The current 20 generators require either Canvas2D or WebGL1; host capabilities determine support. A provisional FX fragment pathway exists in the Playground and Bridge; its contract is not yet frozen. Compositors with two inputs and direct audio-driven engines remain future work.
 
 The tool's color `hostContext.colorOpacity` values range from 0 to 1 without consuming numeric parameter slots. The INDEX schema itself is not limited by the present 12-parameter/4-color Bridge UI.
 
@@ -44,9 +44,9 @@ The tool's color `hostContext.colorOpacity` values range from 0 to 1 without con
 
 ## Development and compatibility
 
-Version `0.21.0-rc.1` aligns the browser catalog and tool pages with the INDEX-native manifest; the legacy adapter is retained for Sketch and existing host clients. The 20 generator algorithms and their creative parameter ranges have not been redesigned. Orbital Geometry's approved `Scale` default changes from 150 to 100.
+Version `0.21.0` aligns the browser catalog and tool pages with the INDEX-native manifest; the legacy adapter is retained for Sketch and existing host clients. The 20 generator algorithms and their creative parameter ranges have not been redesigned. Orbital Geometry's approved `Scale` default changes from 150 to 100.
 
-The RC is based on successful user testing of 20 INDEX-native generators in Chrome, Sketch, Playground and Bridge on M5 and Intel machines. Those tests do not prove all hardware configurations or every standalone WebGL edge case. See [Known issues](KNOWN_ISSUES.md) before relying on uniform GPU output. Do not confuse tests of Bridge 0.23.6 with approval of a future Bridge release; its Set recall defect remains tracked separately.
+The release is based on successful user testing of 20 INDEX-native generators in Chrome, Sketch, Playground and Bridge on M5 and Intel machines. Those tests do not prove all hardware configurations or every standalone WebGL edge case. See [Known issues](KNOWN_ISSUES.md) before relying on uniform GPU output. Do not confuse tests of Bridge 0.23.6 with approval of a future Bridge release; its Set recall defect remains tracked separately.
 
 ## License and provenance
 
