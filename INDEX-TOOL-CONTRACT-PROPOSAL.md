@@ -1,3 +1,5 @@
+> HISTORICAL PROPOSAL — superseded by [INDEX-TOOL-CONTRACT.md](INDEX-TOOL-CONTRACT.md). Do not implement new features against this prototype.
+
 # INDEX HTML — Native Tool Contract, prototype 0.1
 
 **Status:** EXPERIMENTAL PROPOSAL / NOT BRIDGE-COMPATIBLE YET.

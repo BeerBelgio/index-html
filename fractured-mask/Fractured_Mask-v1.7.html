@@ -27,6 +27,36 @@ Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://be
 <body>
 <canvas id="sketch-canvas"></canvas>
 <script>
+// INDEX native contract v1.0 RC — canonical manifest; Sketch mirror generated from this source.
+window.INDEX_TOOL = {
+  role: "generator",
+  toolId: "IDX-007",
+  capabilities: {
+    requires: { renderer: "canvas2d", visualInput: "none", audioInput: "none" },
+    supports: { colorOpacity: true }
+  },
+  schemaVersion: 1,
+  name: "Fractured Mask v1.7",
+  params: [
+    { key: "layout",                label: "Layout",                min: 0, max: 2,   step: 1, default: 0  },
+    { key: "seed",                  label: "Seed",                  min: 0, max: 100, step: 1, default: 18 },
+    { key: "density",               label: "Density",               min: 0, max: 100, step: 1, default: 100 },
+    { key: "cut_asymmetry",         label: "Cut Asymmetry",         min: 0, max: 100, step: 1, default: 42 },
+    { key: "coverage_distribution", label: "Coverage Distribution", min: 0, max: 100, step: 1, default: 74 },
+    { key: "fragment_fill",         label: "Fragment Fill",         min: 0, max: 100, step: 1, default: 100 },
+    { key: "fill_opacity",          label: "Fill Opacity",          min: 0, max: 100, step: 1, default: 100 }
+  ],
+  colors: [
+    { key: "fill_color", label: "Fill Color", default: "#1C1713" },
+    { key: "bg_color",   label: "BG Color",   default: "#EC6B2D" }
+  ],
+  audio: [
+      "layout", "seed", "density", "cut_asymmetry", "coverage_distribution", "fragment_fill",
+      "fill_opacity"
+    ]
+};
+
+// Sketch-compatible literal manifest — generated mirror; do not edit independently.
 window.SKETCH_TOOL = {
   schemaVersion: 1,
   name: "Fractured Mask v1.7",
@@ -57,7 +87,7 @@ const bgCanvas = document.createElement('canvas');
 const bgctx = bgCanvas.getContext('2d', { alpha: true });
 
 const toolDefaults = Object.create(null);
-for (const item of window.SKETCH_TOOL.params.concat(window.SKETCH_TOOL.colors)) {
+for (const item of window.INDEX_TOOL.params.concat(window.INDEX_TOOL.colors)) {
   toolDefaults[item.key] = item.default;
 }
 function readVal(obj, key, fallback){
@@ -93,7 +123,7 @@ function indexColorOpacity(hostContext, key){
   return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
 }
 
-window.sketchResize = function(width, height){
+window.indexResize = function(width, height){
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width;
     canvas.height = height;
@@ -260,7 +290,7 @@ function areaMetric(cx, cy, w, h, layout, seed){
   return hash(seed * 17.317 + Math.floor(nx * 91) * 3.1 + Math.floor(ny * 113) * 5.7 + radial * 11.3);
 }
 
-window.sketchDraw = function(state, hostContext){
+window.indexDraw = function(state, hostContext){
   const w = canvas.width;
   const h = canvas.height;
   if (w < 1 || h < 1) return;
@@ -361,11 +391,16 @@ window.sketchDraw = function(state, hostContext){
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
 };
+
+// Sketch adapter (generator): delegates all rendering to INDEX-native entrypoints.
+window.sketchResize = function(width, height) { return window.indexResize(width, height); };
+window.sketchDraw = function(state, hostContext) { return window.indexDraw(state, hostContext); };
+
 </script>
 <script>
 (function localPreview(){
   if (window.parent !== window) return;
-  const manifest = window.SKETCH_TOOL;
+  const manifest = window.INDEX_TOOL;
   const state = { time: 0 };
   for (const p of manifest.params) state[p.key] = p.default;
   for (const c of manifest.colors) state[c.key] = c.default;
@@ -375,7 +410,7 @@ window.sketchDraw = function(state, hostContext){
     const height = Math.max(1, window.innerHeight);
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
-    window.sketchResize(
+    window.indexResize(
       Math.max(1, Math.floor(width * dpr)),
       Math.max(1, Math.floor(height * dpr))
     );
@@ -386,7 +421,7 @@ window.sketchDraw = function(state, hostContext){
   function tick(now){
     state.time += Math.min(0.05, (now - last) / 1000);
     last = now;
-    try { window.sketchDraw(state); } catch(e) { console.error('[sketch] draw threw:', e); }
+    try { window.indexDraw(state); } catch(e) { console.error('[sketch] draw threw:', e); }
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);

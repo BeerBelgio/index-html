@@ -47,7 +47,42 @@ No upstream source implementation, bundled code, or assets are incorporated or r
   <canvas id="sketch-canvas"></canvas>
 
   <script>
-    window.SKETCH_TOOL = {
+    // INDEX native contract v1.0 RC — canonical manifest; Sketch mirror generated from this source.
+window.INDEX_TOOL = {
+  role: "generator",
+  toolId: "IDX-015",
+  capabilities: {
+    requires: { renderer: "canvas2d", visualInput: "none", audioInput: "none" },
+    supports: { colorOpacity: true }
+  },
+  schemaVersion: 1,
+  name: "Scan Accumulator v1.0",
+  params: [
+    { key: "scan_position", label: "Scan Position", min: 0, max: 100, step: 1, default: 0 },
+    { key: "direction", label: "Direction", min: 0, max: 3, step: 1, default: 1 },
+    { key: "scan_width", label: "Scan Width", min: 1, max: 200, step: 1, default: 40 },
+    { key: "temporal_offset", label: "Temporal Offset", min: 0, max: 200, step: 1, default: 80 },
+    { key: "drift", label: "Drift", min: 0, max: 200, step: 1, default: 70 },
+    { key: "hold", label: "Hold Time (0.01s)", min: 0, max: 500, step: 1, default: 75 },
+    { key: "smear", label: "Smear", min: 0, max: 200, step: 1, default: 45 },
+    { key: "trigger", label: "HARD RESET", min: 0, max: 1, step: 1, default: 0 },
+    { key: "source_type", label: "Source Type", min: 0, max: 3, step: 1, default: 0 },
+    { key: "source_detail", label: "Source Detail", min: 3, max: 48, step: 1, default: 18 },
+    { key: "source_scale", label: "Source Scale", min: 20, max: 250, step: 1, default: 100 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "line_color", label: "Line Color", default: "#E8DDC8" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "scan_position", "scan_width", "temporal_offset", "drift",
+    "hold", "smear", "source_detail", "source_scale"
+  ]
+};
+
+// Sketch-compatible literal manifest — generated mirror; do not edit independently.
+window.SKETCH_TOOL = {
   schemaVersion: 1,
   name: "Scan Accumulator v1.0",
   params: [
@@ -133,7 +168,7 @@ function indexColorOpacity(hostContext, key){
   return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
 }
 
-window.sketchResize = function(width, height) {
+window.indexResize = function(width, height) {
       width = Math.max(1, Math.floor(width));
       height = Math.max(1, Math.floor(height));
 
@@ -603,7 +638,7 @@ window.sketchResize = function(width, height) {
       return { nx, ny, halfNorm };
     }
 
-    window.sketchDraw = function(state, hostContext) {
+    window.indexDraw = function(state, hostContext) {
       const w = canvas.width;
       const h = canvas.height;
       if (w < 1 || h < 1) return;
@@ -682,13 +717,18 @@ window.sketchResize = function(width, height) {
       }
       ctx.globalAlpha = 1;
     };
-  </script>
+  
+// Sketch adapter (generator): delegates all rendering to INDEX-native entrypoints.
+window.sketchResize = function(width, height) { return window.indexResize(width, height); };
+window.sketchDraw = function(state, hostContext) { return window.indexDraw(state, hostContext); };
+
+</script>
 
   <script>
     (function localPreview() {
       if (window.parent !== window) return;
 
-      const manifest = window.SKETCH_TOOL;
+      const manifest = window.INDEX_TOOL;
       const state = { time: 0 };
 
       for (const p of manifest.params) state[p.key] = p.default;
@@ -701,7 +741,7 @@ window.sketchResize = function(width, height) {
         canvas.style.width = side + "px";
         canvas.style.height = side + "px";
 
-        window.sketchResize(
+        window.indexResize(
           Math.max(1, Math.floor(side * dpr)),
           Math.max(1, Math.floor(side * dpr))
         );
@@ -717,7 +757,7 @@ window.sketchResize = function(width, height) {
         last = now;
 
         try {
-          window.sketchDraw(state);
+          window.indexDraw(state);
         } catch (err) {
           console.error("[sketch] draw threw:", err);
         }

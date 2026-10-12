@@ -33,6 +33,42 @@ Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://be
   Creative reference: PLAYGRND / Dahlia — radial segmented rays, curvature and bead accents.
   No third-party implementation code is incorporated here.
 */
+// INDEX native contract v1.0 RC — canonical manifest; Sketch mirror generated from this source.
+window.INDEX_TOOL = {
+  role: "generator",
+  toolId: "IDX-012",
+  capabilities: {
+    requires: { renderer: "canvas2d", visualInput: "none", audioInput: "none" },
+    supports: { colorOpacity: true }
+  },
+  schemaVersion: 1,
+  name: "Kinda Flower v1.0",
+  params: [
+    { key: "rays", label: "Rays", min: 6, max: 180, step: 1, default: 48 },
+    { key: "size", label: "Size", min: 20, max: 180, step: 1, default: 100 },
+    { key: "ragged", label: "Ragged", min: 0, max: 200, step: 1, default: 62 },
+    { key: "center_x", label: "Center X", min: -200, max: 200, step: 1, default: 0 },
+    { key: "center_y", label: "Center Y", min: -200, max: 200, step: 1, default: 0 },
+    { key: "width", label: "Width", min: 0.5, max: 50, step: 0.1, default: 3 },
+    { key: "dash", label: "Dash", min: 1, max: 80, step: 1, default: 18 },
+    { key: "gap", label: "Gap", min: 0, max: 80, step: 1, default: 12 },
+    { key: "bend", label: "Bend", min: -200, max: 200, step: 1, default: 42 },
+    { key: "beads", label: "Beads", min: 0, max: 100, step: 1, default: 28 },
+    { key: "layer_spread", label: "Layer Spread", min: 0, max: 200, step: 1, default: 42 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "line_color", label: "Line Color", default: "#E8DDC8" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "rays", "size", "ragged", "width",
+    "dash", "gap", "bend", "beads",
+    "layer_spread"
+  ]
+};
+
+// Sketch-compatible literal manifest — generated mirror; do not edit independently.
 window.SKETCH_TOOL = {
   schemaVersion: 1,
   name: "Kinda Flower v1.0",
@@ -81,7 +117,7 @@ function indexColorOpacity(hostContext, key){
   return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
 }
 
-window.sketchResize=function(width,height){
+window.indexResize=function(width,height){
   width=Math.max(1,Math.floor(width));
   height=Math.max(1,Math.floor(height));
   if(canvas.width!==width || canvas.height!==height){
@@ -194,7 +230,7 @@ function pointOnPath(points,u){
   return points[points.length-1];
 }
 
-window.sketchDraw = function(state, hostContext){
+window.indexDraw = function(state, hostContext){
   const w=canvas.width,h=canvas.height;
   if(w<2||h<2) return;
 
@@ -322,11 +358,16 @@ window.sketchDraw = function(state, hostContext){
 
   ctx.globalAlpha=1;
 };
+
+// Sketch adapter (generator): delegates all rendering to INDEX-native entrypoints.
+window.sketchResize = function(width, height) { return window.indexResize(width, height); };
+window.sketchDraw = function(state, hostContext) { return window.indexDraw(state, hostContext); };
+
 </script>
 <script>
 (function localPreview(){
   if(window.parent!==window) return;
-  const manifest=window.SKETCH_TOOL,state={time:0};
+  const manifest=window.INDEX_TOOL,state={time:0};
   for(const p of manifest.params) state[p.key]=p.default;
   for(const c of manifest.colors) state[c.key]=c.default;
 
@@ -335,7 +376,7 @@ window.sketchDraw = function(state, hostContext){
     const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
     canvas.style.width=side+"px";
     canvas.style.height=side+"px";
-    window.sketchResize(
+    window.indexResize(
       Math.max(1,Math.floor(side*dpr)),
       Math.max(1,Math.floor(side*dpr))
     );
@@ -348,7 +389,7 @@ window.sketchDraw = function(state, hostContext){
   function tick(now){
     state.time+=Math.min(0.05,(now-last)/1000);
     last=now;
-    try{ window.sketchDraw(state); }
+    try{ window.indexDraw(state); }
     catch(err){ console.error("[sketch] draw threw:",err); }
     requestAnimationFrame(tick);
   }

@@ -1,215 +1,55 @@
 # INDEX HTML
 
-**Creative code for visual systems.**
+**CREATIVE CODE FOR VISUAL SYSTEMS**  
+An independently developed, source-available collection of 20 standalone HTML visual tools by BeerBelgio.
 
-A growing **source-available** collection of standalone HTML visual tools built by **BeerBelgio**.
+- **Website:** https://beerbelgio.github.io/index-html/
+- **Playground:** https://beerbelgio.github.io/index-html/playground.html
+- **Repository:** https://github.com/BeerBelgio/index-html
+- **Current candidate:** `0.21.0-rc.1` (not a promoted GitHub Release)
 
-The tools began inside BeerBelgio's audio/MIDI-reactive workflow and are compatible with **[Sketch](https://tools.sketchdesign.club/)**, standalone modern browsers and the native **INDEX Browser Host** contract, while remaining self-contained HTML files rather than belonging to a single host.
+## What INDEX is
 
-**Project → INDEX HTML**  
-**Current host compatibility → [Sketch](https://tools.sketchdesign.club/) + standalone browser + INDEX Browser Host**  
-**Creative lineage → credited per tool and in `THIRD_PARTY_NOTICES.md`**
+INDEX is the canonical platform for its tools. Every tool is a self-contained HTML file, designed to run directly in a modern browser and offline without mandatory remote runtime dependencies. The collection originated in an audio/MIDI-reactive workflow and supports host integrations, including Sketch and INDEX-HTML Bridge, without making either host the defining architecture.
 
-In this repository, **BG** is shorthand for **background**. After this note, documentation uses **BG** consistently.
+INDEX Playground is a five-layer browser environment for loading catalog or local HTML tools, adjusting controls, and experimenting with blend modes and FX. Local files stay in the browser; they are not uploaded to INDEX's servers. Only load HTML you trust.
 
-## Project status
+## Tool contract
 
-**Current staging UI build → V0.20.1 RC**
+The canonical manifest is `window.INDEX_TOOL`, with `indexDraw(state, hostContext)` and `indexResize(width, height)` for generator tools. Each manifest declares `role`, `toolId`, `capabilities`, controls and defaults. See [INDEX Tool Contract](INDEX-TOOL-CONTRACT.md).
 
-**V0.17 catalogue + host-compatibility expansion:** INDEX HTML grows from **11 to 20 tools**. Nine new Canvas2D tools are added with final public naming, V9.1 editorial metadata, per-tool lineage and the same native Browser Host color-opacity contract already used by the original set. Catalogue and hero continue to share one motion recipe per tool.
+All 20 generators also expose a Sketch-compatible *derived mirror* (`SKETCH_TOOL`, `sketchDraw`, `sketchResize`) inside the same HTML. INDEX provides backwards compatibility for legacy Sketch manifests; new development uses INDEX as the source of truth. The current 20 generators require either Canvas2D or WebGL1; host capabilities determine support. FX fragment support exists in the Playground and Bridge; compositors with two inputs and direct audio-driven engines remain future work.
 
-**V0.17.1 motion-recipe sync:** the shared catalogue / hero recipes are synchronized to the current V9 master after the catalogue pass. Recipes marked **Advance time** now run directly from each tool's manifest defaults while the shared preview clock advances; explicit recipes remain targeted parameter overrides. The values remain provisional until the live hero pass is complete.
+The tool's color `hostContext.colorOpacity` values range from 0 to 1 without consuming numeric parameter slots. The INDEX schema itself is not limited by the present 12-parameter/4-color Bridge UI.
 
-**V0.17.2 default sync:** HTML defaults are synchronized to the current V9.1 master after the catalogue pass. Scan Accumulator, Orbital Geometry, Lava Lamp, Electrostatic Field, Homer's Hair and Sticky Plants receive updated starting values; ranges, steps, Audio Sync exposure, color contracts and rendering logic are unchanged. The affected tool versions remain unchanged while these new v1.0 tools are still being tuned in staging.
+## Get started
 
-**V0.18 distribution + host-readiness pass:** the project now carries stable `toolId` and `toolType` metadata from the V9.2 master, adds a responsive two-line homepage hero title, documents the in-development Max for Live host on the About page, and adds a browser-generated **Download All** bundle that always resolves the current tool files from `data/tools.json`. Every canonical HTML source now carries a standardized INDEX HTML header/footer identity block. Topographic's Line Width default is synchronized to **50**.
+- Browse the site, open a tool page, or download an individual HTML from its catalog entry.
+- Run HTML directly in a browser, or import generator files into Sketch.
+- Load tools into [INDEX Playground](https://beerbelgio.github.io/index-html/playground.html) to test controls and combine up to five layers.
+- Developers integrating a host should use the INDEX Tool Contract and [Control Protocol](INDEX-CONTROL-PROTOCOL.md).
+- Tool paths, identifiers, categories, editorial copy and lineage are recorded in [`data/tools.json`](data/tools.json). Parameters and defaults must be read from the HTML manifest.
 
+## Project structure
 
-**V0.18.1 responsive + distribution polish:** the homepage hero title returns to natural responsive wrapping, the homepage Download All control is removed while catalogue spacing is restored, About interaction states are aligned with the rest of the site, and the generated collection bundle now ships one combined `LEGAL.md` plus the unified `INDEX-HTML_BEERBELGIO.svg` identity asset. The flat `tools/` directory remains the intended local-cache direction for the future Max host workflow.
+- `<tool-slug>/`: canonical current HTML, optional older version files, and tool-specific `README.md`.
+- `data/tools.json`: editorial catalog, file paths and stable tool identity metadata.
+- `assets/`: site UI, scripts, styles, artwork and bundled fonts.
+- `index.html`, `tool.html`, `about.html`, `playground.html`: public site pages.
+- `INDEX-TOOL-CONTRACT.md`: technical manifest and runtime contract.
+- `INDEX-CONTROL-PROTOCOL.md`: host communication requirements.
+- `CHANGELOG.md`: chronological release history.
+- `RELEASE_POLICY.md`: versions, tags and promotion gates.
+- `KNOWN_ISSUES.md`: current reproducible limitations and workarounds.
 
-**V0.18.2 UI hotfix + V10 master sync:** the homepage catalogue returns to the title-free layout (search/tags directly above the cards), About inline links are normalized to the same no-underline bold/arrow interaction language including Privacy, and project metadata now points to the V10 content master. V10 adds the Technology Index as a planning map without changing the current 20 tool manifests or catalogue content.
+## Development and compatibility
 
-**V0.19.0 Playground + Bridge Help:** adds a public browser-local HTML testing Playground (legacy generator, provisional INDEX-native generator, Bridge-style fragment EFFECT preview), a publicly indexable Bridge 0.22.24 Help page with local mirror manifest, flattened M PLUS font assets and a prospective INDEX-native protocol migration note. None of the 20 canonical tool files are changed. Compositor A/B input and host native-manifest support remain future work.
+Version `0.21.0-rc.1` aligns the browser catalog and tool pages with the INDEX-native manifest; the legacy adapter is retained for Sketch and existing host clients. The 20 generator algorithms and their creative parameter ranges have not been redesigned. Orbital Geometry's approved `Scale` default changes from 150 to 100.
 
-**V0.19.1 Playground usability hotfix:** catalogue row anchoring centers the first tool row after asynchronous loading, catalogue cards shuffle on every homepage visit, the tool-page header links to the Playground, and Playground moves colors below the renderer while aligning its preview column with the parameter list. Diagnostics is collapsed until needed; redundant lab copy is removed. No canonical tool changes. The original Playground title SVG supplied by the project owner is now integrated.
+The RC is based on successful user testing of 20 INDEX-native generators in Chrome, Sketch, Playground and Bridge on M5 and Intel machines. Those tests do not prove all hardware configurations or every standalone WebGL edge case. See [Known issues](KNOWN_ISSUES.md) before relying on uniform GPU output. Do not confuse tests of Bridge 0.23.6 with approval of a future Bridge release; its Set recall defect remains tracked separately.
 
-**V0.19.3 Playground load-state hotfix:** fixes repeated tool switching by disposing the previous iframe as soon as a new load is requested and creating a genuinely blank sandbox iframe instead of cloning the previous srcdoc. Keeps the supplied empty-state SVG visible until the first frame completes, with a timeout/error fallback. Clarifies local-upload privacy language and updates the CHOOSE A FILE hover action. No canonical tool files changed. The same single Playground will grow to five layers after the load/render lifecycle is accepted.
+## License and provenance
 
-**V0.19.4 Playground performance telemetry:** adds AUTO / 30 / 60 requested-frame limits, measured completed FPS, JavaScript draw-time estimates and a performance history view. Adds the owner's separate loading SVG while preserving the existing empty-state art.
+All tool source and third-party lineage notices are in [LICENSE.md](LICENSE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The project's original code is shared under PolyForm Noncommercial 1.0.0 as described in the license file. Source-available does not mean unrestricted commercial reuse.
 
-**V0.19.5 Compact performance controls:** moves FPS TARGET into the Preview control strip beside PAUSE and RESET, replaces Diagnostics charts with three small semicircular gauges (actual FPS, draw CPU, estimated frame budget and headroom), preserves diagnostics for loading errors and logs, and switches the CHOOSE A FILE hover arrow to the site's standard SVG. Tool rendering and all 20 canonical HTML files remain unchanged.
-
-**V0.20.0 Playground five-layer RC:** the existing public Playground now provides five independent visual layers (L1→L5), layer-specific catalogue/local HTML loading, visibility, opacity dial and typed percentage, Normal/Add/Multiply/Screen blending, independent manifest parameters and color controls, global Pause/Play, FPS target and composite performance monitoring. Tool content executes in sandboxed iframes; the browser composites transferable canvas frames. The existing 20 canonical HTML files stay byte-for-byte unchanged. Generator composition has local Chromium test coverage; fragment FX processing requires WebGL hardware/runtime verification and compositor A/B tool contracts remain future work.
-
-**V0.20.1 Playground UI and site copy refinement (RC):** replaces the multilayer opacity dial with a compact, keyboard-accessible range slider linked to the percentage input; removes redundant layer guidance; normalizes the Playground footer with the main site and removes redundant Playground footer links elsewhere. Adds a dedicated Playground card to About, updates the local-file privacy explanation, and refreshes the homepage hero copy to reflect INDEX as an independent tool platform. No tool algorithms, manifests or renderer architecture are modified.
-
-
-The V0.15 vector-masked hero architecture remains unchanged: one eligible real tool is selected randomly, rendered on the fixed **831 × 211 px** logical surface, and kept in motion while visible. V0.17.1 resynchronized preview motion behaviour; V0.17.2 synchronizes the selected manifest defaults from V9.1 without changing rendering algorithms.
-
-**Live staging site → [beerbelgio.github.io/index-html/](https://beerbelgio.github.io/index-html/)**
-
-**INDEX HTML is currently in active staging.** The 20 standalone tool HTML files are the current code baseline; the GitHub Pages interface, catalogue copy and host contracts may continue to evolve while the public system is tested.
-
-The current `tool.html` page is intentionally marked `noindex` during this phase. `data/tools.json` is the staging editorial/catalogue layer and now also carries each tool's stable `toolId` and structural `toolType`, while each tool's `window.SKETCH_TOOL` manifest remains the technical source of truth for controls, ranges, defaults, colors and Sketch Audio Sync exposure. The optional second `sketchDraw(state, hostContext)` argument extends the same files with host-only context without changing the Sketch/standalone contract.
-
-For INDEX Browser Host, declared manifest colors can receive independent normalized opacity through `hostContext.colorOpacity`. Missing host context, missing opacity data or missing color keys resolve to full opacity, so legacy `sketchDraw(state)` calls remain unchanged. This host-side opacity does **not** consume any of the numeric Sketch parameter slots.
-
-The homepage queues real tool previews as they approach the viewport, initialises at most two catalogue previews in parallel, retries a failed runtime once, keeps catalogue previews frozen by default and animates them only while hovered on fine-pointer devices. The homepage hero loads one random eligible real tool and animates it continuously whenever the hero is on screen. Both surfaces use the same per-tool motion recipe. The catalogue can be filtered by tool name or concept tag.
-
-**M PLUS Rounded 1c** remains the body/UI typeface. **Barlow Condensed** is the display typeface for headings and strong signals, using Medium for claims and ExtraBold for titles. Both are self-hosted under `assets/fonts/` under their respective SIL Open Font License terms.
-
-## What lives here
-
-INDEX HTML is a collection of visual generators, masks, transitions and procedural systems. Each distributed HTML file is:
-
-- standalone and inspectable;
-- usable directly in a modern browser;
-- compatible with [Sketch](https://tools.sketchdesign.club/) through its exposed manifest;
-- compatible with INDEX Browser Host through an optional host-context layer;
-- built without a project-wide build system or external runtime dependency;
-- documented with its own controls, lineage and licence notes.
-
-Sketch is a supported host, not the identity of the project. INDEX Browser Host follows the same principle: the HTML visual engine stays portable while Max/Ableton, browser, MIDI, OSC or other systems can supply control data through a host layer.
-
-## Repository structure
-
-```text
-index-html/
-├── .gitignore
-├── .gitattributes
-├── .nojekyll
-├── README.md
-├── LICENSE.md
-├── THIRD_PARTY_NOTICES.md
-├── INDEX-CONTROL-PROTOCOL.md
-├── index.html
-├── about.html
-├── tool.html
-├── playground.html
-├── bridge-help.html
-├── assets/
-│   ├── branding/
-│   ├── css/
-│   ├── fonts/
-│   └── js/
-├── data/
-│   └── tools.json
-├── linking-nodes/
-├── cassini-flow/
-├── caustic-stitch/
-├── cellular-field/
-├── nodal-morph/
-├── form-cutter/
-├── fractured-mask/
-├── scatter-front/
-├── topographic/
-├── topographic-mask/
-├── formshift/
-├── kinda-flower/
-├── syn-division/
-├── dna-filament/
-├── scan-accumulator/
-├── orbital-geometry/
-├── lava-lamp/
-├── electrostatic-field/
-├── homers-hair/
-└── sticky-plants/
-```
-
-Each tool folder contains the current standalone HTML file and its tool-specific `README.md`. Every tool also has a stable `IDX-###` identity and a structural `toolType` in `data/tools.json`; all current tools are `generator`. The Pages layer includes the catalogue homepage (`index.html`), the `about.html` page and one generic `tool.html` page. The homepage builds all **20** catalogue cards from `data/tools.json`: each actual tool is rendered once as a frozen preview, then runs only while a fine-pointer user hovers that card. The hero independently selects one eligible real tool at random on each page load and renders it continuously through the vector wordmark + claim mask on an 831 × 211 logical surface. The detail URL selects a tool, `data/tools.json` supplies editorial content, and the selected tool's own manifest supplies the technical controls.
-
-## How to use a tool
-
-### In [Sketch](https://tools.sketchdesign.club/)
-
-1. Import the HTML file as a Custom HTML Tool.
-2. Use the controls exposed by its manifest.
-3. Map the controls exposed to Audio Sync where useful.
-4. Combine the tool with other layers as part of a larger visual workflow.
-
-### In a browser
-
-Open the same HTML file directly. Its local preview follows the browser viewport; inside a compatible host, render size can be supplied through `sketchResize()`.
-
-### In INDEX Browser Host
-
-Call the same visual contract with `sketchDraw(state, hostContext)`. The optional `hostContext.colorOpacity` object can control the alpha of each color declared in `window.SKETCH_TOOL.colors` independently. Omitting `hostContext` preserves the normal standalone/Sketch rendering.
-
-### Download the current collection
-
-The Pages interface can build a ZIP directly in the browser from the current `data/tools.json` catalogue. The bundle contains the current canonical HTML files in a flat `tools/` directory plus a combined `LEGAL.md`, a compact local manifest and one INDEX HTML / BeerBelgio identity SVG. It is generated on demand rather than maintained as a separate static release asset.
-
-### Tool roles
-
-`toolType` is structural host metadata rather than a concept tag. The current vocabulary is `generator`, with `effect`, `compositor` and `source` reserved for future host-aware tools. These future roles do not change the current Sketch manifest contract. See `INDEX-CONTROL-PROTOCOL.md`.
-
-## Provenance labels
-
-- **original** — no meaningful third-party implementation code or structure is retained in the current tool. A tool may still have explicit creative lineage.
-- **inspired-by** — another public project influenced the concept, visual language or interaction, while the current implementation was independently built.
-- **derived-from** — meaningful implementation is inherited from another INDEX HTML tool.
-- **adapted-from** — reserved for a future case where meaningful third-party implementation code or structure is retained and its licence obligations must be carried through.
-
-The current set contains **no `adapted-from` tools**. Topographic Mask is the only confirmed internal `derived-from` tool.
-
-## Current tool set
-
-| Tool | Version | Renderer | Concept tags | Current file |
-|---|---:|---|---|---|
-| [Linking Nodes](linking-nodes/) | v2.1 | Canvas 2D | particles · lines | `Linking_Nodes-v2.1.html` |
-| [Cassini Flow](cassini-flow/) | v1.7 | Canvas 2D | field · stripes | `Cassini_Flow-v1.7.html` |
-| [Caustic Stitch](caustic-stitch/) | v1.9 | Canvas 2D | lines · shapes | `Caustic_Stitch-v1.9.html` |
-| [Cellular Field](cellular-field/) | v1.5 | WebGL | field · shapes | `Cellular_Field-v1.5.html` |
-| [Nodal Morph](nodal-morph/) | v1.9 | WebGL | field · stripes | `Nodal_Morph-v1.9.html` |
-| [FormCutter](form-cutter/) | v1.4 | Canvas 2D | mask-cut · transition | `FormCutter-v1.4.html` |
-| [Fractured Mask](fractured-mask/) | v1.7 | Canvas 2D | mask-cut | `Fractured_Mask-v1.7.html` |
-| [Scatter Front](scatter-front/) | v1.7 | Canvas 2D | particles · transition | `Scatter_Front-v1.7.html` |
-| [Topographic](topographic/) | v1.4 | Canvas 2D | field · lines | `Topographic-v1.4.html` |
-| [Topographic Mask](topographic-mask/) | v1.11 | Canvas 2D | field · shapes | `Topographic_Mask-v1.11.html` |
-| [FormShift](formshift/) | v1.8 | Canvas 2D | transition · shapes | `FormShift-v1.8.html` |
-| [Kinda Flower](kinda-flower/) | v1.0 | Canvas 2D | lines · flow | `Kinda_Flower-v1.0.html` |
-| [Syn Division](syn-division/) | v1.0 | Canvas 2D | lines · field | `Syn_Division-v1.0.html` |
-| [DNA Filament](dna-filament/) | v1.0 | Canvas 2D | lines · field | `DNA_Filament-v1.0.html` |
-| [Scan Accumulator](scan-accumulator/) | v1.0 | Canvas 2D | lines · transition | `Scan_Accumulator-v1.0.html` |
-| [Orbital Geometry](orbital-geometry/) | v1.0 | Canvas 2D | lines · shapes | `Orbital_Geometry-v1.0.html` |
-| [Lava Lamp](lava-lamp/) | v1.0 | Canvas 2D | field · shapes | `Lava_Lamp-v1.0.html` |
-| [Electrostatic Field](electrostatic-field/) | v1.0 | Canvas 2D | flow · lines | `Electrostatic_Field-v1.0.html` |
-| [Homer's Hair](homers-hair/) | v1.0 | Canvas 2D | lines · flow | `Homers_Hair-v1.0.html` |
-| [Sticky Plants](sticky-plants/) | v1.0 | Canvas 2D | lines · field | `Sticky_Plants-v1.0.html` |
-
-
-## Validation
-
-The current 20-tool set is checked for:
-
-- JavaScript syntax;
-- manifest limits and key integrity;
-- consistent tool name, version, manifest name, `<title>` and filename;
-- standard project licence notice in every distributed HTML file;
-- numeric defaults inside declared ranges;
-- Audio Sync destinations that resolve to existing numeric parameter keys;
-- native host color-opacity coverage for every declared manifest color;
-- preservation of the existing 11 rendering/default behaviour and motion recipes while integrating the new nine;
-- coherent catalogue metadata, lineage and file references in `data/tools.json`.
-
-Static contract and syntax checks are included in this RC. **Real Sketch and the INDEX Browser Host / Max device remain the authoritative runtime/integration tests**, especially for multilayer composition, WebGL and high-resolution output.
-
-## Credits and lineage
-
-External projects that influenced INDEX HTML are credited in each tool README and in `THIRD_PARTY_NOTICES.md`.
-
-The current audit found no meaningful third-party implementation code retained in the distributed HTML tools. External relationships are therefore documented as creative/conceptual lineage unless explicitly stated otherwise.
-
-## Licence
-
-Original code is published under the **PolyForm Noncommercial License 1.0.0**. Original documentation and creative material are published under **CC BY-NC 4.0**, to the extent the project owns the applicable rights.
-
-Commercial or monetised use is not automatically granted and requires a separate agreement.
-
-See `LICENSE.md`, `THIRD_PARTY_NOTICES.md` and the staging [About / licensing page](https://beerbelgio.github.io/index-html/about.html#licensing).
-
----
-
-**INDEX HTML**  
-BeerBelgio  
-https://beerbelgio.github.io/
+BeerBelgio © 2026 · **Fun is a serious thing.**

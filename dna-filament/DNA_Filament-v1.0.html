@@ -39,6 +39,42 @@ Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://be
   2 Burst
   3 Vortex
 */
+// INDEX native contract v1.0 RC — canonical manifest; Sketch mirror generated from this source.
+window.INDEX_TOOL = {
+  role: "generator",
+  toolId: "IDX-014",
+  capabilities: {
+    requires: { renderer: "canvas2d", visualInput: "none", audioInput: "none" },
+    supports: { colorOpacity: true }
+  },
+  schemaVersion: 1,
+  name: "DNA Filament v1.0",
+  params: [
+    { key: "mode", label: "Mode", min: 0, max: 3, step: 1, default: 2 },
+    { key: "lines", label: "Lines", min: 4, max: 180, step: 1, default: 56 },
+    { key: "length", label: "Length", min: 10, max: 240, step: 1, default: 122 },
+    { key: "spread", label: "Spread", min: 0, max: 200, step: 1, default: 74 },
+    { key: "bundle", label: "Bundle", min: 0, max: 200, step: 1, default: 128 },
+    { key: "field", label: "Field", min: 0, max: 200, step: 1, default: 96 },
+    { key: "curl", label: "Curl", min: -200, max: 200, step: 1, default: 38 },
+    { key: "twist", label: "Twist", min: -200, max: 200, step: 1, default: 26 },
+    { key: "weave", label: "DNA Maker", min: -200, max: 200, step: 1, default: 0 },
+    { key: "width", label: "Width", min: 0.5, max: 20, step: 0.1, default: 2.4 },
+    { key: "drift", label: "Drift", min: 0, max: 200, step: 1, default: 42 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "line_color", label: "Line Color", default: "#E8DDC8" },
+    { key: "accent_color", label: "Accent Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "lines", "length", "spread", "bundle",
+    "field", "curl", "twist", "weave",
+    "width", "drift"
+  ]
+};
+
+// Sketch-compatible literal manifest — generated mirror; do not edit independently.
 window.SKETCH_TOOL = {
   schemaVersion: 1,
   name: "DNA Filament v1.0",
@@ -90,7 +126,7 @@ function indexColorOpacity(hostContext, key){
   return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
 }
 
-window.sketchResize=function(width,height){
+window.indexResize=function(width,height){
   width=Math.max(1,Math.floor(width));
   height=Math.max(1,Math.floor(height));
   if(canvas.width!==width || canvas.height!==height){
@@ -340,7 +376,7 @@ function drawPolyline(points,width,color,alpha){
   ctx.stroke();
 }
 
-window.sketchDraw = function(state, hostContext){
+window.indexDraw = function(state, hostContext){
   const w=canvas.width,h=canvas.height;
   if(w<2||h<2) return;
 
@@ -401,11 +437,16 @@ window.sketchDraw = function(state, hostContext){
 
   ctx.globalAlpha=1;
 };
+
+// Sketch adapter (generator): delegates all rendering to INDEX-native entrypoints.
+window.sketchResize = function(width, height) { return window.indexResize(width, height); };
+window.sketchDraw = function(state, hostContext) { return window.indexDraw(state, hostContext); };
+
 </script>
 <script>
 (function localPreview(){
   if(window.parent!==window) return;
-  const manifest=window.SKETCH_TOOL,state={time:0};
+  const manifest=window.INDEX_TOOL,state={time:0};
   for(const p of manifest.params) state[p.key]=p.default;
   for(const c of manifest.colors) state[c.key]=c.default;
 
@@ -414,7 +455,7 @@ window.sketchDraw = function(state, hostContext){
     const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
     canvas.style.width=side+"px";
     canvas.style.height=side+"px";
-    window.sketchResize(
+    window.indexResize(
       Math.max(1,Math.floor(side*dpr)),
       Math.max(1,Math.floor(side*dpr))
     );
@@ -427,7 +468,7 @@ window.sketchDraw = function(state, hostContext){
   function tick(now){
     state.time+=Math.min(0.05,(now-last)/1000);
     last=now;
-    try{ window.sketchDraw(state); }
+    try{ window.indexDraw(state); }
     catch(err){ console.error("[sketch] draw threw:",err); }
     requestAnimationFrame(tick);
   }

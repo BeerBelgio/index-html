@@ -33,6 +33,42 @@ Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://be
   Creative reference: PLAYGRND / Zig — interlocking zigzags and staircase structures.
   No third-party implementation code is incorporated here.
 */
+// INDEX native contract v1.0 RC — canonical manifest; Sketch mirror generated from this source.
+window.INDEX_TOOL = {
+  role: "generator",
+  toolId: "IDX-013",
+  capabilities: {
+    requires: { renderer: "canvas2d", visualInput: "none", audioInput: "none" },
+    supports: { colorOpacity: true }
+  },
+  schemaVersion: 1,
+  name: "Syn Division v1.0",
+  params: [
+    { key: "stripes", label: "Stripes", min: 3, max: 80, step: 1, default: 18 },
+    { key: "spacing", label: "Spacing", min: 0, max: 200, step: 1, default: 70 },
+    { key: "weight", label: "Weight", min: 5, max: 100, step: 1, default: 58 },
+    { key: "tooth_depth", label: "Tooth Depth", min: 0, max: 200, step: 1, default: 86 },
+    { key: "tooth_length", label: "Tooth Length", min: 10, max: 240, step: 1, default: 92 },
+    { key: "stagger", label: "Stagger", min: 0, max: 200, step: 1, default: 72 },
+    { key: "warp", label: "Warp", min: -200, max: 200, step: 1, default: 26 },
+    { key: "ripple", label: "Ripple", min: -200, max: 200, step: 1, default: 42 },
+    { key: "vector_mode", label: "Vector Mode", min: 0, max: 2, step: 1, default: 0 },
+    { key: "phase", label: "Phase", min: 0, max: 360, step: 1, default: 0 },
+    { key: "motion_bpm", label: "Motion BPM", min: 0, max: 260, step: 1, default: 72 }
+  ],
+  colors: [
+    { key: "primary_color", label: "Primary Color", default: "#E8DDC8" },
+    { key: "secondary_color", label: "Secondary Color", default: "#EC6B2D" },
+    { key: "accent_color", label: "Third Color", default: "#6A9E5D" }
+  ],
+  audio: [
+    "stripes", "spacing", "weight", "tooth_depth",
+    "tooth_length", "stagger", "warp", "ripple",
+    "phase"
+  ]
+};
+
+// Sketch-compatible literal manifest — generated mirror; do not edit independently.
 window.SKETCH_TOOL = {
   schemaVersion: 1,
   name: "Syn Division v1.0",
@@ -83,7 +119,7 @@ function indexColorOpacity(hostContext, key){
   return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
 }
 
-window.sketchResize=function(width,height){
+window.indexResize=function(width,height){
   width=Math.max(1,Math.floor(width));
   height=Math.max(1,Math.floor(height));
   if(canvas.width!==width || canvas.height!==height){ canvas.width=width; canvas.height=height; }
@@ -220,7 +256,7 @@ function drawRow(row,rowCount,w,h,opts){
   ctx.stroke();
 }
 
-window.sketchDraw = function(state, hostContext){
+window.indexDraw = function(state, hostContext){
   const w=canvas.width,h=canvas.height;
   if(w<2||h<2) return;
 
@@ -277,24 +313,29 @@ window.sketchDraw = function(state, hostContext){
   for(let r=0;r<rowCount;r++) drawRow(r,rowCount,w,h,opts);
   ctx.globalAlpha=1;
 };
+
+// Sketch adapter (generator): delegates all rendering to INDEX-native entrypoints.
+window.sketchResize = function(width, height) { return window.indexResize(width, height); };
+window.sketchDraw = function(state, hostContext) { return window.indexDraw(state, hostContext); };
+
 </script>
 <script>
 (function localPreview(){
   if(window.parent!==window) return;
-  const manifest=window.SKETCH_TOOL,state={time:0};
+  const manifest=window.INDEX_TOOL,state={time:0};
   for(const p of manifest.params) state[p.key]=p.default;
   for(const c of manifest.colors) state[c.key]=c.default;
   function fit(){
     const dpr=Math.min(window.devicePixelRatio||1,2);
     const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
     canvas.style.width=side+"px"; canvas.style.height=side+"px";
-    window.sketchResize(Math.max(1,Math.floor(side*dpr)),Math.max(1,Math.floor(side*dpr)));
+    window.indexResize(Math.max(1,Math.floor(side*dpr)),Math.max(1,Math.floor(side*dpr)));
   }
   fit(); window.addEventListener("resize",fit);
   let last=performance.now();
   function tick(now){
     state.time+=Math.min(0.05,(now-last)/1000); last=now;
-    try{ window.sketchDraw(state); } catch(err){ console.error("[sketch] draw threw:",err); }
+    try{ window.indexDraw(state); } catch(err){ console.error("[sketch] draw threw:",err); }
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);

@@ -568,7 +568,7 @@
   }
 
   function resizeTool() {
-    if (!runtime.frameWindow || typeof runtime.frameWindow.sketchResize !== 'function') return;
+    if (!runtime.frameWindow || typeof (runtime.frameWindow.indexResize || runtime.frameWindow.sketchResize) !== 'function') return;
     const stage = activeStage();
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
@@ -585,7 +585,7 @@
         canvas.style.maxWidth = 'none';
         canvas.style.maxHeight = 'none';
       }
-      runtime.frameWindow.sketchResize(
+      (runtime.frameWindow.indexResize || runtime.frameWindow.sketchResize)(
         Math.max(1, Math.floor(width * dpr)),
         Math.max(1, Math.floor(height * dpr))
       );
@@ -609,7 +609,7 @@
       runtime.lastTime = now;
       runtime.state.time += dt;
       try {
-        runtime.frameWindow.sketchDraw(runtime.state);
+        (runtime.frameWindow.indexDraw || runtime.frameWindow.sketchDraw)(runtime.state);
       } catch (error) {
         stopRenderLoop();
         setFatal(`Tool render failed: ${error.message}`);
@@ -637,12 +637,12 @@
     clearFatal();
     try {
       const win = els.frame.contentWindow;
-      const manifest = win.SKETCH_TOOL;
+      const manifest = win.INDEX_TOOL || win.SKETCH_TOOL;
       if (!manifest || !Array.isArray(manifest.params) || !Array.isArray(manifest.colors)) {
-        throw new Error('SKETCH_TOOL manifest was not found or is invalid.');
+        throw new Error('INDEX_TOOL / SKETCH_TOOL manifest was not found or is invalid.');
       }
-      if (typeof win.sketchResize !== 'function' || typeof win.sketchDraw !== 'function') {
-        throw new Error('sketchResize() or sketchDraw() is missing.');
+      if (typeof (win.indexResize || win.sketchResize) !== 'function' || typeof (win.indexDraw || win.sketchDraw) !== 'function') {
+        throw new Error('Tool resize or draw entrypoint is missing.');
       }
 
       runtime.frameWindow = win;
@@ -678,7 +678,7 @@
 
     mountFrameForMode();
     els.frame.title = `${tool.name} live preview`;
-    els.frame.src = `${tool.file}?detail=1&build=0172`;
+    els.frame.src = `${tool.file}?detail=1&build=0210`;
   }
 
   const emailFallback = document.getElementById('email-fallback');

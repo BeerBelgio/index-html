@@ -33,6 +33,42 @@ Required Notice: Copyright © 2026 Matteo Belgiovine / BeerBelgio — https://be
   Creative reference: PLAYGRND / Coral — sea-fan branching, ribbed coral structure.
   No third-party implementation code is incorporated here.
 */
+// INDEX native contract v1.0 RC — canonical manifest; Sketch mirror generated from this source.
+window.INDEX_TOOL = {
+  role: "generator",
+  toolId: "IDX-020",
+  capabilities: {
+    requires: { renderer: "canvas2d", visualInput: "none", audioInput: "none" },
+    supports: { colorOpacity: true }
+  },
+  schemaVersion: 1,
+  name: "Sticky Plants v1.0",
+  params: [
+    { key: "mode", label: "Mode", min: 0, max: 4, step: 1, default: 4 },
+    { key: "branches", label: "Branches", min: 2, max: 72, step: 1, default: 46 },
+    { key: "forking", label: "Forking", min: 0, max: 300, step: 1, default: 112 },
+    { key: "spacing", label: "Spacing", min: 0, max: 300, step: 1, default: 78 },
+    { key: "spread", label: "Spread", min: 0, max: 200, step: 1, default: 118 },
+    { key: "width", label: "Width", min: 0.5, max: 25, step: 0.1, default: 4.2 },
+    { key: "wobble", label: "Wobble", min: 0, max: 200, step: 1, default: 54 },
+    { key: "growth", label: "Growth", min: 0, max: 100, step: 1, default: 100 },
+    { key: "rib_density", label: "Rib Density", min: 0, max: 100, step: 1, default: 56 },
+    { key: "rib_length", label: "Rib Length", min: 0, max: 200, step: 1, default: 72 },
+    { key: "seed", label: "Seed", min: 0, max: 999, step: 1, default: 137 },
+    { key: "asymmetry", label: "Asymmetry", min: 0, max: 200, step: 1, default: 68 }
+  ],
+  colors: [
+    { key: "branch_color", label: "Branch Color", default: "#E8DDC8" },
+    { key: "rib_color", label: "Rib Color", default: "#EC6B2D" }
+  ],
+  audio: [
+    "branches", "forking", "spacing", "spread",
+    "width", "wobble", "growth", "rib_density",
+    "rib_length", "seed", "asymmetry"
+  ]
+};
+
+// Sketch-compatible literal manifest — generated mirror; do not edit independently.
 window.SKETCH_TOOL = {
   schemaVersion: 1,
   name: "Sticky Plants v1.0",
@@ -82,7 +118,7 @@ function indexColorOpacity(hostContext, key){
   return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
 }
 
-window.sketchResize=function(width,height){
+window.indexResize=function(width,height){
   width=Math.max(1,Math.floor(width));
   height=Math.max(1,Math.floor(height));
   if(canvas.width!==width || canvas.height!==height){
@@ -301,7 +337,7 @@ function coralRoot(mode,u,branches,seed,w,h,minSide,spacing,spread,asymmetry){
   }
 }
 
-window.sketchDraw = function(state, hostContext){
+window.indexDraw = function(state, hostContext){
   const w=canvas.width,h=canvas.height;
   if(w<2||h<2) return;
 
@@ -398,11 +434,16 @@ window.sketchDraw = function(state, hostContext){
 
   ctx.globalAlpha=1;
 };
+
+// Sketch adapter (generator): delegates all rendering to INDEX-native entrypoints.
+window.sketchResize = function(width, height) { return window.indexResize(width, height); };
+window.sketchDraw = function(state, hostContext) { return window.indexDraw(state, hostContext); };
+
 </script>
 <script>
 (function localPreview(){
   if(window.parent!==window) return;
-  const manifest=window.SKETCH_TOOL,state={time:0};
+  const manifest=window.INDEX_TOOL,state={time:0};
   for(const p of manifest.params) state[p.key]=p.default;
   for(const c of manifest.colors) state[c.key]=c.default;
 
@@ -411,7 +452,7 @@ window.sketchDraw = function(state, hostContext){
     const side=Math.max(96,Math.min(window.innerWidth,window.innerHeight)-40);
     canvas.style.width=side+"px";
     canvas.style.height=side+"px";
-    window.sketchResize(
+    window.indexResize(
       Math.max(1,Math.floor(side*dpr)),
       Math.max(1,Math.floor(side*dpr))
     );
@@ -424,7 +465,7 @@ window.sketchDraw = function(state, hostContext){
   function tick(now){
     state.time+=Math.min(0.05,(now-last)/1000);
     last=now;
-    try{ window.sketchDraw(state); }
+    try{ window.indexDraw(state); }
     catch(err){ console.error("[sketch] draw threw:",err); }
     requestAnimationFrame(tick);
   }

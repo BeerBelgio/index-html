@@ -175,8 +175,8 @@
 
       // Keep the hero's logical render surface fixed to the Illustrator-measured
       // wordmark + claim bounds. CSS scales the iframe responsively afterwards.
-      win.sketchResize(HERO_RENDER_WIDTH, HERO_RENDER_HEIGHT);
-      win.sketchDraw(preview.state);
+      (win.indexResize || win.sketchResize)(HERO_RENDER_WIDTH, HERO_RENDER_HEIGHT);
+      (win.indexDraw || win.sketchDraw)(preview.state);
       return true;
     } catch (error) {
       console.warn('[INDEX HTML] hero draw failed:', preview.tool?.slug, error);
@@ -229,7 +229,7 @@
 
     try {
       const loadPromise = waitForIframeLoad(iframe);
-      iframe.src = `${tool.file}?hero=1&build=0172`;
+      iframe.src = `${tool.file}?hero=1&build=0210`;
       heroToolMask.replaceChildren(iframe);
 
       await loadPromise;
@@ -239,7 +239,7 @@
       heroPreview = {
         tool,
         iframe,
-        state: stateFromManifest(iframe.contentWindow.SKETCH_TOOL),
+        state: stateFromManifest((iframe.contentWindow.INDEX_TOOL || iframe.contentWindow.SKETCH_TOOL)),
         ready: true,
         raf: 0,
         lastTime: 0
@@ -287,9 +287,9 @@
       const win = iframe.contentWindow;
       return !!(
         win &&
-        win.SKETCH_TOOL &&
-        typeof win.sketchResize === 'function' &&
-        typeof win.sketchDraw === 'function'
+        (win.INDEX_TOOL || win.SKETCH_TOOL) &&
+        typeof (win.indexResize || win.sketchResize) === 'function' &&
+        typeof (win.indexDraw || win.sketchDraw) === 'function' 
       );
     } catch (_) {
       return false;
@@ -346,8 +346,8 @@
         canvas.style.maxWidth = 'none';
         canvas.style.maxHeight = 'none';
       }
-      win.sketchResize(width, height);
-      win.sketchDraw(state);
+      (win.indexResize || win.sketchResize)(width, height);
+      (win.indexDraw || win.sketchDraw)(state);
       stage.classList.add('is-rendered');
       const placeholder = stage.querySelector('.preview-placeholder');
       if (placeholder) placeholder.remove();
@@ -408,14 +408,14 @@
     // Attach the load/error listeners before navigation starts. Cached local tool
     // files can otherwise finish fast enough to race a listener registered later.
     const loadPromise = waitForIframeLoad(iframe);
-    iframe.src = `${preview.tool.file}?catalogue=1&build=0172&attempt=${attempt}`;
+    iframe.src = `${preview.tool.file}?catalogue=1&build=0210&attempt=${attempt}`;
     preview.stage.appendChild(iframe);
 
     await loadPromise;
     const ready = await waitForRuntime(iframe);
     if (!ready) throw new Error('tool runtime did not become ready');
 
-    preview.state = stateFromManifest(iframe.contentWindow.SKETCH_TOOL);
+    preview.state = stateFromManifest((iframe.contentWindow.INDEX_TOOL || iframe.contentWindow.SKETCH_TOOL));
     await nextFrame();
     await nextFrame();
 
