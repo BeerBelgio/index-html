@@ -4,13 +4,16 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
+### Fixed
+- DOWNLOAD ALL now reads `project.releaseBuild` (instead of retired `stagingBuild`) consistently for the ZIP filename, bundled `README.txt` and bundled `INDEX-HTML-MANIFEST.json`.
+
 ### Documentation
 - Consolidated the previous internal Submission Contract v0.2 into the frozen generator Tool Contract document, adding practical creative-quality, testing, provenance, packaging and FREEZE guidelines without changing the generator v1.0 runtime API.
 - Moved Tool Contract, Release Policy, Known Issues and Third-Party Notices into `docs/`; updated README, website legal references, Download All legal-file path and the 20 tool READMEs.
 - Retired the obsolete `RC-VERIFICATION.md` (recoverable from Git history).
 - Kept `LICENSE.md` at the repository root for license discoverability.
 
-No visual-tool code, runtime contract fields, canonical metadata, creative defaults or Bridge device changes. This entry will be assigned a release number when the documentation patch is promoted.
+No changes to tool HTML, frozen generator contract fields, catalog metadata, creative defaults or Bridge device. Pending changes will receive a version when promoted.
 
 ## [0.21.1] — 2026-10-12 (documentation-only maintenance)
 

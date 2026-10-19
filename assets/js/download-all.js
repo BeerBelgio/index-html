@@ -108,7 +108,7 @@
   }
 
   function bundleReadme(catalogue) {
-    const build = catalogue?.project?.stagingBuild || 'current';
+    const build = catalogue?.project?.releaseBuild || 'current';
     const count = Array.isArray(catalogue?.tools) ? catalogue.tools.length : 0;
     return `INDEX HTML\nCreative code for visual systems.\n\nCurrent bundle: ${build}\nTools: ${count}\n\nThis ZIP was generated from the current INDEX HTML catalogue when you clicked DOWNLOAD ALL.\nThe HTML files inside tools/ are the same canonical files offered by the individual DOWNLOAD HTML buttons.\n\nThe tools/ directory is intentionally flat and self-contained so it can be kept as a local collection or used by a compatible host/cache workflow.\n\nProject: https://github.com/BeerBelgio/index-html\nBeerBelgio: https://beerbelgio.github.io/\n\nOriginal code: PolyForm Noncommercial 1.0.0\nSee LEGAL.md.\n\nFun is a serious thing.\n`;
   }
@@ -118,7 +118,7 @@
       schemaVersion: 1,
       project: {
         name: 'INDEX HTML',
-        build: catalogue?.project?.stagingBuild || null,
+        build: catalogue?.project?.releaseBuild || null,
         repository: 'https://github.com/BeerBelgio/index-html',
         hub: 'https://beerbelgio.github.io/'
       },
@@ -170,7 +170,7 @@
   async function downloadCurrentCollection(onProgress) {
     const bundle = await buildBundleEntries(onProgress);
     const bytes = createZipBytes(bundle.entries);
-    const build = String(bundle.catalogue?.project?.stagingBuild || 'current').replace(/[^A-Za-z0-9._-]+/g, '-');
+    const build = String(bundle.catalogue?.project?.releaseBuild || 'current').replace(/[^A-Za-z0-9._-]+/g, '-');
     const blob = new Blob([bytes], { type: 'application/zip' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
