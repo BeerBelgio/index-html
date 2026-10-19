@@ -46,7 +46,7 @@ The licences above apply only to material for which Matteo Belgiovine / BeerBelg
 
 The current INDEX HTML tool set has been audited against its documented lineage sources. No distributed tool is currently identified as retaining meaningful third-party implementation code or structure (`adapted-from` = 0).
 
-Several tools were nevertheless created after studying public creative-coding projects. Those relationships are documented as **inspired-by** creative/conceptual lineage in `THIRD_PARTY_NOTICES.md` and in the individual tool READMEs.
+Several tools were nevertheless created after studying public creative-coding projects. Those relationships are documented as **inspired-by** creative/conceptual lineage in `docs/THIRD_PARTY_NOTICES.md` and in the individual tool READMEs.
 
 If a future tool includes or adapts third-party code or material, the applicable upstream licence and required notices must be preserved for that material; this repository's licence applies only to original portions to the extent legally permitted.
 

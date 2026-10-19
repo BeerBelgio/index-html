@@ -61,4 +61,4 @@ Canvas2D; deterministic grouped streamlines; four structural modes; multi-scale 
 
 ## Licensing
 
-The tool's original code is covered by the repository-level PolyForm Noncommercial 1.0.0 policy. See `../LICENSE.md` and `../THIRD_PARTY_NOTICES.md` for the full project policy and source references.
+The tool's original code is covered by the repository-level PolyForm Noncommercial 1.0.0 policy. See `../LICENSE.md` and `../docs/THIRD_PARTY_NOTICES.md` for the full project policy and source references.

@@ -1,7 +1,7 @@
 # INDEX HTML — Native Tool Contract v1.0 (generator contract)
 
 **Status:** **Generator contract v1.0 frozen and published** with INDEX HTML 0.21.0 (2026-10-12), including required `capabilities`, native manifest and generator entrypoints. Fragment FX descriptors remain **provisional** until dedicated compatibility testing; two-source compositor and direct audio-input APIs are not defined. The Bridge follows its own release cycle.  
-**Basis:** consolidates the earlier native-manifest and host-control prototypes, preserved in Git history and the `0.21.0` release tag. It remains distinct from the Submission Contract v0.2 (provenance, packaging and FREEZE).
+**Basis:** consolidates the earlier native-manifest and host-control prototypes, preserved in Git history and the `0.21.0` release tag. The development and FREEZE practices previously held in Submission Contract v0.2 are consolidated below in this same document.
 
 ## 1. Purpose and boundaries
 
@@ -222,7 +222,7 @@ For subsequent edits and releases, check:
 
 The `schemaVersion: 1` generator interface and mandatory `capabilities` are stable from INDEX HTML 0.21.0. This number is **not** the INDEX site version, a tool's creative version or a Bridge device version.
 
-The Submission Contract governs provenance, delivery and FREEZE. Host communication transports, message envelopes and discovery/synchronization workflows are **not** standardized by the generator v1.0 API; they belong to host integration specifications. The earlier experimental Control Protocol and Tool Contract Proposal were retired from the active repository in documentation patch 0.21.1; both remain recoverable from the `0.21.0` tag and Git history.
+Development and FREEZE requirements are consolidated in §§10–17 below. Host communication transports, message envelopes and discovery/synchronization workflows are **not** standardized by the generator v1.0 API; they belong to host integration specifications. The earlier experimental Control Protocol and Tool Contract Proposal were retired from the active repository in documentation patch 0.21.1; both remain recoverable from the `0.21.0` tag and Git history.
 
 Fragment FX remains provisionally specified and will require its own explicit acceptance/freeze. Two-input compositors, native PCM/FFT audio and future renderer types must be introduced through reviewed extensions, not silently interpreted as already supported in generator v1.0. Incompatible changes to frozen generator semantics require a new schema revision.
 
@@ -236,3 +236,142 @@ Fragment FX remains provisionally specified and will require its own explicit ac
 ## 9. v1.0 release note
 
 Twenty INDEX-native generator manifests with capabilities are published, alongside the generated Sketch adapters. Generator algorithms, identifiers, creative filenames and parameter ranges remain those of the migrated tools; the approved Orbital Geometry `Scale` default changes to 100. Known issue CF-001 documents an Intel standalone rendering difference reproduced in Chrome and Safari; no shader fix is asserted. This contract was frozen following maintainer testing on 2026-10-12.
+
+---
+
+# INDEX — Development guidelines and FREEZE workflow
+
+**Internal guidelines revision:** 0.3-draft (derived from the former Submission Contract v0.2).  
+**Technical API authority:** §§1–6 and §8 above, stable generator schema v1.0, **unchanged by this draft**.  
+**Scope:** BeerBelgio's own INDEX tools. No external submissions, contribution terms or public intake workflow are defined here.
+
+These guidelines define how we develop, review and freeze tools. They do not add required runtime API fields or force Sketch/Bridge-specific control limits. When this section refers to an API, follow the technical sections above; when it refers to catalogue data, follow `../data/tools.json` (path relative to this document after relocation).
+
+## 10. Purpose and tool development principles
+
+INDEX is the canonical creative system. A tool should stay portable, standalone, offline-capable and independent of any particular host when practicable. Existing generators that Sketch can technically support retain a Sketch adapter, but Sketch does not determine INDEX's future algorithmic or control limits.
+
+- Prioritize meaningful creative possibilities over control count or mechanical feature parity.
+- A visible control must have a useful, understandable effect. Internal algorithm variables do not need to become UI controls.
+- Choose default behaviour intentionally; the approved defaults are those in the canonical INDEX manifest, never in a second preview-only or Bridge-specific preset.
+- Keep the tool usable without MIDI, audio modulation, Ableton automation or host-specific extensions.
+- Make dependencies or missing host capabilities explicit instead of introducing silent fallbacks.
+
+**Development phases:** BUILD → TEST → FREEZE → PACKAGE → PUBLISH. These are practical checkpoints, not five forms or approval ceremonies. Only FREEZE and PUBLICATION need an explicit project-owner decision.
+
+## 11. Controls, semantics and defaults
+
+Preserve and apply these quality criteria from the original Submission Contract v0.2:
+
+- Avoid redundant controls, debug-only controls and discrete modes with almost indistinguishable output.
+- Prefer perceptual labels (what changes visually) over names of implementation variables.
+- Prefer independent perceptual dimensions; document intentional coupling when it is intrinsic to the tool.
+- Bipolar controls should have a meaningful neutral value at zero. The positive and negative sides should deliver meaningfully different/opposite behaviour when their semantics promise it.
+- Expose a Seed control only if reseeding offers a genuine creative action; otherwise deterministic variation can remain internal.
+- A control labelled in seconds, frames, degrees or counts should correspond to the observed outcome as closely as the implementation permits.
+- Avoid unexplained jumps, plateaus or counterintuitive discontinuities in control mappings. Document meaningful exceptions (including resolution or FPS limits).
+- Prefer manual-only control for discrete modes, triggers and master BPM when modulation would be incoherent. An available host mapping slot is not a reason to expose a parameter to audio.
+- Use a background only when it is part of the work. Otherwise prefer transparent output so the tool can be composited.
+- Assess default, minimum, maximum, useful midpoint and representative combinations; do not test parameters only one at a time.
+
+The exact manifest fields, allowable key format, ranges, defaults, role/capability syntax and `audio[]` mapping semantics are defined exclusively by the technical contract above; do **not** duplicate or override them here.
+
+## 12. Rendering, time and statefulness
+
+- Preserve visual coherence during resize, across common aspect ratios and at sensible output resolutions.
+- Avoid unintended seams, clipping, ghost geometry, missing shapes, invalid numbers and frame-to-frame randomness.
+- Use deterministic variation when the intention is stable randomness.
+- Use sufficient overscan when motion, deformation, panning, scrolling or rotation would otherwise expose geometry edges.
+- Keep output geometry finite over declared parameter ranges, including heavy combinations.
+- Restore/reset Canvas2D or WebGL state explicitly when changes could contaminate later draws or layers.
+- Test alpha and background independently, including color-opacity transitions and HEX changes while a color is fully transparent where that feature applies.
+- Distinguish speed/tempo, amplitude/amount, variation/randomness and trigger/envelope behaviour when the concept warrants those controls.
+
+**For accumulative/feedback tools (conditional):** bound state lifetime and memory; clear/recreate buffers safely on resize; provide a reset/trigger when creative clearing is necessary; remove expired content without residual pixels. Durations should reflect elapsed time or actual region/object age rather than merely approximating time through a fixed count of frames.
+
+The technical host clock and standalone lifecycle rules are specified in §3; the guidelines above assess **observed quality**, not an alternative time API.
+
+## 13. Performance and dependencies
+
+The design target is real-time creative use, not merely a still image at defaults:
+
+- Avoid unbounded history, buffers, allocations and unnecessary expensive work in the hot path.
+- Exercise high resolutions, worst-case individual controls **and** combined heavy settings.
+- Test sustained running and rapid resize/tool replacement where the concept stores or allocates GPU resources.
+- Record significant device, browser, GPU or engine limitations rather than claiming universal performance.
+- Do not establish universal FPS budgets or arbitrary control ceilings before repeatable benchmark evidence exists.
+
+**Dependencies:** prefer a self-contained HTML without required remote assets or network access. If unavoidable, identify each external dependency, its source, license, role and offline consequence before approval. Silent runtime reliance on CDNs, remote fonts, images, APIs or remote code is unacceptable for standalone distribution.
+
+## 14. Provenance, creative lineage and editorial handoff
+
+Record two distinct relationships:
+
+- **Code provenance:** whether the implementation is original, a port, adapted or derived from another implementation; identify source and applicable license if third-party code is involved.
+- **Creative lineage:** conceptual, visual, algorithmic or interaction references that informed the work without supplying code.
+
+Do not assume visual inspiration grants reuse rights for code, pattern files, node graphs, fonts or assets. If reuse permission is unclear, treat the reference as research only until the license or authorization is established. Keep required third-party credits and notices alongside the appropriate release materials. The legal policies remain authoritative in [`../LICENSE.md`](../LICENSE.md) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) after the proposed move; this section does not create new grants of rights.
+
+**Editorial source of truth:** The HTML `INDEX_TOOL` manifest owns technical controls and defaults. `data/tools.json` owns published catalogue metadata, identity and descriptions. The content-inventory spreadsheet is an **internal editorial workspace**, not another technical manifest; it may be used to prepare and synchronize copy for the catalogue. Do not independently maintain numeric defaults inside a workbook.
+
+When a tool is ready for inclusion, provide a metadata draft with name, slug, version, family/tags, summary/about copy, brief control explanations, dependencies/known limits and attribution or lineage. The final published `toolId` and catalogue entry are assigned or confirmed during integration; never casually reuse an existing identity.
+
+## 15. Lightweight development and FREEZE workflow
+
+### BUILD
+
+Implement and iterate on the HTML. Keep local experiments local. During this phase, a working HTML and short notes are sufficient; the complete publication package is not required.
+
+### TEST
+
+Run checks that match the actual tool role and renderer. Record PASS, FAIL, PENDING or N/A, with a brief note for important failures. Automated syntax/manifest checks do not substitute for manual visual/runtime tests.
+
+### FREEZE
+
+The approved tool behaviour, visible defaults and control semantics become the baseline. FREEZE does **not** imply a mandatory creative version number such as `v1.0`; a tool's own version history stays independent from INDEX site releases and from the manifest `schemaVersion`. Any later behavioural/default change requires renewed verification and an appropriate tool-version change before promotion.
+
+### PACKAGE
+
+The practical internal handoff is: checked standalone HTML, brief verification notes, draft catalogue metadata, and the updated editorial workbook when that workflow is in use. Preserve the structure and formatting of the existing `@Preset_newHTML` workbook if using it. Optional assets should be included only when needed.
+
+### PUBLISH
+
+Integrate the approved tool into INDEX and follow `RELEASE_POLICY.md` for an INDEX platform release. Editorial copy may still be adjusted after FREEZE without invalidating the tool behaviour. Never silently change frozen algorithms or defaults as part of packaging or publication.
+
+## 16. FREEZE checklist — use only applicable checks
+
+The checklist below combines the v0.2 quality tests with the current INDEX workflow. Each row may be PASS, FAIL, PENDING or N/A. Store brief test evidence with the tool's development materials; a separate permanent report in the public repository is not mandatory.
+
+**Manifest & package**
+- [ ] Manifest/JS syntax valid against the current role-specific INDEX Tool Contract; no duplicate keys; derived Sketch adapter consistent **when applicable**.
+- [ ] Correct canonical defaults, visible names, tool identity and creative version; no hidden preview/host preset.
+- [ ] File opens standalone and contains all required local dependencies; any exceptions reviewed.
+
+**Visual behaviour**
+- [ ] Defaults, representative parameter extremes, important midpoints and one heavy combined case are visually checked.
+- [ ] Discrete selectors show meaningful distinct modes; bipolar controls have an appropriate zero; time/count claims are plausible.
+- [ ] Resize and common aspect ratios tested, including deformation/overscan and clipping.
+- [ ] Alpha/background and all relevant per-color opacity transitions tested, including 100→50→0→100 and HEX change at zero where supported.
+- [ ] No unintended seams, residual pixels, invalid geometry or broken rendering under approved ranges.
+
+**Motion & state (conditional)**
+- [ ] Host timeline and pause/reset show coherent behaviour; standalone preview does not fight host time.
+- [ ] Trigger/reset, persistent memory, expiry, cleanup and buffer reinitialization tested where present.
+
+**Performance & hosts**
+- [ ] Realtime behaviour checked at practical resolution and representative worst-case settings; significant limits noted.
+- [ ] Playground load, replacement, multiple-layer combination and FX processing tested as applicable.
+- [ ] Sketch import and parameter/default mapping tested for supported generators; not imposed on unsupported FX/compositor designs.
+- [ ] Bridge/other host tested only when supported and relevant; a host's unrelated release blockers do not automatically prevent INDEX tool FREEZE.
+
+**Provenance & handoff**
+- [ ] Code provenance and creative lineage recorded independently, with relevant URLs and license review.
+- [ ] Required third-party notices and permissions accounted for; unknown license status resolved or the reference remains reference-only.
+- [ ] Approved HTML, short verification record, metadata draft and editorial workbook (if used) ready for PACKAGE.
+- [ ] Creative FREEZE explicitly accepted before publishing; any post-FREEZE behavioural edits return to TEST.
+
+## 17. Guideline maintenance
+
+Update these development guidelines only when experience across tools reveals a reusable rule. Keep experimental FX, two-source compositor and audio-native input requirements clearly marked as provisional until their separate runtime contracts have passed real host tests.
+
+Revisions to these guidelines can change their own revision number without changing the frozen generator v1.0 schema. Any proposal that alters technical requirements in §§1–6 must be reviewed separately, explicitly versioned and regression-tested against current tools and hosts. Avoid unnecessary paperwork, parallel manifests and new documents for one-off issues.

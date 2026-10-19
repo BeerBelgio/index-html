@@ -149,7 +149,7 @@
     onProgress?.('PACKING FILES…');
     const [license, notices, identity] = await Promise.all([
       fetchBytes('LICENSE.md'),
-      fetchBytes('THIRD_PARTY_NOTICES.md'),
+      fetchBytes('docs/THIRD_PARTY_NOTICES.md'),
       fetchBytes('assets/branding/INDEX-HTML_BEERBELGIO.svg')
     ]);
 
