@@ -40,6 +40,8 @@ The tool's color `hostContext.colorOpacity` values range from 0 to 1 without con
 - `index.html`, `tool.html`, `about.html`, `playground.html`: public site pages.
 - `docs/INDEX-TOOL-CONTRACT.md`: frozen generator runtime contract, creative development guidelines and FREEZE checklist.
 - `CHANGELOG.md`: chronological release history.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md): current development priorities, research areas and open questions.
+- `sitemap.xml`: public sitemap of the main INDEX pages and catalogue tools.
 - `docs/RELEASE_POLICY.md`: versions, tags and promotion gates.
 - `docs/KNOWN_ISSUES.md`: current reproducible limitations and workarounds.
 

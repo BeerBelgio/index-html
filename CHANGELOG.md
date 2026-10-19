@@ -4,7 +4,12 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
-No changes recorded since 0.21.2.
+### Added
+- Search discovery: canonical URLs for Home and About, per-tool canonical URLs and meta descriptions for the dynamic tool page, and `sitemap.xml` for INDEX public pages and 20 catalogue tool URLs.
+- Internal development roadmap in `docs/ROADMAP.md`, linked from the GitHub README (not from the website).
+
+### Notes
+- No generator HTML, renderer, tool manifest, catalogue identities, frozen generator contract or creative defaults changed. Search indexing is not guaranteed and requires external search-engine processing.
 
 ## [0.21.2] — 2026-10-19 (documentation and Download All maintenance)
 

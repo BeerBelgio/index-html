@@ -162,6 +162,24 @@
     return text;
   }
 
+  function updateSearchMetadata(tool) {
+    // Catalogue slug is the canonical identity; view/state are temporary display parameters.
+    const canonicalUrl = new URL('tool.html', 'https://beerbelgio.github.io/index-html/');
+    canonicalUrl.searchParams.set('tool', tool.slug);
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalUrl.href;
+
+    const description = document.head.querySelector('meta[name="description"]');
+    if (description) {
+      description.content = tool.copy?.short || `Explore ${tool.name}, a standalone INDEX HTML creative coding tool.`;
+    }
+  }
+
   function renderEditorial(tool) {
     document.title = `INDEX HTML - ${tool.name}`;
     els.name.textContent = tool.name;
@@ -659,6 +677,7 @@
   }
 
   function loadTool(tool) {
+    updateSearchMetadata(tool);
     runtime.tool = tool;
     runtime.manifest = null;
     runtime.frameWindow = null;
