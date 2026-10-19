@@ -8,7 +8,7 @@
     "technicalSourceOfTruth": "Each tool's window.INDEX_TOOL manifest (SKETCH_TOOL is a generated host adapter)",
     "editorialSourceOfTruth": "index-html_content-inventory_v10.xlsx",
     "notes": "INDEX_TOOL carries canonical controls, defaults, colors, role and capability declarations. SKETCH_TOOL is the compatible host mirror; each tool stays one standalone HTML file. Stable tool identity/type, public editorial copy and preview behaviour are maintained in the catalog and content inventory.",
-    "releaseBuild": "0.21.0"
+    "releaseBuild": "0.21.2"
   },
   "tools": [
     {

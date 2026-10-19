@@ -4,6 +4,10 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
+No changes recorded since 0.21.2.
+
+## [0.21.2] — 2026-10-19 (documentation and Download All maintenance)
+
 ### Fixed
 - DOWNLOAD ALL now reads `project.releaseBuild` (instead of retired `stagingBuild`) consistently for the ZIP filename, bundled `README.txt` and bundled `INDEX-HTML-MANIFEST.json`.
 
@@ -13,7 +17,7 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 - Retired the obsolete `RC-VERIFICATION.md` (recoverable from Git history).
 - Kept `LICENSE.md` at the repository root for license discoverability.
 
-No changes to tool HTML, frozen generator contract fields, catalog metadata, creative defaults or Bridge device. Pending changes will receive a version when promoted.
+Updated the site build labels and catalogue `project.releaseBuild` to 0.21.2 for consistent ZIP naming and release identification. Tool entries, creative defaults, frozen generator APIs and the Bridge device are unchanged.
 
 ## [0.21.1] — 2026-10-12 (documentation-only maintenance)
 

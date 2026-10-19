@@ -6,7 +6,7 @@ An independently developed, source-available collection of 20 standalone HTML vi
 - **Website:** https://beerbelgio.github.io/index-html/
 - **Playground:** https://beerbelgio.github.io/index-html/playground.html
 - **Repository:** https://github.com/BeerBelgio/index-html
-- **Current release:** `0.21.1` (documentation maintenance; generator contract v1.0 remains unchanged)
+- **Current release:** `0.21.2` (documentation consolidation and Download All maintenance; generator contract v1.0 unchanged)
 
 ## What INDEX is
 
