@@ -4,6 +4,14 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
+### Changed
+- Updated the About → IN MAX FOR LIVE “LOOK WHAT’S UP!” link to the canonical INDEX HTML Bridge documentation page on B4~M4L.
+- Removed the retired Bridge HELP URL from the INDEX sitemap; it now lists 23 public INDEX URLs (20 tool pages and 3 primary pages).
+
+### Removed
+- Retired the legacy local Bridge HELP HTML page, its manifest/script and three dedicated SVG assets now superseded by B4~M4L.
+- Removed the “INTERESTED? WRITE ME” CTA from About → IN MAX FOR LIVE.
+
 ### Added
 - Search discovery: canonical URLs for Home and About, per-tool canonical URLs and meta descriptions for the dynamic tool page, and `sitemap.xml` for INDEX public pages and 20 catalogue tool URLs.
 - Internal development roadmap in `docs/ROADMAP.md`, linked from the GitHub README (not from the website).
