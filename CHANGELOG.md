@@ -4,6 +4,9 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
+### Performance
+- Converted all 18 self-hosted Barlow Condensed TTF faces to metric-preserving WOFF2 for web delivery (approximately 62.6% smaller source asset payload); original TTF files retained. No changes to family, available weights/styles, tool code, or generator runtime.
+
 ### Changed
 - Updated the About → IN MAX FOR LIVE “LOOK WHAT’S UP!” link to the canonical INDEX HTML Bridge documentation page on B4~M4L.
 - Removed the retired Bridge HELP URL from the INDEX sitemap; it now lists 23 public INDEX URLs (20 tool pages and 3 primary pages).
