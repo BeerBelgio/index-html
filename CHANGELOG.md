@@ -4,6 +4,11 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ## [Unreleased]
 
+### Fixed
+- Consolidated copyright, bullet separator and claim as a left-aligned visual group on mobile across Home, About, Tool and Playground footers.
+- Aligned Tool header PLAYGROUND navigation typography and vertical alignment with the site's equivalent navigation links.
+- Normalized Privacy paragraph and inline-link typography, natural wrapping and subsection-heading hierarchy.
+
 ### Performance
 - Converted all 18 self-hosted Barlow Condensed TTF faces to metric-preserving WOFF2 for web delivery (approximately 62.6% smaller source asset payload); original TTF files retained. No changes to family, available weights/styles, tool code, or generator runtime.
 

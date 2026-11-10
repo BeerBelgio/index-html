@@ -89,11 +89,14 @@ a { color: inherit; }
 }
 .tool-playground-link {
   flex: 0 0 auto;
-  font-family: var(--display-font);
-  font-size: clamp(16px, 1.45vw, 18.5px);
-  line-height: .92;
-  font-weight: 500;
-  letter-spacing: .045em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .08em;
   text-decoration: none;
   color: var(--ink);
 }
@@ -742,8 +745,16 @@ body.is-standalone #standalone-page { display: block !important; }
   .index-html-wordmark { width: 108px; }
   .index-html-claim { display: none; }
   .tool-switcher { gap: 9px; min-width: 0; }
-  .tool-playground-link { font-size: 13px; letter-spacing: .01em; }
   .tool-switcher-label { display: none; }
+  .footer-signature {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .footer-signature-left,
+  .footer-signature-right { text-align: left; }
   .tool-picker-button { max-width: min(31vw, 150px); padding: 0 10px 0 12px; gap: 7px; overflow: hidden; }
   #tool-picker-current { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .tool-picker-button { min-width: 0; max-width: 190px; min-height: 36px; font-size: 12px; }
