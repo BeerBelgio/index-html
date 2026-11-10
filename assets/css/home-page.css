@@ -622,7 +622,8 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .about-use-grid h3,
 .mapping-grid h3,
 .host-contract h3,
-.privacy-grid h3 {
+.privacy-grid h3,
+.privacy-stack h3 {
   margin: 0 0 9px;
   font-size: 12px;
   line-height: 1;
@@ -688,6 +689,7 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .privacy-stack article:first-child { border-top: 0; padding-top: 0; }
 .privacy-stack article p,
 .privacy-updated {
+  font-family: inherit;
   font-size: 14px;
   line-height: 1.58;
   font-weight: 400;
@@ -696,8 +698,17 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   opacity: 1;
 }
 .privacy-stack p + p { margin-top: 10px; }
+.privacy-stack article p .inline-link {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-decoration: underline;
+  text-underline-offset: .14em;
+}
 
-.privacy-contact-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .35em; }
+.privacy-contact-line { display: block; }
 .privacy-beerbelgio-link {
   gap: 5px;
 }
@@ -769,6 +780,15 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     gap: 14px;
     flex: 0 0 auto;
   }
+  .footer-signature {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .footer-signature-left,
+  .footer-signature-right { text-align: left; }
   .home-main { padding-top: 36px; }
   .home-hero { padding-bottom: 50px; }
   .home-hero h1 { font-size: clamp(34px, 10.2vw, 46px); }
