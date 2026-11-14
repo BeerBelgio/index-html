@@ -7,6 +7,55 @@
 <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/home-page.css?v=0193">
 <link rel="stylesheet" href="assets/css/playground.css?v=0201">
+
+<style>
+/* Small-screen advisory only: the full Playground remains usable after dismissal. */
+.pg-mobile-entry {
+  width: min(420px, calc(100vw - 32px));
+  max-width: none;
+  padding: 0;
+  border: 1px solid var(--ink);
+  border-radius: 18px;
+  color: var(--ink);
+  background: var(--cream);
+  box-shadow: 0 20px 70px rgba(0,0,0,.25);
+}
+.pg-mobile-entry::backdrop { background: rgba(28,23,19,.62); }
+.pg-mobile-entry-inner { padding: 28px 24px 24px; }
+.pg-mobile-entry-kicker {
+  margin: 0 0 18px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  color: var(--orange);
+}
+.pg-mobile-entry h2 {
+  margin: 0 0 16px;
+  font: 800 clamp(29px,8vw,40px)/1.02 var(--display-font);
+  letter-spacing: -.02em;
+}
+.pg-mobile-entry-description { margin: 0 0 23px; font-size: 15px; line-height: 1.58; }
+.pg-mobile-entry-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  padding: 14px 16px;
+  border: 1px solid var(--ink);
+  border-radius: 10px;
+  text-decoration: none;
+  text-align: center;
+  font: 800 12px/1.3 inherit;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.pg-mobile-entry-action-primary { background: var(--ink); color: var(--cream); }
+.pg-mobile-entry-action-secondary { margin-top: 9px; background: transparent; color: var(--ink); }
+.pg-mobile-entry-action:hover { background: var(--orange); color: var(--ink); border-color: var(--orange); }
+.pg-mobile-entry-action:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.pg-mobile-entry-footnote { margin: 15px 0 0; color: #5e5a57; font-size: 11px; line-height: 1.5; }
+</style>
 </head><body>
 <header class="home-header shell pg-header">
 <a class="home-brand about-header-brand" href="./" aria-label="INDEX HTML home"><span class="home-brand-compact"><img src="assets/branding/favicon.svg" alt="" aria-hidden="true"></span></a>
@@ -100,5 +149,38 @@
     <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>BEERBELGIO</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
   </nav>
 </footer>
+
+<dialog class="pg-mobile-entry" id="pg-mobile-entry" aria-labelledby="pg-mobile-entry-heading" aria-describedby="pg-mobile-entry-description">
+ <div class="pg-mobile-entry-inner">
+  <p class="pg-mobile-entry-kicker">INDEX HTML / PLAYGROUND</p>
+  <h2 id="pg-mobile-entry-heading">BEST EXPERIENCED ON DESKTOP.</h2>
+  <p class="pg-mobile-entry-description" id="pg-mobile-entry-description">The Playground combines up to five live visual layers and detailed controls. For a more comfortable experience, we recommend using a desktop browser. You can still continue here.</p>
+  <a class="pg-mobile-entry-action pg-mobile-entry-action-primary" id="pg-mobile-entry-browse" href="./#tools">BROWSE THE TOOLS</a>
+  <button class="pg-mobile-entry-action pg-mobile-entry-action-secondary" id="pg-mobile-entry-continue" type="button">CONTINUE TO PLAYGROUND</button>
+  <p class="pg-mobile-entry-footnote">Your choice won't interrupt an active Playground session. You can always open individual tools on mobile.</p>
+ </div>
+</dialog>
+<script>
+(() => {
+  'use strict';
+  // Evaluate once on navigation, never on a resize or orientation event.
+  const eligible = window.matchMedia('(max-width: 700px) and (pointer: coarse)').matches;
+  if (!eligible) return;
+  const key = 'index-html-playground-mobile-entry-seen-v1';
+  let seen = false;
+  try { seen = sessionStorage.getItem(key) === '1'; } catch (_) { /* storage may be unavailable */ }
+  if (seen) return;
+  const dialog = document.getElementById('pg-mobile-entry');
+  if (!dialog || typeof dialog.showModal !== 'function') return;
+  const remember = () => { try { sessionStorage.setItem(key, '1'); } catch (_) {} };
+  const continueButton = document.getElementById('pg-mobile-entry-continue');
+  const browseLink = document.getElementById('pg-mobile-entry-browse');
+  const close = () => { remember(); if (dialog.open) dialog.close(); };
+  continueButton.addEventListener('click', close);
+  browseLink.addEventListener('click', remember);
+  dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+  dialog.showModal();
+})();
+</script>
 <script src="assets/js/playground.js?v=0210"></script>
 </body></html>
