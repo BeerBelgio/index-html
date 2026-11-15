@@ -5,6 +5,7 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 ## [Unreleased]
 
 ### Fixed
+- Reserve a single invisible description line before tool catalogue metadata arrives, reducing the initial workbench jump without changing canvas resize or tool runtime (visual QA pending).
 - Consolidated copyright, bullet separator and claim as a left-aligned visual group on mobile across Home, About, Tool and Playground footers.
 - Aligned Tool header PLAYGROUND navigation typography and vertical alignment with the site's equivalent navigation links.
 - Normalized Privacy paragraph and inline-link typography, natural wrapping and subsection-heading hierarchy.
