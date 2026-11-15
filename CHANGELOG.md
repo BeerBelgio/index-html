@@ -2,10 +2,10 @@
 
 Changes to the INDEX HTML site, Playground, public contract and tool collection. Versions here are **independent** from INDEX-HTML Bridge and from each individual tool's creative version.
 
-## [Unreleased]
+## [0.21.3] — 2026-11-15 (maintenance & UI improvements)
 
 ### Fixed
-- Reserve a single invisible description line before tool catalogue metadata arrives, reducing the initial workbench jump without changing canvas resize or tool runtime (visual QA pending).
+- Reserve a single invisible description line before tool catalogue metadata arrives, reducing the initial workbench jump without changing canvas resize or tool runtime (desktop/mobile visual QA passed by the maintainer).
 - Consolidated copyright, bullet separator and claim as a left-aligned visual group on mobile across Home, About, Tool and Playground footers.
 - Aligned Tool header PLAYGROUND navigation typography and vertical alignment with the site's equivalent navigation links.
 - Normalized Privacy paragraph and inline-link typography, natural wrapping and subsection-heading hierarchy.
@@ -14,6 +14,8 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 - Converted all 18 self-hosted Barlow Condensed TTF faces to metric-preserving WOFF2 for web delivery (approximately 62.6% smaller source asset payload); original TTF files retained. No changes to family, available weights/styles, tool code, or generator runtime.
 
 ### Changed
+- Excluded Lava Lamp from the random homepage hero (18 → 17 eligible previews); all 20 generators remain available in the catalogue, tool pages and Playground.
+- Updated the platform build metadata and Download All bundle identifier to `0.21.3`.
 - Updated the About → IN MAX FOR LIVE “LOOK WHAT’S UP!” link to the canonical INDEX HTML Bridge documentation page on B4~M4L.
 - Removed the retired Bridge HELP URL from the INDEX sitemap; it now lists 23 public INDEX URLs (20 tool pages and 3 primary pages).
 
@@ -22,10 +24,13 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 - Removed the “INTERESTED? WRITE ME” CTA from About → IN MAX FOR LIVE.
 
 ### Added
+- Added an optional first-entry advisory on small touch screens in Playground, with browse-the-catalogue and continue-anyway options; the full five-layer editor remains accessible.
+- Added a repository activity signal workflow for Digital EcoSystem growth tracking (independent of INDEX platform releases).
 - Search discovery: canonical URLs for Home and About, per-tool canonical URLs and meta descriptions for the dynamic tool page, and `sitemap.xml` for INDEX public pages and 20 catalogue tool URLs.
 - Internal development roadmap in `docs/ROADMAP.md`, linked from the GitHub README (not from the website).
 
 ### Notes
+- UI changes passed the maintainer's desktop/mobile visual checks; hero/catalogue integrity was checked statically. The direct font-discovery experiment (PR #3) was closed without merge and is excluded.
 - No generator HTML, renderer, tool manifest, catalogue identities, frozen generator contract or creative defaults changed. Search indexing is not guaranteed and requires external search-engine processing.
 
 ## [0.21.2] — 2026-10-19 (documentation and Download All maintenance)
