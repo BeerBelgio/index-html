@@ -1,7 +1,7 @@
 # INDEX HTML — Development roadmap
 
 **Status:** Active working reference · **Last reviewed:** 2026-10-19  
-**Current published platform:** `0.21.2`  
+**Current published platform:** `0.21.3`  
 **Scope:** INDEX HTML website, Playground and standalone tool ecosystem; **not** the separately versioned INDEX-HTML Bridge.
 
 This roadmap records approved directions and open technical questions. It is **not** a release promise, schedule, frozen feature specification or change to the [INDEX Tool Contract](INDEX-TOOL-CONTRACT.md). Priorities may change after experimentation and maintainer review.
