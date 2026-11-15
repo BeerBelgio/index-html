@@ -242,6 +242,11 @@ h1 {
   font-size: clamp(18px, 1.75vw, 25px);
   line-height: 1.28;
 }
+/* Reserve the first text line before asynchronous catalogue metadata arrives. */
+.short-copy:empty::before {
+  content: "\00a0";
+  visibility: hidden;
+}
 .hero-actions {
   display: flex;
   flex: 0 0 auto;
