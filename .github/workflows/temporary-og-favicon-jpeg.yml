@@ -1,0 +1,45 @@
+name: Generate INDEX OG favicon JPEG (temporary)
+on:
+  push:
+    branches:
+      - fix/og-favicon-jpeg-20261116
+permissions:
+  contents: write
+jobs:
+  generate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Render JPEG from existing favicon
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check pillow cairosvg
+          python - <<'PY'
+          import io
+          from pathlib import Path
+          import cairosvg
+          from PIL import Image
+          svg = Path("assets/branding/favicon.svg").read_bytes()
+          original = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg, output_width=1024, output_height=1024))).convert("RGBA")
+          crop = original.crop(original.getchannel("A").getbbox())
+          width = 610
+          height = round(crop.height * width / crop.width)
+          crop = crop.resize((width, height), Image.Resampling.LANCZOS)
+          card = Image.new("RGBA", (1200, 630), "white")
+          card.alpha_composite(crop, ((1200-width)//2,(630-height)//2))
+          dest = Path("assets/branding/index-html-favicon-og.jpg")
+          card.convert("RGB").save(dest, "JPEG", quality=82, subsampling=2, optimize=True, progressive=False)
+          result = Image.open(dest)
+          assert result.size == (1200, 630) and result.mode == "RGB"
+          print("JPEG generated:",dest, dest.stat().st_size)
+          PY
+      - name: Commit generated JPG on this branch only
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/branding/index-html-favicon-og.jpg
+          git diff --cached --quiet || (git commit -m "fix(meta): add rasterized favicon social card" && git push)
