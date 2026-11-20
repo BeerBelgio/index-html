@@ -161,6 +161,7 @@ void main() {
       const nextW = Math.max(1, Math.round(w * scale));
       const nextH = Math.max(1, Math.round(h * scale));
       if (nextW === width && nextH === height) return;
+      budgetAt(nextW, nextH);
       width = nextW; height = nextH;
       canvas.width = width; canvas.height = height;
       for (const t of [...pair, scratch]) allocate(t);
@@ -192,7 +193,134 @@ void main() {
       return source;
     }
 
-    function render(layers, originalWidth, originalHeight) {
+
+    function budgetAt(w = width, h = height, incoming = null) {
+      let textures = 4;
+      for (const inst of fxInstances.values()) textures += inst.passTargets.length + inst.historyTargets.length;
+      if (incoming) textures += incoming.passes.length + (incoming.history ? 2 : 0);
+      const bytes = w * h * 4 * textures;
+      if (bytes > MAX_BYTES) throw new Error('WebGL2 FX preview memory budget exceeded: ' + bytes + ' bytes; cap ' + MAX_BYTES);
+      return bytes;
+    }
+    function validateFX(effect) {
+      if (!effect || effect.apiVersion !== 2 || effect.type !== 'fragment-webgl2')
+        throw new Error('FX needs provisional apiVersion 2 and fragment-webgl2 type.');
+      if (!Array.isArray(effect.passes) || !effect.passes.length || effect.passes.length > MAX_FX_PASSES)
+        throw new Error('FX requires 1 to ' + MAX_FX_PASSES + ' fragment passes.');
+      if (typeof effect.history !== 'boolean') throw new Error('FX history must be explicitly true or false.');
+      for (const p of effect.passes) {
+        if (!p || typeof p.fragment !== 'string' || p.fragment.length > 32768 ||
+            !/^\\s*#version 300 es\\b/.test(p.fragment))
+          throw new Error('FX pass must contain GLSL ES 3.00 fragment code under 32 KB.');
+      }
+    }
+    function createFX(instanceId, effect) {
+      if (destroyed || gl.isContextLost()) throw new Error('WebGL2 unavailable while allocating FX.');
+      if (typeof instanceId !== 'string' || !instanceId || fxInstances.has(instanceId))
+        throw new Error('FX instance ID missing or already in use.');
+      validateFX(effect);
+      budgetAt(width, height, effect);
+      const inst = {
+        id: instanceId, history: effect.history, programs: [], passTargets: [], historyTargets: [],
+        historyIndex: 0, seeded: false, suspended: true, frame: 0, lastFrameId: null,
+        lastTime: 0, error: null, disposed: false
+      };
+      try {
+        inst.programs = effect.passes.map(p => program(p.fragment, false));
+        inst.passTargets = effect.passes.map(() => target(false));
+        if (effect.history) inst.historyTargets = [target(false), target(false)];
+        if (width && height) for (const t of [...inst.passTargets, ...inst.historyTargets]) allocate(t);
+        fxInstances.set(instanceId, inst);
+      } catch (e) {
+        for (const p of inst.programs) gl.deleteProgram(p);
+        for (const t of [...inst.passTargets, ...inst.historyTargets]) {
+          gl.deleteFramebuffer(t.fbo); gl.deleteTexture(t.tex);
+        }
+        throw e;
+      }
+      function dispose() {
+        if (inst.disposed) return;
+        inst.disposed = true;
+        fxInstances.delete(instanceId);
+        for (const p of inst.programs) gl.deleteProgram(p);
+        for (const t of [...inst.passTargets, ...inst.historyTargets]) {
+          gl.deleteFramebuffer(t.fbo); gl.deleteTexture(t.tex);
+        }
+      }
+      function resetHistory() {
+        inst.seeded = false; inst.frame = 0; inst.lastFrameId = null;
+        inst.suspended = true; inst.lastTime = 0; inst.historyIndex = 0; inst.error = null;
+      }
+      return {
+        instanceId, dispose, resetHistory,
+        suspend() { inst.suspended = true; },
+        stats() { return {instanceId, frame:inst.frame, seeded:inst.seeded,
+          suspended:inst.suspended, error:inst.error, history:inst.history}; }
+      };
+    }
+    function copyTo(sourceTexture, fbo) {
+      use(copyProgram); bindTexture(0, sourceTexture, 'uInput', copyProgram); draw(fbo);
+    }
+    function processFX(layer, input, meta = {}) {
+      const inst = fxInstances.get(layer.fx?.instanceId);
+      if (!inst || inst.disposed || inst.error) return null;
+      if (inst.history && !inst.seeded) {
+        for (const t of inst.historyTargets) copyTo(input, t.fbo);
+        inst.seeded = true;
+      }
+      const advancing = !!meta.running && meta.frameId != null && meta.frameId !== inst.lastFrameId;
+      const time = Number.isFinite(meta.time) ? meta.time : 0;
+      const delta = advancing && !inst.suspended ? Math.min(0.05, Math.max(0, time - inst.lastTime)) : 0;
+      let current = input;
+      try {
+        for (let i=0; i<inst.programs.length; i++) {
+          const prog = inst.programs[i];
+          use(prog);
+          bindTexture(0, current, 'uInput', prog);
+          bindTexture(1, inst.history ? inst.historyTargets[inst.historyIndex].tex : input, 'uHistory', prog);
+          const resolution = gl.getUniformLocation(prog, 'uResolution');
+          if (resolution !== null) gl.uniform2f(resolution, width, height);
+          const t = gl.getUniformLocation(prog, 'uTime');
+          if (t !== null) gl.uniform1f(t, time);
+          const d = gl.getUniformLocation(prog, 'uDelta');
+          if (d !== null) gl.uniform1f(d, delta);
+          const frame = gl.getUniformLocation(prog, 'uFrame');
+          if (frame !== null) gl.uniform1i(frame, inst.frame);
+          for (const p of layer.manifest.params || []) {
+            const u = gl.getUniformLocation(prog, 'u_' + p.key);
+            if (u !== null) gl.uniform1f(u, Number(layer.state[p.key]) || 0);
+          }
+          for (const c of layer.manifest.colors || []) {
+            const u = gl.getUniformLocation(prog, 'u_' + c.key);
+            if (u !== null) {
+              const hex = layer.state[c.key];
+              const rgb = [1,3,5].map(k => parseInt(hex.slice(k,k+2),16) / 255);
+              gl.uniform4f(u, ...rgb, layer.alpha[c.key] ?? 1);
+            }
+          }
+          draw(inst.passTargets[i].fbo);
+          current = inst.passTargets[i].tex;
+        }
+        if (gl.getError() !== gl.NO_ERROR) throw new Error('FX GPU rendering failed.');
+        if (advancing) {
+          if (inst.history) {
+            const next = 1 - inst.historyIndex;
+            copyTo(current, inst.historyTargets[next].fbo);
+            inst.historyIndex = next;
+          }
+          inst.frame++;
+          inst.lastFrameId = meta.frameId;
+          inst.lastTime = time;
+          inst.suspended = false;
+        } else if (!meta.running) inst.suspended = true;
+        return current;
+      } catch (e) {
+        inst.error = String(e.message || e);
+        return null;
+      }
+    }
+
+    function render(layers, originalWidth, originalHeight, meta = {}) {
       if (destroyed || gl.isContextLost()) throw new Error('WebGL2 context unavailable.');
       if (!originalWidth || !originalHeight) return false;
       resize(originalWidth, originalHeight);
@@ -204,24 +332,22 @@ void main() {
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       let read = 0, wrote = false;
       for (const layer of layers) {
-        if (!layer.visible || !layer.manifest || layer.loading || layer.opacity <= 0) continue;
+        if (!layer.visible || !layer.manifest || layer.loading) {
+          if (layer.role === 'effect-webgl2') layer.fx?.suspend?.();
+          continue;
+        }
+        if (layer.opacity <= 0 && layer.role !== 'effect-webgl2') continue;
         let upper = null, isBitmap = false;
         if (layer.role === 'generator') {
           if (!layer.bitmap) continue;
           upper = upload(layer.bitmap); isBitmap = true;
         } else if (layer.role === 'effect-webgl2') {
-          if (layer.manifest.labFx?.moduleId !== 'index-lab-channel-relay')
-            throw new Error('Unsupported WebGL2 lab FX module.');
-          use(relayProgram);
-          bindTexture(0, pair[read].tex, 'uInput', relayProgram);
-          const res = gl.getUniformLocation(relayProgram, 'uResolution');
-          if (res !== null) gl.uniform2f(res, width, height);
-          const shift = gl.getUniformLocation(relayProgram, 'uShift');
-          if (shift !== null) gl.uniform1f(shift, Number(layer.state.shift_px) || 0);
-          const strength = gl.getUniformLocation(relayProgram, 'uStrength');
-          if (strength !== null) gl.uniform1f(strength, Number(layer.state.strength) || 0);
-          draw(scratch.fbo);
-          upper = scratch.tex;
+          // The FX takes the already-composited lower layers as uInput.
+          // FX history is processed even when host wet/opacity is zero.
+          if (!wrote) { layer.fx?.suspend?.(); continue; }
+          upper = processFX(layer, pair[read].tex, meta);
+          if (!upper) continue;
+          if (layer.opacity <= 0) continue; // DRY output, history already advanced.
         } else {
           throw new Error('Unsupported fragment-webgl1 FX in WebGL2 Lab. Use normal Playground.');
         }
@@ -258,6 +384,13 @@ void main() {
       if (destroyed) return;
       destroyed = true;
       fallback();
+      for(const inst of [...fxInstances.values()]) {
+        for(const p of inst.programs) gl.deleteProgram(p);
+        for(const t of [...inst.passTargets,...inst.historyTargets]) {
+          gl.deleteFramebuffer(t.fbo); gl.deleteTexture(t.tex);
+        }
+      }
+      fxInstances.clear();
       for (const release of resources.reverse()) release();
       canvas.remove();
     }
@@ -278,9 +411,14 @@ void main() {
     } catch (e) { dispose(); throw e; }
 
     return {
-      render, fallback, dispose,
+      render, fallback, dispose, createFX,
+      getFxStats: id => {
+        const inst = fxInstances.get(id);
+        return inst ? {instanceId:id,frame:inst.frame,seeded:inst.seeded,
+          suspended:inst.suspended,history:inst.history,error:inst.error} : null;
+      },
       getStats: () => ({
-        width, height, maxDimension: MAX_DIM, textureBytesEstimate: width * height * 4 * 4,
+        width, height, maxDimension: MAX_DIM, textureBytesEstimate: budgetAt(),
         contexts: 1, mode: 'WebGL2 lab — not production validated'
       })
     };
