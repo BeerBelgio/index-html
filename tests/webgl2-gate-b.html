@@ -72,6 +72,18 @@
    try{lab.render([blue,c],2048,2048,{frameId:12,time:.366,running:true});return false;}
    catch(e){return /budget/i.test(String(e));}
   });
+  const gpuCanvas=document.getElementById('pg-gpu-lab');
+  const ext=gpuCanvas.getContext('webgl2').getExtension('WEBGL_lose_context');
+  if(ext){
+    ext.loseContext();
+    await new Promise(done=>setTimeout(done,200));
+    check('context loss switches to dry Canvas2D fallback',()=>legacyCanvas.style.visibility!=='hidden'&&gpuCanvas.style.display==='none');
+    ext.restoreContext();
+    await new Promise(done=>setTimeout(done,350));
+    check('context restoration rebuilds FX programs and resets histories',()=>stats(c).frame===0&&!stats(c).seeded&&stats(b).frame===0);
+    frame([blue,c],13,.4);
+    check('FX instance resumes after context restoration',()=>stats(c).frame===1&&stats(c).seeded&&gpuCanvas.style.display!=='none');
+  }else lines.push('NOT_RUN context restore — WEBGL_lose_context extension unavailable');
   c.fx.dispose();b.fx.dispose();
   check('cleanup removes both instances',()=>lab.getFxStats('B')===null&&lab.getFxStats('C')===null);
   lab.dispose();
