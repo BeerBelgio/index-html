@@ -30,7 +30,7 @@
  async function generator(color,a=1,glProducer=false) {
    const c=document.createElement('canvas');c.width=W;c.height=H;
    if(glProducer) {
-     const gl=c.getContext('webgl',{alpha:true,preserveDrawingBuffer:true});
+     const gl=c.getContext('webgl',{alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:true});
      if(!gl)throw Error('WebGL1 fixture unavailable');
      const rgb=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16)/255);
      gl.viewport(0,0,W,H);gl.clearColor(...rgb,a);gl.clear(gl.COLOR_BUFFER_BIT);
@@ -93,7 +93,7 @@
    const noShift=sample(document.getElementById('pg-gpu-lab'));
    check('synthetic FX shift=0 no change',()=>{
      const want=expected([red]);const diff=Math.max(...want.map((x,i)=>Math.abs(x-noShift[i])));
-     if(diff>6)throw Error('diff '+diff);
+     if(diff>6)throw Error('GPU='+noShift.join(',')+' want='+want.join(',')+' diff='+diff);
    });
    lab.render([red,blue,fx],W,H);
    fx.state.shift_px=11;fx.state.strength=1;
