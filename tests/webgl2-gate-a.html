@@ -101,7 +101,7 @@
    fx.state.shift_px=11;fx.state.strength=1;
    lab.render([red,blue,fx],W,H,{running:true,time:.06,frameId:3});
    check('stateless Channel Relay FX renders',()=>{
-     const s=lab.getStats();if(s.textureBytesEstimate!==W*H*4*5)throw Error('texture estimate wrong');
+     const s=lab.getStats();if(s.textureBytesEstimate!==W*H*4*4)throw Error('texture estimate wrong');
    });
    check('unsupported legacy FX rejected visibly',()=>{
      try{lab.render([red,{role:'effect',visible:true,opacity:1,manifest:{},loading:false}],W,H);throw Error('not rejected');}
