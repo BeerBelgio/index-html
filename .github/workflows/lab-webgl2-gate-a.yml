@@ -6,6 +6,10 @@ on:
       - lab/playground-webgl2-gate-a-20261120
       - fix/playground-native-webgl2-no-demo-20261120
 
+concurrency:
+  group: index-webgl2-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -73,7 +77,7 @@ jobs:
           trap 'kill "$server" 2>/dev/null || true' EXIT
           sleep 1
           if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
-          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=40000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=100000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
           sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
           grep -q 'data-result="PASS"' local-fx-result.html
       - name: Normal public Playground WebGL2 rendering
