@@ -49,7 +49,16 @@ if(gpuOptIn){
   });
   ui.reset.after(resetFxHistory);
   resetFxHistory.hidden=true;
-  log('EXPERIMENTAL WebGL2 compositor enabled. Max preview dimension: 2048 px; synthetic FX only.');
+  log('WebGL2 FX composer ready. Local FX import, multipass and independent history enabled.');
+  const entry=document.getElementById('pg-webgl2-entry');
+  const demoLink=document.getElementById('pg-webgl2-demo');
+  if(entry&&demoLink){
+   entry.querySelector('strong').textContent='WEBGL2 FX MODE';
+   entry.querySelector('span').textContent='GPU compositing and FX history enabled. Load your own HTML FX using CHOOSE A FILE.';
+   demoLink.textContent='BACK TO CLASSIC';
+   demoLink.href='playground.html';
+  }
+  if(new URLSearchParams(location.search).get('demo')==='1')loadWebGL2Demo().catch(e=>fail('FX demo could not load: '+e.message));
  }catch(e){gpuLab=null;fail('WebGL2 lab unavailable — legacy renderer retained: '+e.message);}
  };
  labScript.onerror=()=>fail('WebGL2 Lab module could not be loaded; legacy renderer retained.');
@@ -98,6 +107,28 @@ function openLayer(layer,html,name,token){if(layer.token!==token)return;if(html.
  const frame=document.createElement('iframe');frame.className='pg-layer-frame';frame.setAttribute('sandbox','allow-scripts');frame.setAttribute('referrerpolicy','no-referrer');frame.title='Isolated L'+layer.id+' visual renderer';frame.setAttribute('aria-hidden','true');
  layer.frame=frame;ui.frameHost.append(frame);frame.srcdoc=safeHtml(html,layer.id,token);
  info('Inspecting L'+layer.id+' manifest…');
+}
+async function loadWebGL2Demo(){
+ // Bundled local resources only: the public demo needs no extra software or external service.
+ const sources=[
+  {layer:layers[0],path:'linking-nodes/Linking_Nodes-v2.1.html',name:'Linking Nodes'},
+  {layer:layers[1],path:'assets/fx/original-feedback-history.html',name:'Original Feedback History [WebGL2]'}
+ ];
+ const fetched=await Promise.all(sources.map(async source=>{
+  const response=await fetch(source.path,{cache:'no-store'});
+  if(!response.ok)throw Error(source.name+' HTTP '+response.status);
+  const html=await response.text();
+  if(html.length>2*1024*1024)throw Error(source.name+' exceeds maximum local HTML size');
+  return {...source,html};
+ }));
+ if(!gpuLab)throw Error('WebGL2 is unavailable; use BACK TO CLASSIC.');
+ for(const source of fetched){
+  const token=beginLoad(source.layer,source.name);
+  openLayer(source.layer,source.html,source.name,token);
+ }
+ choose(1);
+ info('FX demo loading: Linking Nodes → Original Feedback History.');
+ log('Built-in WebGL2 demo loaded from local site files; all FX execute in-browser.');
 }
 async function local(file){const layer=active();if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html')){fail('Choose an HTML file.');return;}if(file.size>2*1024*1024){fail('Maximum HTML size is 2 MB.');return;}
  const token=beginLoad(layer,file.name);try{const content=await file.text();openLayer(layer,content,file.name,token)}catch(e){if(layer.token===token){layer.loading=false;fail(e.message,layer);renderLayerRack();placeholder();}}}
