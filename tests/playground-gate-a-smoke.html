@@ -67,7 +67,16 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
     const clear=d.querySelectorAll('.pg-layer-card')[1].querySelector('.pg-layer-clear');
     clear.click();
     check('CLEAR disposes selected layer only',()=>d.querySelectorAll('.pg-layer-frame').length===0 && d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Channel Relay'));
-    check('normal renderer remains available via query-free URL',()=>!!d.querySelector('a[href="playground.html"]'));
+    const legacyFrame=document.createElement('iframe');
+    legacyFrame.src='../playground.html';legacyFrame.style.display='none';
+    document.body.append(legacyFrame);
+    await new Promise((ok,reject)=>{legacyFrame.addEventListener('load',ok,{once:true});legacyFrame.addEventListener('error',reject,{once:true});});
+    const legacyDoc=legacyFrame.contentDocument;
+    check('query-free Playground has no GPU overlay',()=>!legacyDoc.getElementById('pg-gpu-lab'));
+    check('query-free Playground retains five layer slots',()=>legacyDoc.querySelectorAll('.pg-layer-card').length===5);
+    check('query-free Playground has no lab FX control',()=>![...legacyDoc.querySelectorAll('button')].some(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]')));
+    check('query-free Playground retains visible Canvas2D',()=>legacyDoc.getElementById('pg-composite')?.style.visibility!=='hidden');
+    legacyFrame.remove();
   }catch(e){lines.push('FAIL smoke infrastructure: '+String(e.stack||e));fail++;}
   out.textContent=lines.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
   out.dataset.result=fail===0?'PASS':'FAIL';
