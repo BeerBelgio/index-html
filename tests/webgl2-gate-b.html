@@ -57,7 +57,7 @@
   a.fx.dispose();check('CLEAR/dispose A preserves B',()=>lab.getFxStats('A')===null&&stats(b).frame===savedB+1);
   frame([red,blue,b],9,.264);check('B continues after CLEAR A',()=>stats(b).frame===savedB+2);
   check('invalid GLSL rejected without losing other FX',()=>{
-   try{lab.createFX('broken',{apiVersion:2,type:'fragment-webgl2',history:false,passes:[{fragment:'#version 300 es\nthis is not valid GLSL'}]});return false;}
+   try{lab.createFX('broken',{apiVersion:2,type:'fragment-webgl2',moduleId:'broken-shader-fixture',moduleVersion:'0.0.1',history:false,provenance:{author:'lab',source:'original',adaptation:'none',license:'PolyForm Noncommercial',notice:'deliberately broken'},passes:[{fragment:'#version 300 es\nthis is not valid GLSL'}]});return false;}
    catch(e){return /GLSL|compil|shader/i.test(String(e))&&stats(b).error===null;}
   });
   c=effect(m,'C');
