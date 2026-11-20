@@ -10,6 +10,9 @@ let selected=0,catalogue=[],running=false,raf=0,last=0,clock=0,scheduledAt=0,dir
 const ctx=ui.composite.getContext('2d',{alpha:true});
 const gpuOptIn=new URLSearchParams(window.location.search).get('renderer')==='webgl2-lab';
 let gpuLab=null;
+const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
+const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
+const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
 if(gpuOptIn){
  try{
   if(!window.IndexWebGL2Lab)throw Error('WebGL2 Lab script unavailable.');
@@ -26,9 +29,6 @@ if(gpuOptIn){
   log('EXPERIMENTAL WebGL2 compositor enabled. Max preview dimension: 2048 px; synthetic FX only.');
  }catch(e){gpuLab=null;fail('WebGL2 lab unavailable — legacy renderer retained: '+e.message);}
 }
-const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
-const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
-const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
 const active=()=>layers[selected];
 const loaded=()=>layers.filter(l=>l.manifest&&!l.loading);
 const visibleReady=()=>layers.some(l=>l.visible&&l.manifest&&l.firstFrame&&(l.role==='effect'||l.role==='effect-webgl2'||!!l.bitmap));
