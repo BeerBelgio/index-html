@@ -4,14 +4,14 @@
 
 ## Quick start for collaborators
 
-1. Get the branch `lab/playground-webgl2-gate-a-20261120` and serve it with a local static HTTP server (e.g. `python3 -m http.server 8765` from repository root). No Max/Ableton required.
-2. Open `http://localhost:8765/playground.html?renderer=webgl2-lab`. The standard URL without the query remains Canvas2D.
-3. Load an existing INDEX generator to **L1** (or import your own trusted standalone HTML).
-4. Select **L2** and import `tests/fixtures/original-feedback-history.html` through **CHOOSE A FILE**. The FX will process the lower composite. Additional FX can be imported into L3–L5 and remain independent.
+1. For casual browser use after deployment, open the public INDEX Playground and click **TRY LIVE FX DEMO**. No Max/Ableton or local server required. Developers can also clone the repository and run a local static HTTP server for code iteration.
+2. The demo link selects WebGL2 automatically. For local development open `http://localhost:8765/playground.html?renderer=webgl2-lab`. The standard URL without the query remains Canvas2D.
+3. The public demo preloads **Linking Nodes** on L1. Alternatively load another INDEX generator or trusted standalone HTML.
+4. The public demo preloads **Original Feedback History** on L2 from `assets/fx/original-feedback-history.html`. For your own FX, select L2–L5 and import a trusted standalone HTML through **CHOOSE A FILE**; each FX instance has independent history.
 5. Change the FX numeric parameters, layer opacity (the **Wet**/Dry blend), visibility, and **RESET HISTORY**. Use CLEAR to remove an instance.
 6. To roll back immediately, reopen `playground.html` without the experimental query. This does not change any generator or Bridge files.
 
-GitHub Pages publishes the `main` branch, **not** this Draft PR. The public Playground will not expose this feature until maintainer-approved merge/deployment.
+The public Playground shows a **TRY LIVE FX DEMO** entry when this branch is published to GitHub Pages. It opens the GPU mode and automatically loads Linking Nodes with the bundled original feedback-history FX. No setup is necessary for that example. Development-only files remain available in the repository.
 
 ## Minimal local HTML module
 
