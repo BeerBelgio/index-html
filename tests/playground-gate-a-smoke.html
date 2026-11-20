@@ -45,7 +45,7 @@ window.INDEX_TOOL={schemaVersion:1,role:'generator',name:'Local Test Generator',
  capabilities:{requires:{renderer:'canvas2d',visualInput:'none',audioInput:'none'},supports:{colorOpacity:true}},
  params:[],colors:[{key:'color',label:'Color',default:'#ff2233'}]};
 window.indexResize=(w,h)=>{const c=document.getElementById('sketch-canvas');c.width=w;c.height=h;};
-window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle=state.color;ctx.fillRect(0,0,c.width,c.height);};
+window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.globalAlpha=hostContext?.colorOpacity?.color??1;ctx.fillStyle=state.color;ctx.fillRect(0,0,c.width,c.height);ctx.globalAlpha=1;};
 <\/script></body></html>`;
     const input=d.getElementById('pg-file'),transfer=new DataTransfer();
     transfer.items.add(new File([localTool],'local-tool.html',{type:'text/html'}));
@@ -55,6 +55,21 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
     check('local HTML import produces first frame',()=>frameReady);
     check('GPU overlay active after local import',()=>d.querySelector('#pg-gpu-lab')?.style.display!=='none' && d.querySelector('#pg-composite')?.style.visibility==='hidden');
     check('sandboxed local tool iframe exists',()=>d.querySelectorAll('.pg-layer-frame[sandbox="allow-scripts"]').length===1);
+    const alphaSlider=d.querySelector('#pg-colors input[type="range"]');
+    check('generator exposes host colorOpacity control',()=>!!alphaSlider);
+    const readGpuAlpha=()=>{
+      const surface=d.getElementById('pg-gpu-lab');
+      const c=d.createElement('canvas');c.width=surface.width;c.height=surface.height;
+      const x=c.getContext('2d',{willReadFrequently:true});
+      x.drawImage(surface,0,0);
+      return x.getImageData(Math.floor(c.width/2),Math.floor(c.height/2),1,1).data[3];
+    };
+    for(const [value,target] of [[1,255],[.5,128],[0,0],[1,255]]){
+      alphaSlider.value=String(value);
+      alphaSlider.dispatchEvent(new Event('input',{bubbles:true}));
+      const reached=await until(()=>Math.abs(readGpuAlpha()-target)<9,7000);
+      check('generator colorOpacity '+Math.round(value*100)+'%',()=>reached);
+    }
     const eye=[...d.querySelectorAll('.pg-layer-card')][1].querySelector('.pg-layer-visibility');
     eye.click();
     check('hide preserves other layer',()=>eye.isConnected===false && d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Channel Relay'));
