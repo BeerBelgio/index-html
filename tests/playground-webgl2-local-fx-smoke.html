@@ -13,7 +13,7 @@
  try{
   await new Promise((ok,bad)=>{frame.addEventListener('load',ok,{once:true});frame.addEventListener('error',bad,{once:true});});
   const d=frame.contentDocument;
-  check('GPU composer loads',await until(()=>!!d.getElementById('pg-gpu-lab')));
+  check('GPU engine loads on normal URL',!!d.defaultView.IndexWebGL2Lab);
   const localTool=`<!doctype html><html><head><title>Solid Color Fixture</title></head><body><canvas id="sketch-canvas"></canvas><script>
     window.INDEX_TOOL={schemaVersion:1,role:'generator',name:'Solid Color Fixture',params:[],colors:[]};
     window.indexResize=(w,h)=>{const c=document.querySelector('canvas');c.width=w;c.height=h;};
@@ -28,6 +28,7 @@
   const first=await until(()=>d.querySelector('.pg-layer-card')?.textContent.includes('Solid Color Fixture')
     && d.querySelector('#pg-log')?.textContent.includes('first frame displayed'),18000);
   check('locally imported generator produces first frame',first,d.querySelector('#pg-status')?.textContent+' log='+d.querySelector('#pg-log')?.textContent.slice(-1500)+' rack='+d.querySelector('.pg-layer-card')?.textContent);
+  check('GPU compositor initializes when first generator loads',!!d.getElementById('pg-gpu-lab'));
   const fxSource=await (await fetch('fixtures/original-feedback-history.html')).text();
   d.querySelectorAll('.pg-layer-pick')[1].click();
   importHTML('original-feedback-history.html',fxSource);
