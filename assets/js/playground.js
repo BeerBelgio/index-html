@@ -14,6 +14,9 @@ const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':u
 const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
 const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
 if(gpuOptIn){
+ const labScript=document.createElement('script');
+ labScript.src='assets/js/playground-webgl2-lab.js';
+ labScript.onload=()=>{
  try{
   if(!window.IndexWebGL2Lab)throw Error('WebGL2 Lab script unavailable.');
   gpuLab=window.IndexWebGL2Lab.create({surface:ui.surface,legacyCanvas:ui.composite,emptyElement:ui.empty});
@@ -28,6 +31,9 @@ if(gpuOptIn){
   ui.load.after(loadFx);
   log('EXPERIMENTAL WebGL2 compositor enabled. Max preview dimension: 2048 px; synthetic FX only.');
  }catch(e){gpuLab=null;fail('WebGL2 lab unavailable — legacy renderer retained: '+e.message);}
+ };
+ labScript.onerror=()=>fail('WebGL2 Lab module could not be loaded; legacy renderer retained.');
+ document.head.append(labScript);
 }
 const active=()=>layers[selected];
 const loaded=()=>layers.filter(l=>l.manifest&&!l.loading);
