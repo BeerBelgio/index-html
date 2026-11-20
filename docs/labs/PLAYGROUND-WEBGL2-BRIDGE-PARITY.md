@@ -9,10 +9,10 @@
 | Parameters | `shift_px` [0..24], `strength` [0..1] | No authoritative current Bridge mapping supplied | **UNKNOWN** |
 | Composite source | GPU lower-layer composite texture; five ordered slots | Channel Relay target described as lower composite | Semantic intent comparable; blend numeric parity **NOT_RUN** |
 | Colors/alpha | Straight-alpha GPU FBO, conversion for premultiplied `ImageBitmap`; automated Canvas2D pixel oracle PASS | No matched-format/reference frames received | **NOT_RUN** |
-| History | None in Gate A; stateless | C0 synthetic harness reportedly validated independent history | Not comparable until Gate B |
-| Multipass | Separate composite and stateless FX passes; no generic multipass FX graph | C0 single-pass and multipass synthetic PASS per user's baseline | **NOT EQUIVALENT** |
+| History | Gate B lab has private per-instance ping-pong, manual reset and pause/hide rules (synthetic Chromium oracle PASS) | C0 synthetic harness reportedly validated independent history | Semantics appear aligned, **cross-host numerical parity NOT_RUN** |
+| Multipass | 1–3 original GLSL ES 3.00 passes per local FX instance, synthetic two-pass feedback oracle PASS | C0 single-pass and multipass synthetic PASS per user's baseline | Structural capability now comparable; **not independently tested across hosts** |
 | Layer CLEAR | Existing Playground clearing and renderer snapshots, tested in integration smoke | Bridge A+B+C CLEAR reportedly DONE | Semantics broadly similar; cross-host parity **NOT_RUN** |
-| Resize/cleanup | RGBA8 reallocations, disposal, context-loss fallback | Bridge evidence not directly provided | **UNKNOWN** |
+| Resize/cleanup | RGBA8 reallocations, independent disposal, context loss/restore rebuild and history reset (synthetic PASS) | Bridge evidence not directly provided | **CROSS-HOST UNKNOWN** |
 | GPU performance | Synthetic Chromium CI only; CPU+GPU preview both active in opt-in | M5 lab hardware test reports not reproduced here | **NOT RUN/COMPARABLE** |
 
 ## Cross-host parity gate to execute later
