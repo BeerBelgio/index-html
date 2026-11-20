@@ -70,6 +70,14 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
       alphaSlider.dispatchEvent(new Event('input',{bubbles:true}));
       const reached=await until(()=>Math.abs(readGpuAlpha()-target)<9,7000);
       check('generator colorOpacity '+Math.round(value*100)+'%',()=>reached);
+      if(value===0){
+        const colorPicker=d.querySelector('#pg-colors input[type="color"]');
+        const previous=colorPicker.value;
+        colorPicker.value='#33ff44';colorPicker.dispatchEvent(new Event('input',{bubbles:true}));
+        await until(()=>readGpuAlpha()===0,4500);
+        check('zero-opacity HEX change does not leak alpha',()=>readGpuAlpha()===0);
+        colorPicker.value=previous;colorPicker.dispatchEvent(new Event('input',{bubbles:true}));
+      }
     }
     const eye=[...d.querySelectorAll('.pg-layer-card')][1].querySelector('.pg-layer-visibility');
     eye.click();
