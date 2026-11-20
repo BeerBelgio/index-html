@@ -27,6 +27,7 @@
     await new Promise((ok,reject)=>{frame.addEventListener('load',ok,{once:true});frame.addEventListener('error',reject,{once:true});});
     const d=frame.contentDocument;
     const win=frame.contentWindow;
+    await until(()=>!!d.getElementById('pg-gpu-lab') && [...d.querySelectorAll('button')].some(x=>x.textContent.includes('CHANNEL RELAY [GPU LAB]')),8000);
     check('five-slot rack renders',()=>d.querySelectorAll('.pg-layer-card').length===5);
     check('GPU overlay allocated in lab mode',()=>!!d.getElementById('pg-gpu-lab'));
     const trigger=[...d.querySelectorAll('button')].find(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]'));
