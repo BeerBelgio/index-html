@@ -89,18 +89,19 @@
    compare('clear layer 2 without other changes',[red,green,amber,cyan]);
    const fx={role:'effect-webgl2',manifest:window.IndexWebGL2Lab.channelRelayManifest(),
      visible:true,loading:false,opacity:1,blend:'normal',state:{shift_px:0,strength:0}};
-   lab.render([red,fx],W,H);
+   fx.fx=lab.createFX('fixture-channel-relay',fx.manifest.effect);
+   lab.render([red,fx],W,H,{running:true,time:0,frameId:1});
    const noShift=sample(document.getElementById('pg-gpu-lab'));
    check('synthetic FX shift=0 preserves RGB and layers alpha',()=>{
      // FX is a strength-controlled additional layer, as in legacy; its alpha composites over the lower result.
      const want=expected([red,red]);const diff=Math.max(...want.map((x,i)=>Math.abs(x-noShift[i])));
      if(diff>6)throw Error('GPU='+noShift.join(',')+' want='+want.join(',')+' diff='+diff);
    });
-   lab.render([red,blue,fx],W,H);
+   lab.render([red,blue,fx],W,H,{running:true,time:.03,frameId:2});
    fx.state.shift_px=11;fx.state.strength=1;
-   lab.render([red,blue,fx],W,H);
+   lab.render([red,blue,fx],W,H,{running:true,time:.06,frameId:3});
    check('stateless Channel Relay FX renders',()=>{
-     const s=lab.getStats();if(s.textureBytesEstimate!==W*H*4*4)throw Error('texture estimate wrong');
+     const s=lab.getStats();if(s.textureBytesEstimate!==W*H*4*5)throw Error('texture estimate wrong');
    });
    check('unsupported legacy FX rejected visibly',()=>{
      try{lab.render([red,{role:'effect',visible:true,opacity:1,manifest:{},loading:false}],W,H);throw Error('not rejected');}
