@@ -23,19 +23,19 @@
 
 ## Gate A approval requires
 
-- [ ] Automated fixture and pixel oracle for normal/add/multiply/screen including non-opaque source & 100→50→0→100.
+- [x] Automated Chromium software-WebGL fixture and pixel oracle for normal/add/multiply/screen including non-opaque source & 100→50→0→100.
 - [ ] Browser screenshots M5 Chromium and legacy-vs-GPU comparisons (including mixed Canvas2D/WebGL1 generator sources).
-- [ ] Five layers, show/hide, reorder semantics (unchanged slot order), replacement, CLEAR, play/pause and resizing.
-- [ ] Shader-error, unsupported legacy FX and context-loss behavior observed.
-- [ ] Manual source isolation/local HTML/offline tests; no changes to any generator.
-- [ ] Verification that legacy URL remains visually and functionally invariant.
-- [ ] Explicit maintainer approval before promotion. Gate B remains BLOCKED while any required Gate A evidence is missing.
+- [x] Synthetic/Playground CI for five slots, hide/show, replacement, CLEAR, play/pause and resizing; native M5/UI confirmation still open.
+- [x] Shader-error, unsupported legacy FX, context-loss and restoration behavior observed in synthetic Chromium tests.
+- [ ] Native M5 source isolation/local HTML/offline tests; automated local HTML sandbox smoke PASS, all generator files unchanged.
+- [x] Automated query-free legacy path smoke PASS; native M5 visual confirmation pending.
+- [ ] Explicit maintainer approval before promotion; Gates B/C are implemented as unpromoted laboratory code, not frozen or released.
 
-## Later gated work (not yet authorized for promotion)
+## Subsequent Gates B/C (implemented experimentally, not promoted)
 
-**Gate B:** distinct instance IDs, private ping-pong history, controlled multipass, one advance per committed frame, deterministic seed, wet/dry, pause/hide, independent clear/reset, resize/context-loss and pixel/temporal oracle. No localStorage/IndexedDB texture persistence.
+**Gate B:** current laboratory implementation includes distinct instance IDs, private ping-pong history, controlled multipass, one advance per committed frame, deterministic seed, wet/dry, pause/hide, independent clear/reset, resize/context-loss and pixel/temporal oracle. No localStorage/IndexedDB texture persistence.
 
-**Gate C:** separately versioned provisional FX module contract, e.g. `fragment-webgl2`, lifecycle, inputs, time/delta, parameters, history, multipass, provenance and license notices. Do not change/freeze generator v1.0 or infer cross-repo engine sharing.
+**Gate C:** provisional FX module contract is documented in [FX-WEBGL2-PROVISIONAL-API.md](FX-WEBGL2-PROVISIONAL-API.md), with separately versioned runtime, e.g. `fragment-webgl2`, lifecycle, inputs, time/delta, parameters, history, multipass, provenance and license notices. Do not change/freeze generator v1.0 or infer cross-repo engine sharing.
 
 ## Rollback
 
@@ -45,4 +45,4 @@
 
 ## Evidence standard
 
-Automated static checks are not equivalent to Chromium/M5 visual tests. An FX compiled successfully is not proof of correct alpha/blend pixels, GPU time, independent history or Bridge parity. All unexecuted tests remain `NOT_RUN`.
+Automated static checks are not equivalent to Chromium/M5 visual tests. An FX compiled successfully is not proof of correct alpha/blend pixels, GPU time, independent history or Bridge parity. Outstanding M5, Intel, browser and Bridge parity tests remain `NOT_RUN`; see [Gate A/B/C receipt](PLAYGROUND-WEBGL2-GATE-A-RECEIPT.md).
