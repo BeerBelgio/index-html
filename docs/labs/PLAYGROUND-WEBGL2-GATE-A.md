@@ -12,7 +12,7 @@
 
 ## Gate A design: isolated opt-in
 
-- Normal URL: `playground.html` automatically uses a shared WebGL2 composer when supported, without introducing demo UI or preloading examples. The original controls, five slots and import workflow remain visually unchanged.
+- Normal URL: `playground.html` initializes one shared WebGL2 composer when the first compatible tool is loaded, if supported, without introducing demo UI or preloading examples. The original controls, five slots and import workflow remain visually unchanged.
 - Explicit fallback URL: `playground.html?renderer=canvas2d` forces the legacy Canvas2D renderer. When WebGL2 is unavailable, it falls back automatically. The legacy Canvas2D composition is retained under the GPU canvas for diagnostics and recovery; WebGL1 FX may trigger the legacy fallback when no WebGL2 FX are active.
 - Existing hosted generators stay in their sandboxed tool frames. The GPU compositor receives only already-captured `ImageBitmap` frames. Generator WebGL1 contexts are independent producer contexts, **not** FX/compositor contexts.
 - Stage: two RGBA8 composite ping-pong textures/FBOs, one uploaded generator texture, and FX-instance-owned pass intermediates; a final blit to the default framebuffer. The compositor and synthetic FX use the **same** WebGL2 context.
