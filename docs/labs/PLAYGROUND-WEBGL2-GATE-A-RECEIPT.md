@@ -15,7 +15,7 @@
 - One WebGL2 context for the GPU composer and synthetic stateless Channel Relay effect; GLSL ES 3.00 fragment programs.
 - Capture current generator `ImageBitmap` without altering existing sandboxed frames.
 - Five ordered slots, Normal/Add/Multiply/Screen, layer opacity and source alpha. Explicit unpremultiplication of uploaded ImageBitmap color channels verified against Canvas2D in Chromium; shader intermediate targets stay in straight-alpha representation.
-- Two composite ping-pong FBOs + one FX scratch FBO + one generator upload texture, all RGBA8. Max GPU preview dimension 2048; four full-resolution texture allocations ~16 bytes/pixel, excluding temporary/browser/canvas memory.
+- Two composite ping-pong FBOs + one generator upload texture, plus per-instance FX pass targets and optional private history targets, all RGBA8. Max GPU preview dimension 2048; four full-resolution texture allocations ~16 bytes/pixel, excluding temporary/browser/canvas memory.
 - Existing WebGL1 fragment FX explicitly rejected in lab mode, with legible diagnostic. No automatic WebGL1-to-WebGL2 shader conversion.
 - FX exposed through a LAB-only button and the standard existing parameter editor (`shift_px`, `strength`).
 - Legacy Canvas2D path retained; lab errors/context loss use legacy fallback, not a silent fake GPU output.
