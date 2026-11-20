@@ -44,7 +44,7 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
     transfer.items.add(new File([localTool],'local-tool.html',{type:'text/html'}));
     input.files=transfer.files;
     input.dispatchEvent(new Event('change',{bubbles:true}));
-    const frameReady=await until(()=>d.querySelector('#pg-status')?.textContent.includes('first frame ready'),11000);
+    const frameReady=await until(()=>d.querySelector('#pg-log')?.textContent.includes('first frame displayed') && d.querySelector('.pg-layer-card')?.textContent.includes('Local Test Generator'),18000);
     check('local HTML import produces first frame',()=>frameReady);
     check('GPU overlay active after local import',()=>d.querySelector('#pg-gpu-lab')?.style.display!=='none' && d.querySelector('#pg-composite')?.style.visibility==='hidden');
     check('sandboxed local tool iframe exists',()=>d.querySelectorAll('.pg-layer-frame[sandbox="allow-scripts"]').length===1);
