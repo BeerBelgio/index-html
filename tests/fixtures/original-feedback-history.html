@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>INDEX WebGL2 LAB — Original Feedback Fixture</title></head>
+<body>
+<h1>Original Feedback Fixture — INDEX WebGL2 LAB</h1>
+<p>Experimental FX for local Playground import. Original shaders for reproducible testing; no OpenMosh or Bridge code.</p>
+<script>
+window.INDEX_TOOL = {
+  schemaVersion: 1,
+  role: 'effect',
+  name: 'Original Feedback History [LAB]',
+  version: '0.0.1-lab',
+  author: 'BeerBelgio / INDEX laboratory',
+  capabilities: {
+    requires: {renderer: 'fragment-webgl2', visualInput: 'lower-composite', audioInput: 'none'}
+  },
+  params: [
+    {key: 'feedback', label: 'Feedback', min: 0, max: 0.95, step: 0.01, default: 0.6},
+    {key: 'tint', label: 'Tint', min: 0, max: 1, step: 0.01, default: 0.15}
+  ],
+  colors: [],
+  effect: {
+    apiVersion: 2,
+    type: 'fragment-webgl2',
+    history: true,
+    passes: [
+      {fragment: `#version 300 es
+precision highp float;
+in vec2 vUV;
+uniform sampler2D uInput;
+uniform sampler2D uHistory;
+uniform float u_feedback;
+uniform vec2 uResolution;
+uniform float uTime;
+uniform float uDelta;
+uniform int uFrame;
+out vec4 fragColor;
+void main() {
+ vec4 source = texture(uInput, vUV);
+ vec4 last = texture(uHistory, vUV);
+ float strength = clamp(u_feedback, 0.0, 0.95);
+ fragColor = vec4(mix(source.rgb, last.rgb, strength), source.a);
+}`},
+      {fragment: `#version 300 es
+precision highp float;
+in vec2 vUV;
+uniform sampler2D uInput;
+uniform float u_tint;
+out vec4 fragColor;
+void main() {
+ vec4 p = texture(uInput, vUV);
+ fragColor = vec4(mix(p.rgb, p.bgr, clamp(u_tint, 0.0, 1.0)), p.a);
+}`}
+    ],
+    provenance: {
+      author: 'BeerBelgio / INDEX laboratory',
+      source: 'Original synthetic test shader',
+      adaptation: 'None',
+      license: 'PolyForm Noncommercial 1.0.0',
+      notice: 'Synthetic study; not derived from OpenMosh or Bridge'
+    }
+  }
+};
+</script>
+</body></html>
