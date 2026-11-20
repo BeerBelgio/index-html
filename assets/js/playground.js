@@ -13,7 +13,10 @@ let gpuLab=null, gpuFrameId=0;
 const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
 const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
 const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
-if(!forceClassic){
+let gpuDisabled=forceClassic;
+if(forceClassic)log('Canvas2D fallback selected explicitly. WebGL2 FX are unavailable in this mode.');
+function ensureGPU(){
+ if(gpuLab || gpuDisabled) return;
  try{
   if(!window.IndexWebGL2Lab)throw Error('WebGL2 renderer module unavailable.');
   gpuLab=window.IndexWebGL2Lab.create({
@@ -25,10 +28,10 @@ if(!forceClassic){
   });
   log('WebGL2 compositor available. Import a local HTML FX or load an INDEX generator.');
  }catch(e){
-  gpuLab=null;
+  gpuDisabled=true;gpuLab=null;
   log('WebGL2 unavailable; Canvas2D renderer retained: '+e.message);
  }
-}else log('Canvas2D fallback selected explicitly. WebGL2 FX are unavailable in this mode.');
+}
 const active=()=>layers[selected];
 const loaded=()=>layers.filter(l=>l.manifest&&!l.loading);
 const visibleReady=()=>layers.some(l=>l.visible&&l.manifest&&l.firstFrame&&(l.role==='effect'||l.role==='effect-webgl2'||!!l.bitmap));
@@ -86,11 +89,12 @@ ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId
 function paramsFrom(manifest){const state={time:clock},alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1;}return {state,alpha};}
 function activate(layer,raw){const manifest=normalize(raw.manifest);
  const role=manifest.role==='effect'&&manifest.capabilities?.requires?.renderer==='fragment-webgl2'?'effect-webgl2':manifest.role;
+ if(role==='generator'||role==='effect-webgl2')ensureGPU();
  if(role!=='generator'&&role!=='effect'&&role!=='effect-webgl2')throw Error('Unsupported role '+role+'. Compositor A/B requires a separate tool contract.');
  if(role==='effect'&&gpuLab){
   const hasGpuFx=layers.some(l=>l!==layer&&l.role==='effect-webgl2'&&l.fx);
   if(hasGpuFx)throw Error('Legacy WebGL1 FX cannot be mixed with active WebGL2 FX. Remove the WebGL2 FX or use ?renderer=canvas2d for legacy shaders.');
-  gpuLab.dispose();gpuLab=null;
+  gpuLab.dispose();gpuLab=null;gpuDisabled=true;
   log('Legacy WebGL1 FX detected; switching compositor to Canvas2D. Reload to reactivate WebGL2.');
  }
  if(role==='effect-webgl2'&&!gpuLab)throw Error('This FX requires WebGL2. Use a browser with WebGL2 enabled and reload the Playground; for legacy effects, keep Canvas2D.');
