@@ -15,10 +15,10 @@
 - Normal URL: `playground.html` remains Canvas2D, unchanged.
 - Lab URL: `playground.html?renderer=webgl2-lab` uses one WebGL2 context for compositing and synthetic FX. Legacy Canvas2D is retained under the GPU canvas for instant fallback.
 - Existing hosted generators stay in their sandboxed tool frames. The GPU compositor receives only already-captured `ImageBitmap` frames. Generator WebGL1 contexts are independent producer contexts, **not** FX/compositor contexts.
-- Stage: two RGBA8 composite ping-pong textures/FBOs, one uploaded generator texture, one synthetic FX intermediate; a final blit to the default framebuffer. The compositor and synthetic FX use the **same** WebGL2 context.
+- Stage: two RGBA8 composite ping-pong textures/FBOs, one uploaded generator texture, and FX-instance-owned pass intermediates; a final blit to the default framebuffer. The compositor and synthetic FX use the **same** WebGL2 context.
 - Shader policy: GLSL ES 3.00 only, explicit source/destination alpha, one output per pass; no automatic WebGL1 shader transpilation. Existing fragment-webgl1 FX are **unsupported in lab mode** with a visible error; use the normal URL for them.
 - Four compositing modes, five slots and their ordering remain sourced from existing Playground layer state. Lab synthetic `Channel Relay` is original and stateless, with adjustable pixel shift and strength. This is **not** proof of numerical parity with Bridge Channel Relay.
-- GPU lab preview resolution capped to 2048 pixels on the longest side; source capture remains at existing Playground resolution. Each RGBA8 full-size texture costs `width*height*4` bytes; baseline four textures cost ~16 bytes/pixel excluding browser staging and source canvases.
+- GPU lab preview resolution capped to 2048 pixels on the longest side; source capture remains at existing Playground resolution. Each RGBA8 full-size texture costs `width*height*4` bytes; baseline three textures cost ~12 bytes/pixel excluding browser staging and source canvases.
 - Renderer creation/shader errors, unsupported contexts and context loss must leave legacy canvas available and report a readable diagnostic. Do not silently claim FX rendering succeeds after fallback.
 
 ## Gate A approval requires
