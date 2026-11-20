@@ -39,7 +39,7 @@ jobs:
           elif command -v chromium >/dev/null; then browser=chromium
           else echo "Chromium not available on runner"; exit 2; fi
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --virtual-time-budget=12000 --dump-dom "file://$GITHUB_WORKSPACE/tests/webgl2-gate-a.html" > gate-a-browser-result.html 2>gate-a-browser-stderr.txt
-          grep -E 'TOTAL|data-result=' gate-a-browser-result.html | tail -10
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' gate-a-browser-result.html | head -45
           if ! grep -q 'data-result="PASS"' gate-a-browser-result.html; then
             echo 'Browser oracle FAIL or not completed'; exit 1
           fi
