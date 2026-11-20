@@ -91,8 +91,9 @@
      visible:true,loading:false,opacity:1,blend:'normal',state:{shift_px:0,strength:0}};
    lab.render([red,fx],W,H);
    const noShift=sample(document.getElementById('pg-gpu-lab'));
-   check('synthetic FX shift=0 no change',()=>{
-     const want=expected([red]);const diff=Math.max(...want.map((x,i)=>Math.abs(x-noShift[i])));
+   check('synthetic FX shift=0 preserves RGB and layers alpha',()=>{
+     // FX is a strength-controlled additional layer, as in legacy; its alpha composites over the lower result.
+     const want=expected([red,red]);const diff=Math.max(...want.map((x,i)=>Math.abs(x-noShift[i])));
      if(diff>6)throw Error('GPU='+noShift.join(',')+' want='+want.join(',')+' diff='+diff);
    });
    lab.render([red,blue,fx],W,H);
