@@ -1,0 +1,61 @@
+name: INDEX WebGL2 Gate A (laboratory only)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - lab/playground-webgl2-gate-a-20261120
+
+permissions:
+  contents: read
+
+jobs:
+  gate-a-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript parse and invariant checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/playground.js
+          node --check assets/js/playground-webgl2-lab.js
+          python - <<'PY'
+          from pathlib import Path
+          js = Path('assets/js/playground.js').read_text()
+          lab = Path('assets/js/playground-webgl2-lab.js').read_text()
+          assert "renderer')==='webgl2-lab'" in js
+          assert "getContext('webgl2'" in lab
+          assert '#version 300 es' in lab
+          assert "Unsupported fragment-webgl1" in lab
+          assert all(x in lab for x in ['uLower', 'uUpper', 'uOpacity', 'uBlend'])
+          assert 'localStorage' not in lab and 'indexedDB' not in lab
+          print('Static invariants PASS')
+          PY
+      - name: Chromium headless pixel-oracle fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v google-chrome >/dev/null; then browser=google-chrome
+          elif command -v chromium >/dev/null; then browser=chromium
+          else echo "Chromium not available on runner"; exit 2; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --virtual-time-budget=12000 --dump-dom "file://$GITHUB_WORKSPACE/tests/webgl2-gate-a.html" > gate-a-browser-result.html 2>gate-a-browser-stderr.txt
+          grep -E 'TOTAL|data-result=' gate-a-browser-result.html | tail -10
+          if ! grep -q 'data-result="PASS"' gate-a-browser-result.html; then
+            echo 'Browser oracle FAIL or not completed'; exit 1
+          fi
+      - name: Capture browser screenshot (diagnostic)
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --window-size=1100,760 --virtual-time-budget=12000 --screenshot=gate-a-browser.png "file://$GITHUB_WORKSPACE/tests/webgl2-gate-a.html" >/dev/null 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-a-browser-fixture
+          path: |
+            gate-a-browser-result.html
+            gate-a-browser-stderr.txt
+            gate-a-browser.png
+          retention-days: 14
