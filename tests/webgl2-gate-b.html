@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>WebGL2 FX history instance oracle</title>
+<style>body{font:13px monospace}#surface{position:relative;width:128px;height:72px}#legacy{width:128px;height:72px}pre{white-space:pre-wrap}</style></head>
+<body><h1>INDEX FX WebGL2 LAB — independent history oracle</h1>
+<div id="surface"><canvas id="legacy" width="128" height="72"></canvas><div id="empty" hidden></div></div>
+<iframe id="fixture" src="fixtures/original-feedback-history.html" style="display:none" title="Local original FX"></iframe>
+<pre id="results" data-result="PENDING">Starting...</pre>
+<script src="../assets/js/playground-webgl2-lab.js"></script>
+<script>
+(async()=>{
+ const out=document.getElementById('results'),lines=[];let pass=0,fail=0,lab;
+ function check(label,fn){try{if(!fn())throw Error('assertion false');lines.push('PASS '+label);pass++;}catch(e){lines.push('FAIL '+label+' '+e.message);fail++;}}
+ const surface=document.getElementById('surface'),legacyCanvas=document.getElementById('legacy'),emptyElement=document.getElementById('empty');
+ const iframe=document.getElementById('fixture');
+ let a,b,c,bitmaps=[];
+ async function bitmapColor(color){
+  const cv=document.createElement('canvas');cv.width=128;cv.height=72;
+  const ctx=cv.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,128,72);
+  const bmp=await createImageBitmap(cv);bitmaps.push(bmp);return bmp;
+ }
+ function layer(bitmap){return {role:'generator',bitmap,manifest:{name:'source'},loading:false,visible:true,opacity:1,blend:'normal'};}
+ function effect(manifest,id){const l={role:'effect-webgl2',manifest,loading:false,visible:true,opacity:1,blend:'normal',state:{feedback:.6,tint:0},alpha:{}};l.fx=lab.createFX(id,manifest.effect);return l;}
+ function frame(stack,id,time,running=true){lab.render(stack,128,72,{frameId:id,time,running});}
+ function stats(l){return lab.getFxStats(l.fx.instanceId);}
+ function pixel(){
+  const cv=document.createElement('canvas');cv.width=128;cv.height=72;
+  const ctx=cv.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(document.getElementById('pg-gpu-lab'),0,0);
+  return Array.from(ctx.getImageData(64,36,1,1).data);
+ }
+ try{
+  await new Promise((ok,bad)=>{iframe.addEventListener('load',ok,{once:true});iframe.addEventListener('error',bad,{once:true});});
+  const m=iframe.contentWindow.INDEX_TOOL;
+  check('external fixture declares provisional WebGL2 FX',()=>m.role==='effect'&&m.capabilities.requires.renderer==='fragment-webgl2'&&m.effect.apiVersion===2);
+  lab=window.IndexWebGL2Lab.create({surface,legacyCanvas,emptyElement});
+  const red=layer(await bitmapColor('#ff0000')),blue=layer(await bitmapColor('#0000ff'));
+  a=effect(m,'A'),b=effect(m,'B');const stack=[red,a,blue,b];
+  frame(stack,1,0);check('same module two private instances seed independently',()=>stats(a).seeded&&stats(b).seeded&&stats(a).frame===1&&stats(b).frame===1);
+  frame(stack,1,0);check('same committed frame does not double advance',()=>stats(a).frame===1&&stats(b).frame===1);
+  frame(stack,2,.033);check('next committed frame advances once each',()=>stats(a).frame===2&&stats(b).frame===2);
+  frame(stack,2,.033);check('redraw with same frame ID does not advance',()=>stats(a).frame===2&&stats(b).frame===2);
+  a.opacity=0;frame(stack,3,.066);
+  check('wet zero keeps A history active',()=>stats(a).frame===3);
+  frame([red,a],4,.099);
+  const dry=pixel();check('wet zero output DRY remains unchanged',()=>dry[0]>245&&dry[1]<7&&dry[2]<7&&dry[3]===255);
+  a.visible=false;frame(stack,5,.132);
+  check('hide freezes only A history',()=>stats(a).frame===4&&stats(b).frame===4);
+  a.visible=true;a.opacity=1;frame(stack,6,.165);
+  check('resume A excludes inactive delta',()=>stats(a).frame===5&&stats(a).lastDelta===0&&stats(b).frame===5);
+  frame(stack,6,.165,false);
+  check('pause does not advance history',()=>stats(a).frame===5&&stats(b).frame===5);
+  frame(stack,7,.198);
+  check('resume after pause excludes idle delta',()=>stats(a).lastDelta===0&&stats(b).lastDelta===0);
+  const savedB=stats(b).frame;
+  a.fx.resetHistory();
+  check('manual reset A leaves B unchanged',()=>stats(a).frame===0&&!stats(a).seeded&&stats(b).frame===savedB);
+  frame(stack,8,.231);check('reset A seeds next input only',()=>stats(a).frame===1&&stats(a).seeded&&stats(b).frame===savedB+1);
+  a.fx.dispose();check('CLEAR/dispose A preserves B',()=>lab.getFxStats('A')===null&&stats(b).frame===savedB+1);
+  frame([red,blue,b],9,.264);check('B continues after CLEAR A',()=>stats(b).frame===savedB+2);
+  check('invalid GLSL rejected without losing other FX',()=>{
+   try{lab.createFX('broken',{apiVersion:2,type:'fragment-webgl2',history:false,passes:[{fragment:'#version 300 es\nthis is not valid GLSL'}]});return false;}
+   catch(e){return /GLSL|compil|shader/i.test(String(e))&&stats(b).error===null;}
+  });
+  c=effect(m,'C');
+  frame([red,c],10,.3);
+  frame([blue,c],11,.333);
+  const feedbackPx=pixel();
+  check('two-pass history mixes earlier frame into new input',()=>feedbackPx[0]>40&&feedbackPx[0]<230&&feedbackPx[2]>30&&feedbackPx[2]<230);
+  const prevC=stats(c).frame;
+  frame([blue,c],11,.333);
+  check('multipass history exactly one advance per frame',()=>stats(c).frame===prevC);
+  check('GPU budget refuses oversize allocation',()=>{
+   try{lab.render([blue,c],2048,2048,{frameId:12,time:.366,running:true});return false;}
+   catch(e){return /budget/i.test(String(e));}
+  });
+  c.fx.dispose();b.fx.dispose();
+  check('cleanup removes both instances',()=>lab.getFxStats('B')===null&&lab.getFxStats('C')===null);
+  lab.dispose();
+  check('cleanup restores legacy canvas',()=>legacyCanvas.style.visibility!=='hidden'&&!document.getElementById('pg-gpu-lab'));
+ }catch(e){lines.push('FAIL infrastructure '+(e.stack||e));fail++;try{lab?.dispose();}catch(_){}}
+ bitmaps.forEach(x=>x.close());
+ out.textContent=lines.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
+ out.dataset.result=fail===0?'PASS':'FAIL';
+ document.title='GATE_B_'+(fail===0?'PASS':'FAIL');
+})();
+</script></body></html>
