@@ -83,7 +83,7 @@ void main() {
     };
   }
 
-  function create({surface, legacyCanvas, emptyElement}) {
+  function create({surface, legacyCanvas, emptyElement, onDiagnostic = () => {}}) {
     const canvas = document.createElement('canvas');
     canvas.id = 'pg-gpu-lab';
     canvas.setAttribute('aria-label', 'Experimental WebGL2 composite');
@@ -316,6 +316,7 @@ void main() {
         return current;
       } catch (e) {
         inst.error = String(e.message || e);
+        onDiagnostic(inst.id, inst.error);
         return null;
       }
     }
