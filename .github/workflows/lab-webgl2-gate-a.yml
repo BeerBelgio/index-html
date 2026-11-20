@@ -1,0 +1,123 @@
+name: INDEX WebGL2 Gate A (laboratory only)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - lab/playground-webgl2-gate-a-20261120
+
+permissions:
+  contents: read
+
+jobs:
+  gate-a-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript parse and invariant checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/playground.js
+          node --check assets/js/playground-webgl2-lab.js
+          python - <<'PY'
+          from pathlib import Path
+          js = Path('assets/js/playground.js').read_text()
+          lab = Path('assets/js/playground-webgl2-lab.js').read_text()
+          assert "renderer')==='webgl2-lab'" in js
+          assert "getContext('webgl2'" in lab
+          assert '#version 300 es' in lab
+          assert "Unsupported fragment-webgl1" in lab
+          assert all(x in lab for x in ['uLower', 'uUpper', 'uOpacity', 'uBlend'])
+          assert 'localStorage' not in lab and 'indexedDB' not in lab
+          print('Static invariants PASS')
+          PY
+      - name: Chromium headless pixel-oracle fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v google-chrome >/dev/null; then browser=google-chrome
+          elif command -v chromium >/dev/null; then browser=chromium
+          else echo "Chromium not available on runner"; exit 2; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --virtual-time-budget=12000 --dump-dom "file://$GITHUB_WORKSPACE/tests/webgl2-gate-a.html" > gate-a-browser-result.html 2>gate-a-browser-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' gate-a-browser-result.html | head -45
+          if ! grep -q 'data-result="PASS"' gate-a-browser-result.html; then
+            echo 'Browser oracle FAIL or not completed'; exit 1
+          fi
+      - name: Playground integration smoke (offline-capable local server)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --bind 127.0.0.1 >gate-a-http-server.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=60000 --dump-dom "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" >gate-a-app-smoke.html 2>gate-a-app-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' gate-a-app-smoke.html | head -40
+          grep -q 'data-result="PASS"' gate-a-app-smoke.html
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1250,1080 --virtual-time-budget=60000 --screenshot=gate-a-playground-integration.png "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" >/dev/null 2>gate-a-integration-screenshot-stderr.txt
+      - name: Local external FX import and two instances
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8768 --bind 127.0.0.1 > local-fx-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=40000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
+          grep -q 'data-result="PASS"' local-fx-result.html
+      - name: Public one-click WebGL2 demo end-to-end
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8767 --bind 127.0.0.1 > public-demo-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=45000 --dump-dom "http://127.0.0.1:8767/tests/playground-public-webgl2-demo.html" >public-demo-result.html 2>public-demo-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' public-demo-result.html | head -50
+          grep -q 'data-result="PASS"' public-demo-result.html
+      - name: WebGL2 FX multipass and history oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8766 --bind 127.0.0.1 >gate-b-http-server.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=18000 --dump-dom "http://127.0.0.1:8766/tests/webgl2-gate-b.html" >gate-b-result.html 2>gate-b-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' gate-b-result.html | head -45
+          grep -q 'data-result="PASS"' gate-b-result.html
+      - name: Capture browser screenshot (diagnostic)
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --window-size=1100,760 --virtual-time-budget=12000 --screenshot=gate-a-browser.png "file://$GITHUB_WORKSPACE/tests/webgl2-gate-a.html" >/dev/null 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-a-browser-fixture
+          path: |
+            gate-a-browser-result.html
+            gate-a-browser-stderr.txt
+            gate-a-browser.png
+            gate-a-app-smoke.html
+            public-demo-result.html
+            local-fx-result.html
+            local-fx-stderr.txt
+            local-fx-http.log
+            public-demo-stderr.txt
+            public-demo-http.log
+            gate-a-playground-integration.png
+            gate-a-app-stderr.txt
+            gate-a-http-server.log
+            gate-b-result.html
+            gate-b-stderr.txt
+            gate-b-http-server.log
+          retention-days: 14

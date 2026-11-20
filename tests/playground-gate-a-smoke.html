@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>WebGL2 Gate A Playground smoke</title>
+<style>body{font:13px monospace}iframe{width:1050px;height:840px;border:1px solid black}pre{white-space:pre-wrap}</style>
+</head><body>
+<h1>INDEX Playground — WebGL2 integration smoke</h1>
+<iframe id="app" src="../playground.html?renderer=webgl2-lab" title="Playground laboratory"></iframe>
+<pre id="results" data-result="PENDING">Loading...</pre>
+<script>
+(async ()=>{
+  'use strict';
+  const frame=document.getElementById('app'),out=document.getElementById('results');
+  let pass=0, fail=0;const lines=[];
+  function check(label,fn){
+    try{const r=fn();if(!r)throw Error('assertion false');lines.push('PASS '+label);pass++;}
+    catch(e){lines.push('FAIL '+label+' : '+e.message);fail++;}
+  }
+  const sleep=ms=>new Promise(done=>setTimeout(done,ms));
+  async function until(fn,timeout=10000){
+    const began=performance.now();
+    while(performance.now()-began<timeout){
+      try{if(fn())return true;}catch(e){}
+      await sleep(80);
+    }
+    return false;
+  }
+  try{
+    await new Promise((ok,reject)=>{frame.addEventListener('load',ok,{once:true});frame.addEventListener('error',reject,{once:true});});
+    const d=frame.contentDocument;
+    const win=frame.contentWindow;
+    await until(()=>!!d.getElementById('pg-gpu-lab') && [...d.querySelectorAll('button')].some(x=>x.textContent.includes('CHANNEL RELAY [GPU LAB]')),8000);
+    check('five-slot rack renders',()=>d.querySelectorAll('.pg-layer-card').length===5);
+    check('GPU overlay allocated in lab mode',()=>!!d.getElementById('pg-gpu-lab'));
+    const trigger=[...d.querySelectorAll('button')].find(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]'));
+    check('lab FX trigger available',()=>!!trigger);
+    trigger?.click();
+    check('FX loaded in selected layer L1',()=>d.querySelector('#pg-title')?.textContent.includes('Channel Relay'));
+    check('FX parameter controls displayed',()=>d.querySelectorAll('#pg-params .pg-control').length===2);
+    const status=d.querySelector('#pg-status');
+    check('GPU FX successfully composited',()=>!status.classList.contains('pg-status-error'));
+    const selectLayer2=[...d.querySelectorAll('.pg-layer-pick')].find(b=>b.textContent==='L2');
+    selectLayer2.click();
+    const localTool=`<!doctype html><html><head><title>Local fixture</title></head><body>
+<canvas id="sketch-canvas"></canvas>
+<script>
+window.INDEX_TOOL={schemaVersion:1,role:'generator',name:'Local Test Generator',
+ capabilities:{requires:{renderer:'canvas2d',visualInput:'none',audioInput:'none'},supports:{colorOpacity:true}},
+ params:[],colors:[{key:'color',label:'Color',default:'#ff2233'}]};
+window.indexResize=(w,h)=>{const c=document.getElementById('sketch-canvas');c.width=w;c.height=h;};
+window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-canvas'),ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.globalAlpha=hostContext?.colorOpacity?.color??1;ctx.fillStyle=state.color;ctx.fillRect(0,0,c.width,c.height);ctx.globalAlpha=1;};
+<\/script></body></html>`;
+    const input=d.getElementById('pg-file'),transfer=new DataTransfer();
+    transfer.items.add(new File([localTool],'local-tool.html',{type:'text/html'}));
+    input.files=transfer.files;
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+    const frameReady=await until(()=>d.querySelector('#pg-status')?.textContent.includes('first frame ready'),11000);
+    check('local HTML import produces first frame',()=>frameReady);
+    check('GPU overlay active after local import',()=>d.querySelector('#pg-gpu-lab')?.style.display!=='none' && d.querySelector('#pg-composite')?.style.visibility==='hidden');
+    check('sandboxed local tool iframe exists',()=>d.querySelectorAll('.pg-layer-frame[sandbox="allow-scripts"]').length===1);
+    const alphaSlider=d.querySelector('#pg-colors input[type="range"]');
+    check('generator exposes host colorOpacity control',()=>!!alphaSlider);
+    const readGpuAlpha=()=>{
+      const surface=d.getElementById('pg-gpu-lab');
+      const c=d.createElement('canvas');c.width=surface.width;c.height=surface.height;
+      const x=c.getContext('2d',{willReadFrequently:true});
+      x.drawImage(surface,0,0);
+      return x.getImageData(Math.floor(c.width/2),Math.floor(c.height/2),1,1).data[3];
+    };
+    for(const [value,target] of [[1,255],[.5,128],[0,0],[1,255]]){
+      alphaSlider.value=String(value);
+      alphaSlider.dispatchEvent(new Event('input',{bubbles:true}));
+      const reached=await until(()=>Math.abs(readGpuAlpha()-target)<9,7000);
+      check('generator colorOpacity '+Math.round(value*100)+'%',()=>reached);
+      if(value===0){
+        const colorPicker=d.querySelector('#pg-colors input[type="color"]');
+        const previous=colorPicker.value;
+        colorPicker.value='#33ff44';colorPicker.dispatchEvent(new Event('input',{bubbles:true}));
+        await until(()=>readGpuAlpha()===0,4500);
+        check('zero-opacity HEX change does not leak alpha',()=>readGpuAlpha()===0);
+        colorPicker.value=previous;colorPicker.dispatchEvent(new Event('input',{bubbles:true}));
+      }
+    }
+    const eye=[...d.querySelectorAll('.pg-layer-card')][1].querySelector('.pg-layer-visibility');
+    eye.click();
+    check('hide preserves other layer',()=>eye.isConnected===false && d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Channel Relay'));
+    const newEye=[...d.querySelectorAll('.pg-layer-card')][1].querySelector('.pg-layer-visibility');
+    newEye.click();
+    check('show reactivates local layer',()=>d.querySelectorAll('.pg-layer-card')[1].querySelector('.pg-layer-visibility').textContent==='ON');
+    const pause=d.getElementById('pg-play');
+    pause.click();check('pause works',()=>pause.textContent==='PLAY');
+    pause.click();check('resume works',()=>pause.textContent==='PAUSE');
+    const clear=d.querySelectorAll('.pg-layer-card')[1].querySelector('.pg-layer-clear');
+    clear.click();
+    check('CLEAR disposes selected layer only',()=>d.querySelectorAll('.pg-layer-frame').length===0 && d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Channel Relay'));
+    const legacyFrame=document.createElement('iframe');
+    legacyFrame.src='../playground.html';legacyFrame.style.display='none';
+    document.body.append(legacyFrame);
+    await new Promise((ok,reject)=>{legacyFrame.addEventListener('load',ok,{once:true});legacyFrame.addEventListener('error',reject,{once:true});});
+    const legacyDoc=legacyFrame.contentDocument;
+    check('query-free Playground has no GPU overlay',()=>!legacyDoc.getElementById('pg-gpu-lab'));
+    check('query-free Playground retains five layer slots',()=>legacyDoc.querySelectorAll('.pg-layer-card').length===5);
+    check('query-free Playground has no lab FX control',()=>![...legacyDoc.querySelectorAll('button')].some(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]')));
+    check('query-free Playground retains visible Canvas2D',()=>legacyDoc.getElementById('pg-composite')?.style.visibility!=='hidden');
+    check('public Playground shows one-click WebGL2 demo entry',()=>{
+      const link=legacyDoc.getElementById('pg-webgl2-demo');
+      return link?.getAttribute('href')==='playground.html?renderer=webgl2-lab&demo=1'
+        && /TRY LIVE FX DEMO/.test(link.textContent);
+    });
+    legacyFrame.remove();
+
+  }catch(e){lines.push('FAIL smoke infrastructure: '+String(e.stack||e));fail++;}
+  out.textContent=lines.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
+  out.dataset.result=fail===0?'PASS':'FAIL';
+  document.title='GATE_A_SMOKE_'+(fail===0?'PASS':'FAIL');
+})();
+</script>
+</body></html>
