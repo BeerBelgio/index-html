@@ -54,17 +54,17 @@ precision highp float;
 in vec2 vUV;
 uniform sampler2D uInput;
 uniform vec2 uResolution;
-uniform float uShift;
-uniform float uStrength;
+uniform float u_shift_px;
+uniform float u_strength;
 out vec4 fragColor;
 void main() {
   vec4 original = texture(uInput, vUV);
-  vec2 delta = vec2(clamp(uShift, 0.0, 24.0) / max(uResolution.x, 1.0), 0.0);
+  vec2 delta = vec2(clamp(u_shift_px, 0.0, 24.0) / max(uResolution.x, 1.0), 0.0);
   vec4 red = texture(uInput, clamp(vUV + delta, vec2(0.0), vec2(1.0)));
   vec4 blue = texture(uInput, clamp(vUV - delta, vec2(0.0), vec2(1.0)));
   // Original stateless channel displacement, not Bridge source code or a parity claim.
   vec3 shifted = vec3(red.r, original.g, blue.b);
-  fragColor = vec4(mix(original.rgb, shifted, clamp(uStrength, 0.0, 1.0)), original.a);
+  fragColor = vec4(mix(original.rgb, shifted, clamp(u_strength, 0.0, 1.0)), original.a);
 }`;
 
   function manifest() {
@@ -77,7 +77,9 @@ void main() {
       colors: [],
       // Local lab marker, NOT part of INDEX_TOOL generator v1.0.
       labFx: {moduleId: 'index-lab-channel-relay', apiVersion: 'gate-a-prototype',
-        origin: 'original synthetic laboratory shader', history: false}
+        origin: 'original synthetic laboratory shader', history: false},
+      effect: {apiVersion: 2, type: 'fragment-webgl2', history: false,
+        passes: [{fragment: RELAY}]}
     };
   }
 
@@ -98,6 +100,8 @@ void main() {
     let destroyed = false;
     const resources = [];
     let width = 0, height = 0, pair = [], scratch = null, source = null;
+    const fxInstances = new Map();
+    const MAX_FX_PASSES = 3, MAX_BYTES = 128 * 1024 * 1024;
     let compileProgram, composeProgram, copyProgram, relayProgram, vao;
     const MAX_DIM = 2048;
 
@@ -113,7 +117,7 @@ void main() {
       }
       return s;
     }
-    function program(fragment) {
+    function program(fragment, globalOwned = true) {
       const vert = shader(gl.VERTEX_SHADER, VERT);
       let frag;
       try { frag = shader(gl.FRAGMENT_SHADER, fragment); }
@@ -125,10 +129,11 @@ void main() {
         const log = gl.getProgramInfoLog(p); gl.deleteProgram(p);
         throw new Error('WebGL2 program link: ' + log);
       }
-      return track(p, x => gl.deleteProgram(x));
+      return globalOwned ? track(p, x => gl.deleteProgram(x)) : p;
     }
-    function texture() {
-      const tex = track(gl.createTexture(), x => gl.deleteTexture(x));
+    function texture(globalOwned = true) {
+      const raw = gl.createTexture();
+      const tex = globalOwned ? track(raw, x => gl.deleteTexture(x)) : raw;
       if (!tex) throw new Error('Texture allocation failed.');
       gl.bindTexture(gl.TEXTURE_2D, tex);
       for (const [param, value] of [
@@ -137,8 +142,9 @@ void main() {
       ]) gl.texParameteri(gl.TEXTURE_2D, param, value);
       return tex;
     }
-    function target() {
-      const tex = texture(), fbo = track(gl.createFramebuffer(), x => gl.deleteFramebuffer(x));
+    function target(globalOwned = true) {
+      const tex = texture(globalOwned), raw = gl.createFramebuffer();
+      const fbo = globalOwned ? track(raw, x => gl.deleteFramebuffer(x)) : raw;
       if (!fbo) throw new Error('Framebuffer allocation failed.');
       return {tex, fbo};
     }
@@ -158,6 +164,10 @@ void main() {
       width = nextW; height = nextH;
       canvas.width = width; canvas.height = height;
       for (const t of [...pair, scratch]) allocate(t);
+      for(const inst of fxInstances.values()) {
+        for(const t of [...inst.passTargets, ...inst.historyTargets]) allocate(t);
+        inst.seeded = false; inst.frame = 0; inst.lastFrameId = null; inst.suspended = true;
+      }
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     function bindTexture(unit, tex, name, prog) {
