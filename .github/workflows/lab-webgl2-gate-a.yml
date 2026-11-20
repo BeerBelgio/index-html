@@ -1,9 +1,10 @@
-name: INDEX WebGL2 Gate A (laboratory only)
+name: INDEX Playground WebGL2 Regression
 on:
   workflow_dispatch:
   push:
     branches:
       - lab/playground-webgl2-gate-a-20261120
+      - fix/playground-native-webgl2-no-demo-20261120
 
 permissions:
   contents: read
@@ -56,7 +57,7 @@ jobs:
           sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' gate-a-app-smoke.html | head -40
           grep -q 'data-result="PASS"' gate-a-app-smoke.html
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1250,1080 --virtual-time-budget=60000 --screenshot=gate-a-playground-integration.png "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" >/dev/null 2>gate-a-integration-screenshot-stderr.txt
-      - name: Local external FX import and two instances
+      - name: Local HTML FX import and two instances on normal Playground
         shell: bash
         run: |
           set -euo pipefail
@@ -68,7 +69,7 @@ jobs:
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=40000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
           sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
           grep -q 'data-result="PASS"' local-fx-result.html
-      - name: Public one-click WebGL2 demo end-to-end
+      - name: Normal public Playground WebGL2 rendering
         shell: bash
         run: |
           set -euo pipefail
