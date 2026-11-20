@@ -93,7 +93,15 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
     }
     d.querySelectorAll('.pg-layer-pick')[0].click();
     importHtml('local-source.html',localTool);
-    const sourceReady=await until(()=>d.querySelector('#pg-status')?.textContent.includes('first frame ready: Local Test Generator'),9000);
+    const sourceReady=await until(()=>{
+      const stage=d.getElementById('pg-gpu-lab');
+      if(!stage || stage.style.display==='none')return false;
+      const probe=d.createElement('canvas');probe.width=stage.width;probe.height=stage.height;
+      const g=probe.getContext('2d',{willReadFrequently:true});g.drawImage(stage,0,0);
+      const p=g.getImageData(Math.floor(probe.width/2),Math.floor(probe.height/2),1,1).data;
+      return d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Local Test Generator')
+         && p[0]>180 && p[1]<100 && p[2]<100 && p[3]>240;
+    },9000);
     check('replace LAB FX L1 with local generator',()=>sourceReady);
     d.querySelectorAll('.pg-layer-pick')[1].click();
     const fxSource=await (await fetch('fixtures/original-feedback-history.html')).text();
