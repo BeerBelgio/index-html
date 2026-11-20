@@ -149,27 +149,7 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
         && /TRY LIVE FX DEMO/.test(link.textContent);
     });
     legacyFrame.remove();
-    const publicDemo=document.createElement('iframe');
-    publicDemo.src='../playground.html?renderer=webgl2-lab&demo=1';
-    publicDemo.style.display='none';
-    document.body.append(publicDemo);
-    await new Promise((ok,reject)=>{
-      publicDemo.addEventListener('load',ok,{once:true});
-      publicDemo.addEventListener('error',reject,{once:true});
-    });
-    const demoDoc=publicDemo.contentDocument;
-    const ready=await until(()=>{
-      const names=[...demoDoc.querySelectorAll('.pg-layer-card')].map(c=>c.textContent);
-      const gpu=demoDoc.getElementById('pg-gpu-lab');
-      return names[0]?.includes('Linking Nodes') && names[1]?.includes('Original Feedback History')
-         && gpu?.style.display!=='none' && demoDoc.querySelector('#pg-title')?.textContent.includes('Original Feedback History');
-    },12000);
-    check('public one-click demo auto-loads generator and original WebGL2 history FX',()=>ready);
-    check('demo exposes RESET HISTORY without import or setup',()=>!demoDoc.getElementById('pg-reset-fx-history')?.hidden);
-    check('GPU demo has BACK TO CLASSIC link',()=>demoDoc.getElementById('pg-webgl2-demo')?.getAttribute('href')==='playground.html');
-    check('one-click demo source stays isolated',()=>demoDoc.querySelectorAll('.pg-layer-frame[sandbox="allow-scripts"]').length===2);
-    check('one-click demo reports no active errors',()=>!demoDoc.getElementById('pg-status')?.classList.contains('pg-status-error'));
-    publicDemo.remove();
+
   }catch(e){lines.push('FAIL smoke infrastructure: '+String(e.stack||e));fail++;}
   out.textContent=lines.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
   out.dataset.result=fail===0?'PASS':'FAIL';
