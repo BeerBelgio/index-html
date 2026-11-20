@@ -1,6 +1,6 @@
 # INDEX Playground — WebGL2 Laboratory / Gate A
 
-**Status:** EXPERIMENTAL / NOT PROMOTED. Branch-only study based on `main` commit `9fc0c78e28c5fd30122c06f6919deebc2e5ce657` (2026-11-20). No release or Bridge update authorized.
+**Status:** EXPERIMENTAL / PUBLIC OPT-IN CANDIDATE. Branch-only study based on `main` commit `9fc0c78e28c5fd30122c06f6919deebc2e5ce657` (2026-11-20). No release or Bridge update authorized.
 
 ## Baseline and authority
 
@@ -12,8 +12,8 @@
 
 ## Gate A design: isolated opt-in
 
-- Normal URL: `playground.html` remains Canvas2D, unchanged.
-- Lab URL: `playground.html?renderer=webgl2-lab` uses one WebGL2 context for compositing and synthetic FX. Legacy Canvas2D is retained under the GPU canvas for instant fallback.
+- Normal URL: `playground.html` remains Canvas2D, with one new visible link to the live FX demo. The default renderer is unchanged.
+- Lab URL: `playground.html?renderer=webgl2-lab` uses one WebGL2 context for compositing and synthetic FX. The public **TRY LIVE FX DEMO** link supplies `&demo=1`, which preloads a generator and FX without setup. Legacy Canvas2D is retained under the GPU canvas for instant fallback.
 - Existing hosted generators stay in their sandboxed tool frames. The GPU compositor receives only already-captured `ImageBitmap` frames. Generator WebGL1 contexts are independent producer contexts, **not** FX/compositor contexts.
 - Stage: two RGBA8 composite ping-pong textures/FBOs, one uploaded generator texture, and FX-instance-owned pass intermediates; a final blit to the default framebuffer. The compositor and synthetic FX use the **same** WebGL2 context.
 - Shader policy: GLSL ES 3.00 only, explicit source/destination alpha, one output per pass; no automatic WebGL1 shader transpilation. Existing fragment-webgl1 FX are **unsupported in lab mode** with a visible error; use the normal URL for them.
