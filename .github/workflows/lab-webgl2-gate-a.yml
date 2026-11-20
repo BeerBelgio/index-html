@@ -24,7 +24,14 @@ jobs:
           from pathlib import Path
           js = Path('assets/js/playground.js').read_text()
           lab = Path('assets/js/playground-webgl2-lab.js').read_text()
-          assert "renderer')==='webgl2-lab'" in js
+          assert "renderer')==='canvas2d'" in js
+          assert "IndexWebGL2Lab.create" in js
+          assert "loadWebGL2Demo" not in js
+          assert "CHANNEL RELAY [GPU LAB]" not in js
+          html = Path('playground.html').read_text()
+          assert "pg-webgl2-entry" not in html
+          assert "playground-webgl2-lab.js" in html
+          assert 'id="pg-file"' in html
           assert "getContext('webgl2'" in lab
           assert '#version 300 es' in lab
           assert "Unsupported fragment-webgl1" in lab
