@@ -28,7 +28,7 @@
     const d=frame.contentDocument;
     const win=frame.contentWindow;
     check('normal URL renders five layers',()=>d.querySelectorAll('.pg-layer-card').length===5);
-    check('WebGL2 compositor available automatically',()=>!!d.getElementById('pg-gpu-lab'));
+    check('GPU engine loads without a mode selector',()=>!!d.defaultView.IndexWebGL2Lab);
     check('no demo entry or demo-only FX button',()=>!d.getElementById('pg-webgl2-demo') &&
       ![...d.querySelectorAll('button')].some(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]')));
     const localTool=`<!doctype html><html><head><title>Local fixture</title></head><body>
@@ -46,7 +46,7 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
     input.dispatchEvent(new Event('change',{bubbles:true}));
     const frameReady=await until(()=>d.querySelector('#pg-log')?.textContent.includes('first frame displayed') && d.querySelector('.pg-layer-card')?.textContent.includes('Local Test Generator'),18000);
     check('local HTML import produces first frame',()=>{if(!frameReady)throw Error('status='+d.querySelector('#pg-status')?.textContent+' log='+d.querySelector('#pg-log')?.textContent.slice(-1800)+' layer='+d.querySelector('.pg-layer-card')?.textContent);return true;});
-    check('GPU overlay active after local import',()=>d.querySelector('#pg-gpu-lab')?.style.display!=='none' && d.querySelector('#pg-composite')?.style.visibility==='hidden');
+    check('GPU overlay activates automatically after local import',()=>d.querySelector('#pg-gpu-lab')?.style.display!=='none' && d.querySelector('#pg-composite')?.style.visibility==='hidden');
     check('sandboxed local tool iframe exists',()=>d.querySelectorAll('.pg-layer-frame[sandbox="allow-scripts"]').length===1);
     const alphaSlider=d.querySelector('#pg-colors input[type="range"]');
     check('generator exposes host colorOpacity control',()=>!!alphaSlider);
