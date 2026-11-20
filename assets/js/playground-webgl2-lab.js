@@ -97,7 +97,7 @@ void main() {
       });
       if (!gl) throw new Error('WebGL2 is not available on this browser/device.');
     } catch (error) { canvas.remove(); throw error; }
-    let destroyed = false;
+    let destroyed = false, contextReady = true;
     const resources = [];
     let width = 0, height = 0, pair = [], scratch = null, source = null;
     const fxInstances = new Map();
@@ -221,7 +221,7 @@ void main() {
       validateFX(effect);
       budgetAt(width, height, effect);
       const inst = {
-        id: instanceId, history: effect.history, programs: [], passTargets: [], historyTargets: [],
+        id: instanceId, definition: effect, history: effect.history, programs: [], passTargets: [], historyTargets: [],
         historyIndex: 0, seeded: false, suspended: true, frame: 0, lastFrameId: null,
         lastTime: 0, lastDelta: 0, error: null, disposed: false
       };
@@ -323,7 +323,8 @@ void main() {
     }
 
     function render(layers, originalWidth, originalHeight, meta = {}) {
-      if (destroyed || gl.isContextLost()) throw new Error('WebGL2 context unavailable.');
+      if (destroyed) throw new Error('WebGL2 composer is disposed.');
+      if (gl.isContextLost() || !contextReady) {fallback();return false;}
       if (!originalWidth || !originalHeight) return false;
       resize(originalWidth, originalHeight);
       gl.disable(gl.BLEND);
@@ -396,12 +397,9 @@ void main() {
       for (const release of resources.reverse()) release();
       canvas.remove();
     }
-    function contextLost(e) {
-      e.preventDefault();
-      fallback();
-    }
-    canvas.addEventListener('webglcontextlost', contextLost, false);
-    try {
+    function rebuildGPU() {
+      // Context-restored GPU objects belong to a new generation.
+      resources.length = 0;
       vao = track(gl.createVertexArray(), x => gl.deleteVertexArray(x));
       gl.bindVertexArray(vao);
       composeProgram = program(COMPOSE);
@@ -410,7 +408,35 @@ void main() {
       pair = [target(), target()];
       scratch = target();
       source = texture();
-    } catch (e) { dispose(); throw e; }
+      for(const inst of fxInstances.values()) {
+        inst.programs = inst.definition.passes.map(p => program(p.fragment, false));
+        inst.passTargets = inst.definition.passes.map(() => target(false));
+        inst.historyTargets = inst.history ? [target(false), target(false)] : [];
+        inst.seeded = false;inst.frame = 0;inst.lastFrameId = null;
+        inst.suspended = true;inst.lastTime = 0;inst.lastDelta = 0;inst.error = null;
+      }
+      width = 0;height = 0;
+    }
+    function contextLost(e) {
+      e.preventDefault();
+      contextReady = false;
+      fallback();
+      onDiagnostic('composer','WebGL2 context lost: Canvas2D fallback until context restoration.');
+    }
+    function contextRestored() {
+      if(destroyed)return;
+      try{
+        rebuildGPU();contextReady = true;
+        onDiagnostic('composer','WebGL2 context restored: resources rebuilt, FX histories reset.');
+      }catch(e){
+        contextReady = false;fallback();
+        onDiagnostic('composer','WebGL2 context restore failed: '+e.message);
+      }
+    }
+    canvas.addEventListener('webglcontextlost', contextLost, false);
+    canvas.addEventListener('webglcontextrestored', contextRestored, false);
+    try { rebuildGPU(); }
+    catch (e) { dispose(); throw e; }
 
     return {
       render, fallback, dispose, createFX,
