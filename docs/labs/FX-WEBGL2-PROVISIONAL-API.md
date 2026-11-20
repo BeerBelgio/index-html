@@ -21,7 +21,7 @@ The example at `tests/fixtures/original-feedback-history.html` is the executable
 - `role:'effect'`.
 - `capabilities.requires.renderer:'fragment-webgl2'` (new, provisional FX-only capability); `visualInput:'lower-composite'`; `audioInput:'none'`.
 - `params` and `colors` with unique stable keys, ranges/defaults and optional color alpha controls.
-- `effect:{apiVersion:2,type:'fragment-webgl2',history:true|false,passes:[{fragment:'...'}],provenance:{...}}`.
+- `effect:{apiVersion:2,type:'fragment-webgl2',moduleId:'stable-id',moduleVersion:'0.0.1',history:true|false,passes:[{fragment:'...'}],provenance:{author,source,adaptation,license,notice}}`.
 
 No `indexDraw`, `sketchDraw` or `sketch-canvas` is needed for FX. GLSL must be **`#version 300 es`** fragment code; a pass writes `out vec4 fragColor` and receives `in vec2 vUV`. The full-screen vertex stage is managed by the Playground. Each FX can use 1–3 passes, max 32768 source characters per pass.
 
@@ -55,7 +55,7 @@ The shader must explicitly determine output alpha; the host blends the FX result
 
 - Preview maximum dimension: 2048 px (the longer edge); other dimension scales proportionally.
 - FX passes: 1–3 per instance; at most 5 layer positions total.
-- At most **128 MiB estimated RGBA8 texture storage** for the compositor and imported FX combined. Static baseline allocation: 4 textures (two composite ping-pong, scratch, generator upload); per instance: N pass output textures + (2 if `history:true`). Formula `W × H × 4 × (4 + sum(N + 2*history))` bytes.
+- At most **128 MiB estimated RGBA8 texture storage** for the compositor and imported FX combined. Static baseline allocation: 3 textures (two composite ping-pong, one generator upload); per instance: N pass output textures + (2 if `history:true`). Formula `W × H × 4 × (3 + sum(N + 2*history))` bytes.
 - This estimate excludes browser backing store, GPU driver overhead, HTML iframe canvases, staging surfaces, transient transfers and other browser resources. Actual GPU memory can be higher.
 - On resource errors, the correct behavior is explicit failure, not silent resolution drop or corruption.
 
