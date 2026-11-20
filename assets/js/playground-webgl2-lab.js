@@ -223,7 +223,7 @@ void main() {
       const inst = {
         id: instanceId, history: effect.history, programs: [], passTargets: [], historyTargets: [],
         historyIndex: 0, seeded: false, suspended: true, frame: 0, lastFrameId: null,
-        lastTime: 0, error: null, disposed: false
+        lastTime: 0, lastDelta: 0, error: null, disposed: false
       };
       try {
         inst.programs = effect.passes.map(p => program(p.fragment, false));
@@ -249,13 +249,13 @@ void main() {
       }
       function resetHistory() {
         inst.seeded = false; inst.frame = 0; inst.lastFrameId = null;
-        inst.suspended = true; inst.lastTime = 0; inst.historyIndex = 0; inst.error = null;
+        inst.suspended = true; inst.lastTime = 0; inst.lastDelta = 0; inst.historyIndex = 0; inst.error = null;
       }
       return {
         instanceId, dispose, resetHistory,
         suspend() { inst.suspended = true; },
         stats() { return {instanceId, frame:inst.frame, seeded:inst.seeded,
-          suspended:inst.suspended, error:inst.error, history:inst.history}; }
+          suspended:inst.suspended, lastDelta:inst.lastDelta, error:inst.error, history:inst.history}; }
       };
     }
     function copyTo(sourceTexture, fbo) {
@@ -311,6 +311,7 @@ void main() {
           inst.frame++;
           inst.lastFrameId = meta.frameId;
           inst.lastTime = time;
+          inst.lastDelta = delta;
           inst.suspended = false;
         } else if (!meta.running) inst.suspended = true;
         return current;
@@ -416,7 +417,7 @@ void main() {
       getFxStats: id => {
         const inst = fxInstances.get(id);
         return inst ? {instanceId:id,frame:inst.frame,seeded:inst.seeded,
-          suspended:inst.suspended,history:inst.history,error:inst.error} : null;
+          suspended:inst.suspended,lastDelta:inst.lastDelta,history:inst.history,error:inst.error} : null;
       },
       getStats: () => ({
         width, height, maxDimension: MAX_DIM, textureBytesEstimate: budgetAt(),
