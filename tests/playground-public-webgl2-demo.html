@@ -26,8 +26,9 @@
      iframe.addEventListener('error',reject,{once:true});
    });
    const d=iframe.contentDocument;
-   const ready=await until(()=>!!d.getElementById('pg-gpu-lab'),12000);
-   check('normal Playground starts WebGL2 compositor',ready);
+   const ready=await until(()=>!!d.defaultView.IndexWebGL2Lab,12000);
+   check('normal Playground loads WebGL2 capability without mode UI',ready);
+   check('GPU context is deferred until a tool loads',!d.getElementById('pg-gpu-lab'));
    check('normal page preserves five layers',d.querySelectorAll('.pg-layer-card').length===5);
    check('no demo CTA or forced sample content',!d.getElementById('pg-webgl2-entry') &&
      ![...d.querySelectorAll('button')].some(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]')) &&
