@@ -6,7 +6,7 @@
 
 - Baseline `BeerBelgio/index-html` `main` SHA `9fc0c78e28c5fd30122c06f6919deebc2e5ce657`, published INDEX 0.21.3.
 - Existing 20 generator HTML documents, catalogue, manifests, Sketch adapters, creative defaults and Bridge repository/AMXD are **not modified**.
-- Default `playground.html`: original five-layer interface, existing file picker and catalogue, no demo CTA or preloaded tools. The WebGL2 composer initializes automatically if supported. `?renderer=canvas2d` forces the classic Canvas2D path, and unsupported WebGL2 environments use the fallback automatically.
+- Default `playground.html`: original five-layer interface, existing file picker and catalogue, no demo CTA or preloaded tools. The WebGL2 composer initializes automatically after the first compatible tool manifest is received, if supported. `?renderer=canvas2d` forces the classic Canvas2D path, and unsupported WebGL2 environments use the fallback automatically.
 - One WebGL2 compositor and FX **host** context; independent generator iframe contexts and captured ImageBitmaps remain as before.
 - No OpenMosh shader, private Bridge code, remote catalogue, CDN, auto-update or history persistence.
 
