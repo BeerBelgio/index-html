@@ -83,6 +83,39 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
     const clear=d.querySelectorAll('.pg-layer-card')[1].querySelector('.pg-layer-clear');
     clear.click();
     check('CLEAR disposes selected layer only',()=>d.querySelectorAll('.pg-layer-frame').length===0 && d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Channel Relay'));
+    // Replace the built-in FX with a real local generator, then import a separate
+    // externally-authored WebGL2 history FX via the existing HTML file input.
+    function importHtml(name,text){
+      const transfer=new DataTransfer();
+      transfer.items.add(new File([text],name,{type:'text/html'}));
+      const input=d.getElementById('pg-file');
+      input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    d.querySelectorAll('.pg-layer-pick')[0].click();
+    importHtml('local-source.html',localTool);
+    const sourceReady=await until(()=>d.querySelector('#pg-status')?.textContent.includes('first frame ready: Local Test Generator'),9000);
+    check('replace LAB FX L1 with local generator',()=>sourceReady);
+    d.querySelectorAll('.pg-layer-pick')[1].click();
+    const fxSource=await (await fetch('fixtures/original-feedback-history.html')).text();
+    importHtml('original-feedback-history.html',fxSource);
+    const fxReady=await until(()=>d.querySelector('#pg-title')?.textContent.includes('Original Feedback History') && d.querySelector('#pg-status')?.textContent.includes('ready'),9000);
+    check('external WebGL2 history FX imported through local HTML picker',()=>fxReady);
+    check('external FX exposes two-pass controls',()=>d.querySelectorAll('#pg-params .pg-control').length===2);
+    const resetHistory=d.getElementById('pg-reset-fx-history');
+    check('independent RESET HISTORY control exists',()=>!!resetHistory && !resetHistory.hidden);
+    const beforeReset=d.querySelector('#pg-params input[type="range"]').value;
+    resetHistory?.click();
+    check('RESET HISTORY leaves parameter values unchanged',()=>d.querySelector('#pg-params input[type="range"]').value===beforeReset);
+    const fxFrameAdvanced=await until(()=>d.querySelector('#pg-gpu-lab')?.style.display!=='none' && !d.querySelector('#pg-status')?.classList.contains('pg-status-error'),9000);
+    check('external GPU FX renders without shader errors',()=>fxFrameAdvanced);
+    d.querySelectorAll('.pg-layer-pick')[2].click();
+    importHtml('independent-feedback.html',fxSource);
+    const secondReady=await until(()=>d.querySelector('#pg-title')?.textContent.includes('Original Feedback History') && d.querySelectorAll('.pg-layer-frame').length===3,9000);
+    check('second independent external instance loads',()=>secondReady);
+    check('two external FX are separately assigned to layer slots',()=>[...d.querySelectorAll('.pg-layer-card')].slice(1,3).every(c=>c.textContent.includes('Original Feedback History')));
+    d.querySelectorAll('.pg-layer-card')[1].querySelector('.pg-layer-clear').click();
+    check('CLEAR L2 leaves FX L3 loaded',()=>d.querySelectorAll('.pg-layer-card')[2].textContent.includes('Original Feedback History')&&d.querySelectorAll('.pg-layer-frame').length===2);
+
     const legacyFrame=document.createElement('iframe');
     legacyFrame.src='../playground.html';legacyFrame.style.display='none';
     document.body.append(legacyFrame);
