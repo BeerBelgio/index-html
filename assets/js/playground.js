@@ -26,6 +26,23 @@ function ensureGPU(){
     else fail('FX '+id+': '+message);
    }
   });
+  if(!$('pg-reset-fx-history')){
+   const resetHistory=document.createElement('button');
+   resetHistory.id='pg-reset-fx-history';
+   resetHistory.type='button';
+   resetHistory.textContent='RESET HISTORY';
+   resetHistory.title='Reset only the selected FX instance history; keep current parameters';
+   resetHistory.hidden=true;
+   resetHistory.addEventListener('click',()=>{
+    const layer=active();
+    if(layer.role!=='effect-webgl2'||!layer.fx)return;
+    layer.fx.resetHistory();
+    dirty=true;
+    if(!running)paint();
+    info('L'+layer.id+' FX history reset (parameters unchanged).');
+   });
+   ui.reset.after(resetHistory);
+  }
   log('WebGL2 compositor available. Import a local HTML FX or load an INDEX generator.');
  }catch(e){
   gpuDisabled=true;gpuLab=null;
