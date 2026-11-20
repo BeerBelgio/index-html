@@ -16,10 +16,13 @@ uniform sampler2D uLower;
 uniform sampler2D uUpper;
 uniform float uOpacity;
 uniform int uBlend;
+uniform int uUpperPremultiplied;
 out vec4 fragColor;
 void main() {
   vec4 below = texture(uLower, vUV);
   vec4 above = texture(uUpper, vUV);
+  // ImageBitmap inputs arrive premultiplied on Chromium; intermediate FX textures do not.
+  if (uUpperPremultiplied == 1 && above.a > 0.0) above.rgb = clamp(above.rgb / above.a, 0.0, 1.0);
   float a = clamp(above.a * uOpacity, 0.0, 1.0);
   float b = clamp(below.a, 0.0, 1.0);
   float outA;
@@ -192,10 +195,10 @@ void main() {
       let read = 0, wrote = false;
       for (const layer of layers) {
         if (!layer.visible || !layer.manifest || layer.loading || layer.opacity <= 0) continue;
-        let upper = null;
+        let upper = null, isBitmap = false;
         if (layer.role === 'generator') {
           if (!layer.bitmap) continue;
-          upper = upload(layer.bitmap);
+          upper = upload(layer.bitmap); isBitmap = true;
         } else if (layer.role === 'effect-webgl2') {
           if (layer.manifest.labFx?.moduleId !== 'index-lab-channel-relay')
             throw new Error('Unsupported WebGL2 lab FX module.');
@@ -221,6 +224,8 @@ void main() {
         if (mode === undefined) throw new Error('Unsupported blend mode: ' + layer.blend);
         const blend = gl.getUniformLocation(composeProgram, 'uBlend');
         if (blend !== null) gl.uniform1i(blend, mode);
+        const premul = gl.getUniformLocation(composeProgram, 'uUpperPremultiplied');
+        if (premul !== null) gl.uniform1i(premul, isBitmap ? 1 : 0);
         const next = 1 - read;
         draw(pair[next].fbo);
         read = next; wrote = true;
