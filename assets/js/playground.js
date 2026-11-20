@@ -9,7 +9,7 @@ const layers=Array.from({length:5},(_,i)=>({id:i+1,token:0,frame:null,bitmap:nul
 let selected=0,catalogue=[],running=false,raf=0,last=0,clock=0,scheduledAt=0,dirty=true,canvasW=0,canvasH=0,frameCosts=[],paintCount=0,perfStart=0,autoTicks=[],previousTick=0,perfWindows=0;
 const ctx=ui.composite.getContext('2d',{alpha:true});
 const gpuOptIn=new URLSearchParams(window.location.search).get('renderer')==='webgl2-lab';
-let gpuLab=null;
+let gpuLab=null, gpuFrameId=0;
 const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
 const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
 const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
@@ -19,7 +19,10 @@ if(gpuOptIn){
  labScript.onload=()=>{
  try{
   if(!window.IndexWebGL2Lab)throw Error('WebGL2 Lab script unavailable.');
-  gpuLab=window.IndexWebGL2Lab.create({surface:ui.surface,legacyCanvas:ui.composite,emptyElement:ui.empty});
+  gpuLab=window.IndexWebGL2Lab.create({
+    surface:ui.surface,legacyCanvas:ui.composite,emptyElement:ui.empty,
+    onDiagnostic:(id,message)=>fail('FX '+id+': '+message)
+   });
   const loadFx=document.createElement('button');
   loadFx.type='button';loadFx.textContent='CHANNEL RELAY [GPU LAB]';
   loadFx.title='Original stateless WebGL2 lab FX — not Bridge compatibility certified';
@@ -29,6 +32,20 @@ if(gpuOptIn){
    catch(e){if(layer.token===token){layer.loading=false;clearTimeout(layer.loadTimer);fail(e.message,layer);renderLayerRack();placeholder();}}
   });
   ui.load.after(loadFx);
+  const resetFxHistory=document.createElement('button');
+  resetFxHistory.id='pg-reset-fx-history';resetFxHistory.type='button';
+  resetFxHistory.textContent='RESET HISTORY';
+  resetFxHistory.title='Clear only the selected FX instance GPU history; do not change parameters';
+  resetFxHistory.addEventListener('click',()=>{
+   const layer=active();
+   if(layer.role!=='effect-webgl2'||!layer.fx)return;
+   layer.fx.resetHistory();
+   dirty=true;
+   if(!running)paint();
+   info('L'+layer.id+' FX history reset (parameters unchanged).');
+  });
+  ui.reset.after(resetFxHistory);
+  resetFxHistory.hidden=true;
   log('EXPERIMENTAL WebGL2 compositor enabled. Max preview dimension: 2048 px; synthetic FX only.');
  }catch(e){gpuLab=null;fail('WebGL2 lab unavailable — legacy renderer retained: '+e.message);}
  };
@@ -90,14 +107,19 @@ ui.select.addEventListener('change',()=>ui.load.disabled=!ui.select.value);
 ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;const layer=active(),token=beginLoad(layer,item.name);ui.load.disabled=true;
  try{const ctrl=new AbortController();layer.abort=ctrl;const r=await fetch(item.file,{cache:'no-store',signal:ctrl.signal});if(!r.ok)throw Error('HTTP '+r.status);const content=await r.text();openLayer(layer,content,item.name,token);}catch(err){if(layer.token===token){layer.loading=false;fail(err.message,layer);renderLayerRack();placeholder();}}finally{ui.load.disabled=!ui.select.value;}});
 function paramsFrom(manifest){const state={time:clock},alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1;}return {state,alpha};}
-function activate(layer,raw){const manifest=normalize(raw.manifest),role=manifest.role;if(role!=='generator'&&role!=='effect'&&role!=='effect-webgl2')throw Error('Unsupported role '+role+'. Compositor A/B requires a separate tool contract.');
+function activate(layer,raw){const manifest=normalize(raw.manifest);
+ const role=manifest.role==='effect'&&manifest.capabilities?.requires?.renderer==='fragment-webgl2'?'effect-webgl2':manifest.role;
+ if(role!=='generator'&&role!=='effect'&&role!=='effect-webgl2')throw Error('Unsupported role '+role+'. Compositor A/B requires a separate tool contract.');
  if(role==='effect'&&gpuLab)throw Error('Legacy WebGL1 FX cannot run in WebGL2 Lab. Open Playground without renderer=webgl2-lab.');
- if(role==='effect-webgl2'&&(!gpuLab||manifest.labFx?.moduleId!=='index-lab-channel-relay'))throw Error('Unsupported WebGL2 lab FX.');
+ if(role==='effect-webgl2'&&!gpuLab)throw Error('WebGL2 FX requires renderer=webgl2-lab and working WebGL2.');
  if(role==='generator'&&(!raw.hasResize||!raw.hasDraw))throw Error('Missing resize/draw entrypoint.');
  if(role==='effect'&&(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string'))throw Error('FX needs GLSL fragment shader.');
  const {state,alpha}=paramsFrom(manifest);layer.name=manifest.name||layer.name;layer.manifest=manifest;layer.role=role;layer.state=state;layer.alpha=alpha;
  if(role==='effect'){layer.fx=makeFx(manifest.effect.fragment);layer.fx.manifest=manifest;layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);}
- else if(role==='effect-webgl2'){layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);}
+ else if(role==='effect-webgl2'){
+  layer.fx=gpuLab.createFX('L'+layer.id+'-T'+layer.token,manifest.effect);
+  layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);
+ }
  else resizeOne(layer);
  renderLayerRack();if(active()===layer)renderEditor();placeholder();dirty=true;
  if(!running&&layers.filter(x=>x.manifest).length===1){running=true;ui.play.textContent='PAUSE';resetPerf();}
@@ -145,7 +167,10 @@ function renderLayerRack(){const focus=document.activeElement,id=focus?.dataset?
  if(id){const item=ui.layers.querySelector(`[data-focus-key="${id}"]`);item?.focus({preventScroll:true});}
  ui.loadTarget.textContent=(active().manifest?'REPLACE ':'LOAD TO ')+'L'+active().id;
 }
-function renderEditor(){const l=active();ui.paramsLayer.textContent='L'+l.id;ui.colorsLayer.textContent='L'+l.id;ui.title.textContent=l.manifest?.name||l.name||'NO TOOL';ui.play.disabled=!layers.some(layer=>layer.manifest);ui.reset.disabled=!l.manifest;
+function renderEditor(){const l=active();
+ const historyReset=$('pg-reset-fx-history');
+ if(historyReset)historyReset.hidden=!(l.role==='effect-webgl2'&&l.fx?.stats()?.history);
+ ui.paramsLayer.textContent='L'+l.id;ui.colorsLayer.textContent='L'+l.id;ui.title.textContent=l.manifest?.name||l.name||'NO TOOL';ui.play.disabled=!layers.some(layer=>layer.manifest);ui.reset.disabled=!l.manifest;
  const build=(target,items,isColor)=>{target.replaceChildren();if(!items.length){const p=document.createElement('p');p.textContent=l.loading?'Loading tool…':'None exposed.';target.append(p);return;}
  for(const item of items){const row=document.createElement('div');row.className='pg-control'+(isColor?' pg-color':'');const head=document.createElement('div');head.className='pg-control-label';const label=document.createElement('span');label.textContent=item.label||item.key;const output=document.createElement('output');output.textContent=l.state[item.key];head.append(label,output);row.append(head);
  if(isColor){const picker=document.createElement('input');picker.type='color';picker.value=l.state[item.key];picker.setAttribute('aria-label',(item.label||item.key)+' color');picker.addEventListener('input',()=>{l.state[item.key]=picker.value;output.textContent=picker.value;dirty=true;if(!running)requestSingle(l);});row.append(picker);}
@@ -169,7 +194,7 @@ function paint(){if(!canvasW||!canvasH)return;const started=performance.now();ct
   }catch(e){fail('FX processing: '+e.message,l);l.visible=false;renderLayerRack();}}
  }
  if(gpuLab){
-   try{gpuLab.render(layers,canvasW,canvasH);}
+   try{gpuLab.render(layers,canvasW,canvasH,{running,time:clock,frameId:gpuFrameId});}
    catch(e){
     gpuLab.dispose();gpuLab=null;
     fail('WebGL2 lab disabled; legacy Canvas2D retained (GPU-only FX bypassed): '+e.message);
@@ -180,7 +205,7 @@ function paint(){if(!canvasW||!canvasH)return;const started=performance.now();ct
 function tick(now){if(!running){raf=0;return;}if(previousTick){const d=now-previousTick;if(d>=4&&d<80){autoTicks.push(d);if(autoTicks.length>60)autoTicks.shift();}}previousTick=now;
  if(last)clock+=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
  const cap=fpsCap(),interval=cap?1000/cap:0;if(!cap||!scheduledAt||now-scheduledAt>=interval-.75){scheduledAt=now;
-  for(const l of layers){if(l.state)l.state.time=clock;if(l.role==='generator')requestDraw(l);}if(visibleReady())paint();}
+  for(const l of layers){if(l.state)l.state.time=clock;if(l.role==='generator')requestDraw(l);}if(visibleReady()){gpuFrameId++;paint();}}
  updatePerf(now);raf=requestAnimationFrame(tick);
 }
 ui.play.addEventListener('click',()=>{if(!loaded().length)return;running=!running;ui.play.textContent=running?'PAUSE':'PLAY';cancelAnimationFrame(raf);raf=0;last=0;previousTick=0;resetPerf();if(running){ui.perf.dataset.health='monitoring';raf=requestAnimationFrame(tick);}else{ui.perf.dataset.health='paused';gauge('fps','0.0','',0,'paused');}});
