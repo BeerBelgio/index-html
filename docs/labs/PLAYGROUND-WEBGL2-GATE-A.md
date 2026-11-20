@@ -12,8 +12,8 @@
 
 ## Gate A design: isolated opt-in
 
-- Normal URL: `playground.html` remains Canvas2D, with one new visible link to the live FX demo. The default renderer is unchanged.
-- Lab URL: `playground.html?renderer=webgl2-lab` uses one WebGL2 context for compositing and synthetic FX. The public **TRY LIVE FX DEMO** link supplies `&demo=1`, which preloads a generator and FX without setup. Legacy Canvas2D is retained under the GPU canvas for instant fallback.
+- Normal URL: `playground.html` initializes one shared WebGL2 composer when the first compatible tool is loaded, if supported, without introducing demo UI or preloading examples. The original controls, five slots and import workflow remain visually unchanged.
+- Explicit fallback URL: `playground.html?renderer=canvas2d` forces the legacy Canvas2D renderer. When WebGL2 is unavailable, it falls back automatically. The legacy Canvas2D composition is retained under the GPU canvas for diagnostics and recovery; WebGL1 FX may trigger the legacy fallback when no WebGL2 FX are active.
 - Existing hosted generators stay in their sandboxed tool frames. The GPU compositor receives only already-captured `ImageBitmap` frames. Generator WebGL1 contexts are independent producer contexts, **not** FX/compositor contexts.
 - Stage: two RGBA8 composite ping-pong textures/FBOs, one uploaded generator texture, and FX-instance-owned pass intermediates; a final blit to the default framebuffer. The compositor and synthetic FX use the **same** WebGL2 context.
 - Shader policy: GLSL ES 3.00 only, explicit source/destination alpha, one output per pass; no automatic WebGL1 shader transpilation. Existing fragment-webgl1 FX are **unsupported in lab mode** with a visible error; use the normal URL for them.
@@ -39,7 +39,7 @@
 
 ## Rollback
 
-1. Disable the experiment by removing `?renderer=webgl2-lab` from the URL.
+1. Force classic rendering with `?renderer=canvas2d` or revert the corrective PR. Removing the query instead now selects WebGL2 automatically on compatible browsers.
 2. For complete code rollback, revert only this laboratory branch / PR; `main` is untouched.
 3. No generator, Bridge, site release or third-party licensing changes are included.
 

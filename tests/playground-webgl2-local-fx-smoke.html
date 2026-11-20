@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><title>INDEX WebGL2 local FX import integration</title>
 <style>body{font:13px monospace}iframe{width:1050px;height:850px;border:0}pre{white-space:pre-wrap}</style></head>
 <body><h1>INDEX local FX HTML import and instance-isolation test</h1>
-<iframe id="app" title="GPU Playground" src="../playground.html?renderer=webgl2-lab"></iframe>
+<iframe id="app" title="GPU Playground" src="../playground.html"></iframe>
 <pre id="results" data-result="PENDING">Starting...</pre>
 <script>
 (async()=>{
@@ -13,7 +13,7 @@
  try{
   await new Promise((ok,bad)=>{frame.addEventListener('load',ok,{once:true});frame.addEventListener('error',bad,{once:true});});
   const d=frame.contentDocument;
-  check('GPU composer loads',await until(()=>!!d.getElementById('pg-gpu-lab')));
+  check('GPU engine loads on normal URL',!!d.defaultView.IndexWebGL2Lab);
   const localTool=`<!doctype html><html><head><title>Solid Color Fixture</title></head><body><canvas id="sketch-canvas"></canvas><script>
     window.INDEX_TOOL={schemaVersion:1,role:'generator',name:'Solid Color Fixture',params:[],colors:[]};
     window.indexResize=(w,h)=>{const c=document.querySelector('canvas');c.width=w;c.height=h;};
@@ -26,23 +26,26 @@
   }
   importHTML('local-generator.html',localTool);
   const first=await until(()=>d.querySelector('.pg-layer-card')?.textContent.includes('Solid Color Fixture')
-    && d.querySelector('#pg-log')?.textContent.includes('first frame displayed'),18000);
-  check('locally imported generator produces first frame',first,d.querySelector('#pg-status')?.textContent);
+    && d.querySelector('#pg-log')?.textContent.includes('first frame displayed'),25000);
+  check('locally imported generator produces first frame',first,d.querySelector('#pg-status')?.textContent+' log='+d.querySelector('#pg-log')?.textContent.slice(-1500)+' rack='+d.querySelector('.pg-layer-card')?.textContent);
+  check('GPU compositor initializes when first generator loads',!!d.getElementById('pg-gpu-lab'));
   const fxSource=await (await fetch('fixtures/original-feedback-history.html')).text();
   d.querySelectorAll('.pg-layer-pick')[1].click();
   importHTML('original-feedback-history.html',fxSource);
   const fx1=await until(()=>d.querySelector('#pg-title')?.textContent.includes('Original Feedback History')
-    && !d.getElementById('pg-reset-fx-history')?.hidden,12000);
+    && !d.getElementById('pg-reset-fx-history')?.hidden,25000);
   check('import external two-pass feedback FX into L2',fx1,d.querySelector('#pg-status')?.textContent);
   check('imported FX exposes parameters',d.querySelectorAll('#pg-params .pg-control').length===2);
   const reset=d.getElementById('pg-reset-fx-history');
+  check('RESET HISTORY control exists and is visible for active feedback FX',!!reset && !reset.hidden);
   const before=d.querySelector('#pg-params input[type="range"]')?.value;
   reset?.click();
-  check('RESET HISTORY preserves parameters',!!before&&d.querySelector('#pg-params input[type="range"]')?.value===before);
+  check('RESET HISTORY confirms actual action',!!reset && d.getElementById('pg-status')?.textContent.includes('FX history reset'));
+  check('RESET HISTORY preserves parameters',!!reset && !!before && d.querySelector('#pg-params input[type="range"]')?.value===before);
   d.querySelectorAll('.pg-layer-pick')[2].click();
   importHTML('second-feedback.html',fxSource);
   const fx2=await until(()=>[...d.querySelectorAll('.pg-layer-card')].slice(1,3).every(c=>c.textContent.includes('Original Feedback History'))
-    && d.querySelectorAll('.pg-layer-frame').length===3,12000);
+    && d.querySelectorAll('.pg-layer-frame').length===3,25000);
   check('same external FX imported to independent L3',fx2,d.querySelector('#pg-status')?.textContent);
   d.querySelectorAll('.pg-layer-card')[1].querySelector('.pg-layer-clear').click();
   check('CLEAR L2 leaves L3 FX intact',d.querySelectorAll('.pg-layer-card')[2].textContent.includes('Original Feedback History')

@@ -1,7 +1,7 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>INDEX public WebGL2 one-click demo test</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>INDEX normal Playground WebGL2 smoke</title>
 <style>body{font:13px monospace}iframe{width:1100px;height:850px;border:0}pre{white-space:pre-wrap}</style></head>
-<body><h1>INDEX public one-click GPU demo — browser integration</h1>
-<iframe id="app" src="../playground.html?renderer=webgl2-lab&amp;demo=1" title="WebGL2 demo"></iframe>
+<body><h1>INDEX normal Playground WebGL2 — browser integration</h1>
+<iframe id="app" src="../playground.html" title="WebGL2 demo"></iframe>
 <pre id="results" data-result="PENDING">Starting...</pre>
 <script>
 (async()=>{
@@ -26,34 +26,20 @@
      iframe.addEventListener('error',reject,{once:true});
    });
    const d=iframe.contentDocument;
-   const ready=await until(()=>{
-     const cards=[...d.querySelectorAll('.pg-layer-card')].map(c=>c.textContent);
-     const gpu=d.getElementById('pg-gpu-lab');
-     return cards[0]?.includes('Linking Nodes') && cards[1]?.includes('Original Feedback History')
-       && d.querySelector('#pg-title')?.textContent.includes('Original Feedback History')
-       && gpu && gpu.style.display!=='none' && d.getElementById('pg-composite').style.visibility==='hidden'
-       && d.querySelector('#pg-log')?.textContent.includes('first frame displayed');
-   },22000);
-   const details='status='+d.getElementById('pg-status')?.textContent
-       +' cards='+[...d.querySelectorAll('.pg-layer-card')].slice(0,2).map(x=>x.textContent.slice(0,90)).join(' / ')
-       +' title='+d.querySelector('#pg-title')?.textContent
-       +' gpu='+d.getElementById('pg-gpu-lab')?.style.display
-       +' log='+d.querySelector('#pg-log')?.textContent.slice(-1200);
-   check('clickthrough mode auto loads generator and feedback FX',ready,details);
-   check('five normal layer positions remain',d.querySelectorAll('.pg-layer-card').length===5);
-   check('FX controls available without file import',d.querySelectorAll('#pg-params .pg-control').length===2);
-   check('RESET HISTORY button visible',!!d.getElementById('pg-reset-fx-history') && !d.getElementById('pg-reset-fx-history').hidden);
-   check('BACK TO CLASSIC available',d.getElementById('pg-webgl2-demo')?.getAttribute('href')==='playground.html');
-   check('sources are isolated sandbox iframes',d.querySelectorAll('.pg-layer-frame[sandbox="allow-scripts"]').length===2);
-   check('no active GPU error',!d.getElementById('pg-status')?.classList.contains('pg-status-error'),d.getElementById('pg-status')?.textContent);
-   if(ready){
-     const reset=d.getElementById('pg-reset-fx-history');
-     reset.click();
-     check('RESET HISTORY works in live demo',d.getElementById('pg-status')?.textContent.includes('history reset'));
-   }
+   const ready=await until(()=>!!d.defaultView.IndexWebGL2Lab,12000);
+   check('normal Playground loads WebGL2 capability without mode UI',ready);
+   check('GPU context is deferred until a tool loads',!d.getElementById('pg-gpu-lab'));
+   check('normal page preserves five layers',d.querySelectorAll('.pg-layer-card').length===5);
+   check('no demo CTA or forced sample content',!d.getElementById('pg-webgl2-entry') &&
+     ![...d.querySelectorAll('button')].some(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]')) &&
+     d.querySelectorAll('.pg-layer-frame').length===0);
+   check('original CHOOSE A FILE remains available',!!d.querySelector('#pg-file[accept*=".html"]'));
+   check('catalogue tool loading remains available',!!d.querySelector('#pg-select') && !!d.querySelector('#pg-load'));
+   check('default Canvas2D fallback canvas retained',!!d.querySelector('#pg-composite'));
+   check('no initial GPU error',!d.getElementById('pg-status')?.classList.contains('pg-status-error'),d.getElementById('pg-status')?.textContent);
  }catch(e){check('demo smoke infrastructure',false,String(e.stack||e));}
  out.textContent=lines.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
  out.dataset.result=fail===0?'PASS':'FAIL';
- document.title='PUBLIC_WEBGL2_DEMO_'+(fail===0?'PASS':'FAIL');
+ document.title='NORMAL_WEBGL2_PLAYGROUND_'+(fail===0?'PASS':'FAIL');
 })();
 </script></body></html>

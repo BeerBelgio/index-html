@@ -6,7 +6,7 @@
 
 - Baseline `BeerBelgio/index-html` `main` SHA `9fc0c78e28c5fd30122c06f6919deebc2e5ce657`, published INDEX 0.21.3.
 - Existing 20 generator HTML documents, catalogue, manifests, Sketch adapters, creative defaults and Bridge repository/AMXD are **not modified**.
-- Default `playground.html`: existing Canvas2D compositor and legacy WebGL1 FX, with a visible **TRY LIVE FX DEMO** link. That link enters experimental `playground.html?renderer=webgl2-lab&demo=1`, dynamically loads the GPU composer and preloads Linking Nodes + an original FX. The normal URL never loads the GPU module.
+- Default `playground.html`: original five-layer interface, existing file picker and catalogue, no demo CTA or preloaded tools. The WebGL2 composer initializes automatically after the first compatible tool manifest is received, if supported. `?renderer=canvas2d` forces the classic Canvas2D path, and unsupported WebGL2 environments use the fallback automatically.
 - One WebGL2 compositor and FX **host** context; independent generator iframe contexts and captured ImageBitmaps remain as before.
 - No OpenMosh shader, private Bridge code, remote catalogue, CDN, auto-update or history persistence.
 
@@ -22,7 +22,7 @@
 ## Gate B — GPU history and multipass (implemented in branch, not promoted)
 
 - Each imported FX layer gets a distinct instance ID, independently compiled shader programs, 1–3 private pass targets and (when required) two private history ping-pong targets.
-- A public standalone original feedback-history FX is bundled at `assets/fx/original-feedback-history.html` and automatically loaded in the one-click demo; external FX can be loaded from trusted local HTML using the existing file picker. No Max or Ableton required.
+- An original reference FX remains available at `assets/fx/original-feedback-history.html` but is **not** loaded automatically. The existing file picker imports a trusted FX `.html` into any selected layer; no Max or Ableton required.
 - One GPU-history advancement per distinct committed host composite frame; first valid lower composite seeds history.
 - Wet=0 (FX layer opacity zero) maintains history advancement while output remains dry. Hide/pause suspend history, first resumed frame has zero delta.
 - CLEAR or layer replacement disposes only that instance. **RESET HISTORY** affects only selected FX, separate from parameter RESET.
@@ -54,7 +54,7 @@ The original synthetic local demonstration is `tests/fixtures/original-feedback-
 
 ## Rollback and release rules
 
-- Immediate: remove `?renderer=webgl2-lab` (legacy stays unchanged).
+- Immediate: use `?renderer=canvas2d` to force the legacy renderer. Without a query, WebGL2 initializes automatically where supported; complete rollback is a PR revert.
 - Full: discard/revert PR #9; no generator modifications and no Bridge dependencies.
-- **Deployment requires explicit maintainer approval** and remains an experimental opt-in, not a statement of M5/Intel parity. GitHub Pages serves the repository `main` after merge; do not bump version, tag a release, or change other repositories automatically.
+- **Corrective deployment requires maintainer approval**; automatic WebGL2 initialization is not proof of M5/Intel or Bridge numerical parity. GitHub Pages serves the repository `main` after merge; no automatic version bump, tag, release or changes to Bridge/DES.
 - Merging under maintainer approval is necessary before zivavu can access this feature through the normal public INDEX Playground URL. Until then the branch can be run locally in a browser with a static server.
