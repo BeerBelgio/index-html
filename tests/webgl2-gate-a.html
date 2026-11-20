@@ -110,10 +110,31 @@
    check('resize reallocates GPU targets',()=>{
      const s=lab.getStats();if(s.width!==W*2||s.height!==H*2)throw Error(JSON.stringify(s));
    });
+   const extension=document.getElementById('pg-gpu-lab').getContext('webgl2').getExtension('WEBGL_lose_context');
+   if(extension){
+     extension.loseContext();
+     await new Promise(done=>setTimeout(done,100));
+     check('context loss immediately reveals Canvas2D fallback',()=>{
+       if(document.getElementById('pg-gpu-lab').style.display!=='none')throw Error('GPU remains visible');
+       if(legacyCanvas.style.visibility==='hidden')throw Error('legacy remains hidden');
+     });
+   } else lines.push('NOT_RUN simulated context loss — WEBGL_lose_context unavailable');
    check('destroy restores legacy canvas',()=>{
      lab.dispose();if(legacyCanvas.style.visibility==='hidden')throw Error('legacy remains hidden');
      if(document.getElementById('pg-gpu-lab'))throw Error('GPU canvas leaked');
    });
+   const originalGetContext=HTMLCanvasElement.prototype.getContext;
+   HTMLCanvasElement.prototype.getContext=function(kind,...rest){
+     if(kind==='webgl2')return null;
+     return originalGetContext.call(this,kind,...rest);
+   };
+   try {
+     check('WebGL2 unavailable gives explicit fallback',()=>{
+       try{window.IndexWebGL2Lab.create({surface,legacyCanvas,emptyElement});throw Error('create succeeded unexpectedly');}
+       catch(e){if(!String(e.message).includes('not available'))throw e;}
+       if(document.getElementById('pg-gpu-lab'))throw Error('failed canvas not removed');
+     });
+   } finally {HTMLCanvasElement.prototype.getContext=originalGetContext;}
    for(const l of images)l.bitmap.close();
  } catch(e) {report('fixture initialization/runtime',false,String(e.stack||e)); if(lab)lab.dispose();}
  results.textContent=lines.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
