@@ -21,7 +21,10 @@ if(gpuOptIn){
   if(!window.IndexWebGL2Lab)throw Error('WebGL2 Lab script unavailable.');
   gpuLab=window.IndexWebGL2Lab.create({
     surface:ui.surface,legacyCanvas:ui.composite,emptyElement:ui.empty,
-    onDiagnostic:(id,message)=>fail('FX '+id+': '+message)
+    onDiagnostic:(id,message)=>{
+     if(message.startsWith('WebGL2 context restored:')){info(message);log('GPU '+message);}
+     else fail('FX '+id+': '+message);
+    }
    });
   const loadFx=document.createElement('button');
   loadFx.type='button';loadFx.textContent='CHANNEL RELAY [GPU LAB]';
@@ -112,12 +115,16 @@ function activate(layer,raw){const manifest=normalize(raw.manifest);
  if(role!=='generator'&&role!=='effect'&&role!=='effect-webgl2')throw Error('Unsupported role '+role+'. Compositor A/B requires a separate tool contract.');
  if(role==='effect'&&gpuLab)throw Error('Legacy WebGL1 FX cannot run in WebGL2 Lab. Open Playground without renderer=webgl2-lab.');
  if(role==='effect-webgl2'&&!gpuLab)throw Error('WebGL2 FX requires renderer=webgl2-lab and working WebGL2.');
+ if(role==='effect-webgl2'&&(manifest.capabilities?.requires?.visualInput!=='lower-composite'&&manifest.role==='effect'||
+    manifest.capabilities?.requires?.audioInput!=='none'&&manifest.role==='effect'))
+  throw Error('WebGL2 FX requires lower-composite visual input and no direct audio input.');
  if(role==='generator'&&(!raw.hasResize||!raw.hasDraw))throw Error('Missing resize/draw entrypoint.');
  if(role==='effect'&&(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string'))throw Error('FX needs GLSL fragment shader.');
+ const preparedGpuFx=role==='effect-webgl2'?gpuLab.createFX('L'+layer.id+'-T'+layer.token,manifest.effect):null;
  const {state,alpha}=paramsFrom(manifest);layer.name=manifest.name||layer.name;layer.manifest=manifest;layer.role=role;layer.state=state;layer.alpha=alpha;
  if(role==='effect'){layer.fx=makeFx(manifest.effect.fragment);layer.fx.manifest=manifest;layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);}
  else if(role==='effect-webgl2'){
-  layer.fx=gpuLab.createFX('L'+layer.id+'-T'+layer.token,manifest.effect);
+  layer.fx=preparedGpuFx;
   layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);
  }
  else resizeOne(layer);
