@@ -73,7 +73,7 @@ function beginLoad(layer,name){kill(layer);layer.loading=true;layer.name=name;co
 }
 function openLayer(layer,html,name,token){if(layer.token!==token)return;if(html.length>2*1024*1024)throw Error('Maximum HTML size is 2 MB.');
  const frame=document.createElement('iframe');frame.className='pg-layer-frame';frame.setAttribute('sandbox','allow-scripts');frame.setAttribute('referrerpolicy','no-referrer');frame.title='Isolated L'+layer.id+' visual renderer';frame.setAttribute('aria-hidden','true');
- layer.frame=frame;ui.frameHost.append(frame);frame.srcdoc=safeHtml(html,layer.id,token);
+ frame.srcdoc=safeHtml(html,layer.id,token);layer.frame=frame;ui.frameHost.append(frame);
  info('Inspecting L'+layer.id+' manifest…');
 }
 async function local(file){const layer=active();if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html')){fail('Choose an HTML file.');return;}if(file.size>2*1024*1024){fail('Maximum HTML size is 2 MB.');return;}
