@@ -4,12 +4,12 @@
 
 ## Quick start for collaborators
 
-1. Open the normal public INDEX Playground. When WebGL2 is available, the GPU compositor is active automatically; no mode button, query parameter, download or local server is required. Developers can clone the repo and run a local server for code iteration.
+1. Open the normal public INDEX Playground. When a tool is loaded and WebGL2 is available, the GPU compositor initializes automatically; no mode button, query parameter, download or local server is required. Developers can clone the repo and run a local server for code iteration.
 2. Choose an INDEX generator or import a trusted standalone `.html` file into L1. The normal URL uses WebGL2 where available. To force the classic renderer for diagnosis or rollback, use `playground.html?renderer=canvas2d`.
 3. Select L2 and import your FX `.html` through the existing **CHOOSE A FILE** control. No separate FX demo controls are added to the site.
 4. For a reference FX file use `assets/fx/original-feedback-history.html` or `tests/fixtures/original-feedback-history.html`. The reference is not preloaded. Import additional FX into L3–L5; each instance has independent history.
 5. Change the FX numeric parameters, layer opacity (the **Wet**/Dry blend), visibility, and **RESET HISTORY**. Use CLEAR to remove an instance.
-6. To roll back immediately, reopen `playground.html` without the experimental query. This does not change any generator or Bridge files.
+6. To force the classic fallback, open `playground.html?renderer=canvas2d`. The normal URL uses WebGL2 when supported. This does not change generators or Bridge.
 
 The normal Playground remains visually familiar and does not display a demo entry or auto-load any sample. Its existing HTML import can recognize and execute provisional `fragment-webgl2` FX on compatible browsers. The optional `?renderer=canvas2d` query forces a fallback that cannot execute WebGL2-only effects.
 
