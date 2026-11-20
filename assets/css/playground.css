@@ -149,3 +149,12 @@
 .pg-control input[type=range]{touch-action:pan-y}
 @media(max-width:1080px){.pg-layer-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.pg-colors-grid{grid-template-columns:1fr}.pg-colors-grid .pg-control{padding:0;margin:0;border-right:0 !important}.pg-layer-heading{flex-direction:column;align-items:flex-start;gap:6px}.pg-layer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pg-layer-card{padding:9px}}
+
+/* Public entry to the isolated WebGL2 FX mode; existing Playground controls unchanged. */
+.pg-webgl2-entry{margin-top:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;border:1px solid var(--ink);border-radius:12px;padding:15px 18px}
+.pg-webgl2-entry>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.pg-webgl2-entry strong{font-size:12px;letter-spacing:.06em;font-weight:800}
+.pg-webgl2-entry span{font-size:13px;line-height:1.4}
+.pg-webgl2-entry a{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:9px;background:var(--ink);color:var(--cream);font-size:12px;font-weight:800;text-decoration:none}
+.pg-webgl2-entry a:hover,.pg-webgl2-entry a:focus-visible{background:var(--orange);color:var(--ink)}
+@media(max-width:650px){.pg-webgl2-entry a{width:100%}}
