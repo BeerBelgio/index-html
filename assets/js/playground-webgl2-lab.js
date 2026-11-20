@@ -79,7 +79,12 @@ void main() {
       labFx: {moduleId: 'index-lab-channel-relay', apiVersion: 'gate-a-prototype',
         origin: 'original synthetic laboratory shader', history: false},
       effect: {apiVersion: 2, type: 'fragment-webgl2', history: false,
-        passes: [{fragment: RELAY}]}
+        moduleId: 'index-lab-channel-relay', moduleVersion: '0.0.1-lab',
+        passes: [{fragment: RELAY}],
+        provenance: {author:'BeerBelgio / INDEX laboratory',
+          source:'Original synthetic shader',adaptation:'None',
+          license:'PolyForm Noncommercial 1.0.0',
+          notice:'Not sourced from Bridge or OpenMosh'}}
     };
   }
 
@@ -99,10 +104,10 @@ void main() {
     } catch (error) { canvas.remove(); throw error; }
     let destroyed = false, contextReady = true;
     const resources = [];
-    let width = 0, height = 0, pair = [], scratch = null, source = null;
+    let width = 0, height = 0, pair = [], source = null;
     const fxInstances = new Map();
     const MAX_FX_PASSES = 3, MAX_BYTES = 128 * 1024 * 1024;
-    let compileProgram, composeProgram, copyProgram, relayProgram, vao;
+    let composeProgram, copyProgram, vao;
     const MAX_DIM = 2048;
 
     function track(obj, remove) { resources.push(() => remove(obj)); return obj; }
@@ -164,7 +169,7 @@ void main() {
       budgetAt(nextW, nextH);
       width = nextW; height = nextH;
       canvas.width = width; canvas.height = height;
-      for (const t of [...pair, scratch]) allocate(t);
+      for (const t of pair) allocate(t);
       for(const inst of fxInstances.values()) {
         for(const t of [...inst.passTargets, ...inst.historyTargets]) allocate(t);
         inst.seeded = false; inst.frame = 0; inst.lastFrameId = null; inst.suspended = true;
@@ -195,7 +200,7 @@ void main() {
 
 
     function budgetAt(w = width, h = height, incoming = null) {
-      let textures = 4;
+      let textures = 3;
       for (const inst of fxInstances.values()) textures += inst.passTargets.length + inst.historyTargets.length;
       if (incoming) textures += incoming.passes.length + (incoming.history ? 2 : 0);
       const bytes = w * h * 4 * textures;
@@ -208,6 +213,13 @@ void main() {
       if (!Array.isArray(effect.passes) || !effect.passes.length || effect.passes.length > MAX_FX_PASSES)
         throw new Error('FX requires 1 to ' + MAX_FX_PASSES + ' fragment passes.');
       if (typeof effect.history !== 'boolean') throw new Error('FX history must be explicitly true or false.');
+      if (!/^[a-z][a-z0-9-]{2,63}$/.test(effect.moduleId || '') ||
+          typeof effect.moduleVersion !== 'string' || !effect.moduleVersion.trim())
+        throw new Error('FX requires a stable moduleId and nonempty moduleVersion.');
+      const provenance = effect.provenance;
+      if (!provenance || ['author','source','adaptation','license','notice'].some(k =>
+          typeof provenance[k] !== 'string' || !provenance[k].trim()))
+        throw new Error('FX provenance requires author, source, adaptation, license and notice.');
       for (const p of effect.passes) {
         if (!p || typeof p.fragment !== 'string' || p.fragment.length > 32768 ||
             !/^\s*#version 300 es\b/.test(p.fragment))
@@ -404,9 +416,7 @@ void main() {
       gl.bindVertexArray(vao);
       composeProgram = program(COMPOSE);
       copyProgram = program(COPY);
-      relayProgram = program(RELAY);
       pair = [target(), target()];
-      scratch = target();
       source = texture();
       for(const inst of fxInstances.values()) {
         inst.programs = inst.definition.passes.map(p => program(p.fragment, false));
