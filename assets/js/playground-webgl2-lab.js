@@ -210,7 +210,7 @@ void main() {
       if (typeof effect.history !== 'boolean') throw new Error('FX history must be explicitly true or false.');
       for (const p of effect.passes) {
         if (!p || typeof p.fragment !== 'string' || p.fragment.length > 32768 ||
-            !/^\\s*#version 300 es\\b/.test(p.fragment))
+            !/^\s*#version 300 es\b/.test(p.fragment))
           throw new Error('FX pass must contain GLSL ES 3.00 fragment code under 32 KB.');
       }
     }
