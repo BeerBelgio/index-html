@@ -27,7 +27,7 @@
   importHTML('local-generator.html',localTool);
   const first=await until(()=>d.querySelector('.pg-layer-card')?.textContent.includes('Solid Color Fixture')
     && d.querySelector('#pg-log')?.textContent.includes('first frame displayed'),18000);
-  check('locally imported generator produces first frame',first,d.querySelector('#pg-status')?.textContent);
+  check('locally imported generator produces first frame',first,d.querySelector('#pg-status')?.textContent+' log='+d.querySelector('#pg-log')?.textContent.slice(-1500)+' rack='+d.querySelector('.pg-layer-card')?.textContent);
   const fxSource=await (await fetch('fixtures/original-feedback-history.html')).text();
   d.querySelectorAll('.pg-layer-pick')[1].click();
   importHTML('original-feedback-history.html',fxSource);
