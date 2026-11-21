@@ -113,18 +113,6 @@ jobs:
           node tests/run-browser-smoke.mjs "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" gate-a-app-smoke.html "$browser"
           grep -q 'data-result="PASS"' gate-a-app-smoke.html
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1250,1080 --virtual-time-budget=60000 --screenshot=gate-a-playground-integration.png "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" >/dev/null 2>gate-a-integration-screenshot-stderr.txt
-      - name: Local HTML FX import and two instances on normal Playground
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8768 --bind 127.0.0.1 > local-fx-http.log 2>&1 &
-          server=$!
-          trap 'kill "$server" 2>/dev/null || true' EXIT
-          sleep 1
-          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
-          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=100000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
-          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
-          grep -q 'data-result="PASS"' local-fx-result.html
       - name: Normal public Playground WebGL2 rendering
         shell: bash
         run: |
@@ -137,6 +125,18 @@ jobs:
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=45000 --dump-dom "http://127.0.0.1:8767/tests/playground-public-webgl2-demo.html" >public-demo-result.html 2>public-demo-stderr.txt
           sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' public-demo-result.html | head -50
           grep -q 'data-result="PASS"' public-demo-result.html
+      - name: Local HTML FX import and two instances on normal Playground
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8768 --bind 127.0.0.1 > local-fx-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=100000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
+          grep -q 'data-result="PASS"' local-fx-result.html
       - name: WebGL2 FX multipass and history oracle
         shell: bash
         run: |
