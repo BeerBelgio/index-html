@@ -64,10 +64,9 @@
    cards()[1].querySelector('.pg-layer-visibility').click();
    check('toggle ON restores state without selecting another layer',cards()[1].classList.contains('is-active') &&
      cards()[1].querySelector('.pg-layer-visibility').textContent==='ON');
-   cards()[0].querySelector('.pg-layer-pick').focus();
-   d.defaultView.document.activeElement.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
-   // Activation from keyboard is also covered by the native button semantics.
-   cards()[0].querySelector('.pg-layer-pick').click();
+   const back=cards()[0].querySelector('.pg-layer-pick');
+   check('selector remains keyboard-focusable native button',back.tagName==='BUTTON' && back.type==='button');
+   back.click();
    check('original layer can be selected again',cards()[0].classList.contains('is-active'));
    check('no demo CTA or forced sample content',!d.getElementById('pg-webgl2-entry') &&
      ![...d.querySelectorAll('button')].some(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]')) &&
