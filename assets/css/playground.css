@@ -138,7 +138,7 @@
 .pg-layer-visibility,.pg-layer-clear{font:800 10px/1 var(--display-font);border:1px solid var(--line);border-radius:6px;padding:7px 6px;cursor:pointer;background:transparent;color:var(--ink)}
 .pg-layer-visibility[aria-pressed="false"]{opacity:.45}.pg-layer-visibility:hover,.pg-layer-clear:hover{border-color:var(--orange);color:var(--orange-deep)}
 .pg-layer-clear{font-size:17px;padding:3px 7px}.pg-layer-clear:disabled{opacity:.25;cursor:default}
-.pg-layer-name{display:block;max-width:100%;min-width:0;font-family:inherit;font-size:10px;font-weight:700;line-height:1.4;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;margin:0;min-height:15px;color:#555}
+.pg-layer-name{display:block;max-width:100%;min-width:0;font-family:"M PLUS Rounded 1c",ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:10px;font-weight:700;line-height:1.4;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;margin:0;min-height:15px;color:#555}
 .pg-opacity-row{display:flex;align-items:center;gap:5px;justify-content:center;margin-bottom:7px}
 .pg-opacity-slider{flex:1 1 70px;width:100%;min-width:25px;max-width:110px;margin:0;accent-color:var(--orange);cursor:pointer;touch-action:pan-y}
 .pg-opacity-number{width:51px;min-width:0;height:30px;border:1px solid var(--line);border-radius:6px;background:transparent;padding:4px 3px;text-align:right;font:700 12px/1.2 inherit;font-variant-numeric:tabular-nums}
