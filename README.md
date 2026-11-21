@@ -12,7 +12,7 @@ An independently developed, source-available collection of 20 standalone HTML vi
 
 INDEX is the canonical platform for its tools. Every tool is a self-contained HTML file, designed to run directly in a modern browser and offline without mandatory remote runtime dependencies. The collection originated in an audio/MIDI-reactive workflow and supports host integrations, including Sketch and INDEX-HTML Bridge, without making either host the defining architecture.
 
-INDEX Playground is a five-layer browser environment for loading catalog or local HTML tools, adjusting controls, and experimenting with blend modes and FX. On supported browsers, a shared WebGL2 compositor initializes when a compatible tool is loaded; existing generators keep their own isolated renderer. Local standalone HTML FX can use the provisional WebGL2 multipass/history path. The classic Canvas2D fallback remains available via `?renderer=canvas2d`. Local files stay in the browser; they are not uploaded to INDEX's servers. Only load HTML you trust.
+INDEX Playground is a five-layer browser environment for loading catalog or local HTML tools, adjusting controls, and experimenting with blend modes and FX. On supported browsers, a shared WebGL2 compositor initializes when a compatible tool is loaded; existing generators keep their own isolated renderer. Local standalone HTML FX can use the provisional WebGL2 multipass/history path. The classic Canvas2D fallback remains available via `?renderer=canvas2d`. Layer selection uses a larger transparent target on each layer card without changing visibility, CLEAR or opacity controls. Local files stay in the browser; they are not uploaded to INDEX's servers. Only load HTML you trust.
 
 ## Tool contract
 
