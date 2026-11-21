@@ -30,6 +30,45 @@
    check('normal Playground loads WebGL2 capability without mode UI',ready);
    check('GPU context is deferred until a tool loads',!d.getElementById('pg-gpu-lab'));
    check('normal page preserves five layers',d.querySelectorAll('.pg-layer-card').length===5);
+   const cards=()=>[...d.querySelectorAll('.pg-layer-card')];
+   const firstPick=cards()[0]?.querySelector('.pg-layer-pick');
+   const firstEye=cards()[0]?.querySelector('.pg-layer-visibility');
+   const firstClear=cards()[0]?.querySelector('.pg-layer-clear');
+   const firstSlider=cards()[0]?.querySelector('.pg-opacity-slider');
+   const rect=el=>el.getBoundingClientRect();
+   check('selection button covers label and tool name',!!firstPick &&
+     !!firstPick.querySelector('.pg-layer-number') && !!firstPick.querySelector('.pg-layer-name'));
+   check('selection button extends to a practical hit area',!!firstPick &&
+     rect(firstPick).width>=45 && rect(firstPick).height>=60,
+     firstPick?.getBoundingClientRect().toJSON?.().height);
+   check('selection ends before ON and CLEAR',!!firstPick && !!firstEye && !!firstClear &&
+     rect(firstPick).right <= rect(firstEye).left+1 &&
+     rect(firstPick).right <= rect(firstClear).left+1);
+   check('selection ends above opacity slider',!!firstPick && !!firstSlider &&
+     rect(firstPick).bottom <= rect(firstSlider).top+1);
+   check('selection button remains transparent',!!firstPick &&
+     ['rgba(0, 0, 0, 0)','transparent'].includes(d.defaultView.getComputedStyle(firstPick).backgroundColor));
+   // Hit the lower-left area (outside the two-character layer identifier).
+   const secondPick=cards()[1].querySelector('.pg-layer-pick');
+   const bounds=rect(secondPick);
+   const hit=d.elementFromPoint(bounds.left+Math.min(12,bounds.width/2),bounds.bottom-8);
+   check('lower portion of the selection rectangle receives the click',hit===secondPick||secondPick.contains(hit));
+   hit?.click();
+   check('clicking expanded hit target selects L2',cards()[1].classList.contains('is-active') &&
+     !cards()[0].classList.contains('is-active'));
+   check('selection leaves visibility and opacity unchanged',cards()[1].querySelector('.pg-layer-visibility').textContent==='ON' &&
+     cards()[1].querySelector('.pg-opacity-slider').value==='100');
+   cards()[1].querySelector('.pg-layer-visibility').click();
+   check('ON/OFF does not switch selection',cards()[1].classList.contains('is-active') &&
+     cards()[1].querySelector('.pg-layer-visibility').textContent==='OFF');
+   cards()[1].querySelector('.pg-layer-visibility').click();
+   check('toggle ON restores state without selecting another layer',cards()[1].classList.contains('is-active') &&
+     cards()[1].querySelector('.pg-layer-visibility').textContent==='ON');
+   cards()[0].querySelector('.pg-layer-pick').focus();
+   d.defaultView.document.activeElement.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+   // Activation from keyboard is also covered by the native button semantics.
+   cards()[0].querySelector('.pg-layer-pick').click();
+   check('original layer can be selected again',cards()[0].classList.contains('is-active'));
    check('no demo CTA or forced sample content',!d.getElementById('pg-webgl2-entry') &&
      ![...d.querySelectorAll('button')].some(b=>b.textContent.includes('CHANNEL RELAY [GPU LAB]')) &&
      d.querySelectorAll('.pg-layer-frame').length===0);
