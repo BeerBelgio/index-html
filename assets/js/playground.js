@@ -159,10 +159,14 @@ function choose(index){selected=index;ui.loadTarget.textContent=(layers[index].m
 function renderLayerRack(){const focus=document.activeElement,id=focus?.dataset?.focusKey;
  ui.layers.replaceChildren();for(const layer of layers){const card=document.createElement('div');card.className='pg-layer-card'+(selected===layer.id-1?' is-active':'')+(layer.loading?' is-loading':'');
  const top=document.createElement('div');top.className='pg-layer-top';
- const pick=document.createElement('button');pick.type='button';pick.className='pg-layer-pick';pick.textContent='L'+layer.id;pick.dataset.focusKey='pick-'+layer.id;pick.setAttribute('aria-pressed',String(selected===layer.id-1));pick.addEventListener('click',()=>choose(layer.id-1));
+ const pick=document.createElement('button');pick.type='button';pick.className='pg-layer-pick';pick.dataset.focusKey='pick-'+layer.id;pick.setAttribute('aria-pressed',String(selected===layer.id-1));pick.setAttribute('aria-label','Select L'+layer.id+(layer.name?', '+layer.name:''));pick.addEventListener('click',()=>choose(layer.id-1));
+ const number=document.createElement('span');number.className='pg-layer-number';number.textContent='L'+layer.id;
+ const tool=document.createElement('span');tool.className='pg-layer-name';tool.title=layer.name||'Empty';tool.textContent=layer.loading?'LOADING…':layer.name||'EMPTY LAYER';
+ pick.append(number,tool);
+ const actions=document.createElement('div');actions.className='pg-layer-actions';
  const eye=document.createElement('button');eye.type='button';eye.className='pg-layer-visibility';eye.textContent=layer.visible?'ON':'OFF';eye.dataset.focusKey='vis-'+layer.id;eye.setAttribute('aria-pressed',String(layer.visible));eye.title='L'+layer.id+' visibility';eye.addEventListener('click',()=>{layer.visible=!layer.visible;dirty=true;renderLayerRack();placeholder();paint();});
  const clear=document.createElement('button');clear.type='button';clear.className='pg-layer-clear';clear.textContent='×';clear.dataset.focusKey='clear-'+layer.id;clear.disabled=!layer.manifest&&!layer.loading;clear.title='Clear L'+layer.id;clear.setAttribute('aria-label','Clear L'+layer.id);clear.addEventListener('click',()=>clearLayer(layer));
- top.append(pick,eye,clear);const tool=document.createElement('div');tool.className='pg-layer-name';tool.title=layer.name||'Empty';tool.textContent=layer.loading?'LOADING…':layer.name||'EMPTY LAYER';
+ actions.append(eye,clear);top.append(pick,actions);
  const row=document.createElement('div');row.className='pg-opacity-row';
  const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='100';slider.step='1';slider.value=String(Math.round(layer.opacity*100));slider.className='pg-opacity-slider';slider.dataset.focusKey='opacity-'+layer.id;slider.setAttribute('aria-label','L'+layer.id+' opacity percentage');
  const numeric=document.createElement('input');numeric.type='number';numeric.min='0';numeric.max='100';numeric.step='1';numeric.value=slider.value;numeric.className='pg-opacity-number';numeric.dataset.focusKey='num-'+layer.id;numeric.setAttribute('aria-label','L'+layer.id+' opacity percentage');
@@ -170,7 +174,7 @@ function renderLayerRack(){const focus=document.activeElement,id=focus?.dataset?
  slider.addEventListener('input',()=>updateOpacity(slider.value));numeric.addEventListener('change',()=>updateOpacity(numeric.value));
  const perc=document.createElement('span');perc.textContent='%';row.append(slider,numeric,perc);
  const blend=document.createElement('select');blend.className='pg-blend-select';blend.dataset.focusKey='blend-'+layer.id;blend.setAttribute('aria-label','L'+layer.id+' blend mode');for(const [v,n] of [['normal','NORMAL'],['add','ADD'],['multiply','MULTIPLY'],['screen','SCREEN']]){const o=document.createElement('option');o.value=v;o.textContent=n;blend.append(o);}blend.value=layer.blend;blend.addEventListener('change',()=>{layer.blend=blend.value;dirty=true;if(!running)paint();});
- card.append(top,tool,row,blend);ui.layers.append(card);}
+ card.append(top,row,blend);ui.layers.append(card);}
  if(id){const item=ui.layers.querySelector(`[data-focus-key="${id}"]`);item?.focus({preventScroll:true});}
  ui.loadTarget.textContent=(active().manifest?'REPLACE ':'LOAD TO ')+'L'+active().id;
 }

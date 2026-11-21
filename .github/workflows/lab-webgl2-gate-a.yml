@@ -5,6 +5,7 @@ on:
     branches:
       - lab/playground-webgl2-gate-a-20261120
       - fix/playground-native-webgl2-no-demo-20261120
+      - fix/tool-header-and-release-0.22.0-20261121
 
 concurrency:
   group: index-webgl2-${{ github.ref }}
@@ -43,6 +44,51 @@ jobs:
           assert 'localStorage' not in lab and 'indexedDB' not in lab
           print('Static invariants PASS')
           PY
+      - name: Release metadata and Tool header typography invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          version = "0.22.0"
+          data = json.loads(Path("data/tools.json").read_text())
+          assert data["project"]["releaseBuild"] == version, "Download All build mismatch"
+          assert len(data["tools"]) == 20, "generator catalogue count changed"
+          for page in ("index.html", "about.html", "tool.html", "playground.html"):
+              html = Path(page).read_text()
+              assert html.count('name="index-html-build" content="' + version + '"') == 1, page + " version mismatch"
+          assert version in Path("README.md").read_text()
+          assert "## [" + version + "]" in Path("CHANGELOG.md").read_text()
+          assert version in Path("docs/ROADMAP.md").read_text()
+          css = Path("assets/css/tool-page.css").read_text()
+          def rule(selector):
+              start = css.index(selector + " {") + len(selector + " {")
+              return css[start:css.index("}", start)]
+          link = rule(".tool-playground-link")
+          label = rule(".tool-switcher-label")
+          for declaration in ("font-family: inherit;", "font-size: 11px;",
+                              "line-height: 1;", "font-weight: 800;",
+                              "letter-spacing: .08em;"):
+              assert declaration in link and declaration in label, declaration
+          assert ".tool-switcher-label { display: none; }" in css, "mobile label rule missing"
+          assert 'assets/css/tool-page.css?v=0220' in Path("tool.html").read_text(), "Tool CSS cache not invalidated"
+          assert "pg-webgl2-entry" not in Path("playground.html").read_text(), "demo UI regression"
+          print("Release 0.22.0 metadata and Tool desktop/mobile CSS invariants PASS")
+          PY
+      - name: Desktop Tool header computed typography and screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 > tool-header-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --window-size=1500,720 --virtual-time-budget=14000 --dump-dom "http://127.0.0.1:8769/tests/tool-header-typography.html" >tool-header-result.html 2>tool-header-stderr.txt
+          grep -E 'TOTAL [0-9]+ PASS|data-result=' tool-header-result.html | tail -8
+          grep -q 'data-result="PASS"' tool-header-result.html
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --window-size=1500,720 --virtual-time-budget=10000 --screenshot=tool-header-desktop.png "http://127.0.0.1:8769/tests/tool-header-typography.html" >/dev/null 2>tool-header-screenshot-stderr.txt
       - name: Chromium headless pixel-oracle fixture
         shell: bash
         run: |
@@ -64,22 +110,9 @@ jobs:
           trap 'kill "$server" 2>/dev/null || true' EXIT
           sleep 1
           if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
-          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=60000 --dump-dom "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" >gate-a-app-smoke.html 2>gate-a-app-stderr.txt
-          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' gate-a-app-smoke.html | head -40
+          node tests/run-browser-smoke.mjs "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" gate-a-app-smoke.html "$browser"
           grep -q 'data-result="PASS"' gate-a-app-smoke.html
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --window-size=1250,1080 --virtual-time-budget=60000 --screenshot=gate-a-playground-integration.png "http://127.0.0.1:8765/tests/playground-gate-a-smoke.html" >/dev/null 2>gate-a-integration-screenshot-stderr.txt
-      - name: Local HTML FX import and two instances on normal Playground
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8768 --bind 127.0.0.1 > local-fx-http.log 2>&1 &
-          server=$!
-          trap 'kill "$server" 2>/dev/null || true' EXIT
-          sleep 1
-          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
-          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=100000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
-          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
-          grep -q 'data-result="PASS"' local-fx-result.html
       - name: Normal public Playground WebGL2 rendering
         shell: bash
         run: |
@@ -92,6 +125,18 @@ jobs:
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=45000 --dump-dom "http://127.0.0.1:8767/tests/playground-public-webgl2-demo.html" >public-demo-result.html 2>public-demo-stderr.txt
           sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' public-demo-result.html | head -50
           grep -q 'data-result="PASS"' public-demo-result.html
+      - name: Local HTML FX import and two instances on normal Playground
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8768 --bind 127.0.0.1 > local-fx-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=100000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
+          grep -q 'data-result="PASS"' local-fx-result.html
       - name: WebGL2 FX multipass and history oracle
         shell: bash
         run: |
@@ -119,6 +164,10 @@ jobs:
             gate-a-browser-result.html
             gate-a-browser-stderr.txt
             gate-a-browser.png
+            tool-header-result.html
+            tool-header-stderr.txt
+            tool-header-desktop.png
+            tool-header-http.log
             gate-a-app-smoke.html
             public-demo-result.html
             local-fx-result.html

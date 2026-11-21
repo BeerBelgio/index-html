@@ -6,19 +6,19 @@ An independently developed, source-available collection of 20 standalone HTML vi
 - **Website:** https://beerbelgio.github.io/index-html/
 - **Playground:** https://beerbelgio.github.io/index-html/playground.html
 - **Repository:** https://github.com/BeerBelgio/index-html
-- **Current release:** `0.21.3` (site maintenance, mobile usability, font delivery and search metadata; generator contract v1.0 unchanged)
+- **Current platform release:** `0.22.0` (WebGL2 Playground compositor, local HTML FX, multipass and independent GPU history; generator contract v1.0 unchanged).
 
 ## What INDEX is
 
 INDEX is the canonical platform for its tools. Every tool is a self-contained HTML file, designed to run directly in a modern browser and offline without mandatory remote runtime dependencies. The collection originated in an audio/MIDI-reactive workflow and supports host integrations, including Sketch and INDEX-HTML Bridge, without making either host the defining architecture.
 
-INDEX Playground is a five-layer browser environment for loading catalog or local HTML tools, adjusting controls, and experimenting with blend modes and FX. Local files stay in the browser; they are not uploaded to INDEX's servers. Only load HTML you trust.
+INDEX Playground is a five-layer browser environment for loading catalog or local HTML tools, adjusting controls, and experimenting with blend modes and FX. On supported browsers, a shared WebGL2 compositor initializes when a compatible tool is loaded; existing generators keep their own isolated renderer. Local standalone HTML FX can use the provisional WebGL2 multipass/history path. The classic Canvas2D fallback remains available via `?renderer=canvas2d`. Layer selection uses a larger transparent target on each layer card without changing visibility, CLEAR or opacity controls. Local files stay in the browser; they are not uploaded to INDEX's servers. Only load HTML you trust.
 
 ## Tool contract
 
 The canonical manifest is `window.INDEX_TOOL`, with `indexDraw(state, hostContext)` and `indexResize(width, height)` for generator tools. Each manifest declares `role`, `toolId`, `capabilities`, controls and defaults. See [INDEX Tool Contract](docs/INDEX-TOOL-CONTRACT.md).
 
-All 20 generators also expose a Sketch-compatible *derived mirror* (`SKETCH_TOOL`, `sketchDraw`, `sketchResize`) inside the same HTML. INDEX provides backwards compatibility for legacy Sketch manifests; new development uses INDEX as the source of truth. The current 20 generators require either Canvas2D or WebGL1; host capabilities determine support. A provisional FX fragment pathway exists in the Playground and Bridge; its contract is not yet frozen. Compositors with two inputs and direct audio-driven engines remain future work.
+All 20 generators also expose a Sketch-compatible *derived mirror* (`SKETCH_TOOL`, `sketchDraw`, `sketchResize`) inside the same HTML. INDEX provides backwards compatibility for legacy Sketch manifests; new development uses INDEX as the source of truth. The current 20 generators require either Canvas2D or WebGL1; host capabilities determine support. The Playground includes an experimental `fragment-webgl2` FX API for local multipass and per-instance GPU history ([provisional FX documentation](docs/labs/FX-WEBGL2-PROVISIONAL-API.md)); this FX contract is **not frozen**, is not proven numerically equivalent to Bridge, and does not claim OpenMosh compatibility. Two-input compositors and direct audio-driven engines remain future work.
 
 The tool's color `hostContext.colorOpacity` values range from 0 to 1 without consuming numeric parameter slots. The INDEX schema itself is not limited by the present 12-parameter/4-color Bridge UI.
 
@@ -50,6 +50,10 @@ The tool's color `hostContext.colorOpacity` values range from 0 to 1 without con
 Version `0.21.0` aligned the browser catalog and tool pages with the INDEX-native manifest; the legacy adapter remains available for Sketch and existing host clients. Version `0.21.1` only consolidates documentation; no generator, Playground or site runtime code changed. The 20 generator algorithms and their creative parameter ranges have not been redesigned. Orbital Geometry's approved `Scale` default changes from 150 to 100.
 
 The INDEX-native migration was based on successful user testing of 20 generators in Chrome, Sketch, Playground and Bridge on M5 and Intel machines. Those tests do not prove all hardware configurations or every standalone WebGL edge case. See [Known issues](docs/KNOWN_ISSUES.md) before relying on uniform GPU output. Do not confuse tests of Bridge 0.23.6 with approval of a future Bridge release; its Set recall defect remains tracked separately.
+
+## Testing and compatibility limits
+
+The WebGL2 compositor, local FX loader and history passed automated Chromium software-WebGL regression tests. The maintainer also confirmed five functional/visual checks on a native M5 on 2026-11-21 (desktop Tool header, layer selection, ON/OFF/CLEAR, opacity and generator/FX import). This targeted smoke test does not establish exhaustive native M5/Intel GPU parity, Safari/Firefox support or Bridge/OpenMosh FX compatibility. Known standalone issue [CF-001](docs/KNOWN_ISSUES.md) remains open. The twenty generator algorithms, manifests and creative defaults are unchanged in 0.22.0.
 
 ## License and provenance
 

@@ -2,6 +2,26 @@
 
 Changes to the INDEX HTML site, Playground, public contract and tool collection. Versions here are **independent** from INDEX-HTML Bridge and from each individual tool's creative version.
 
+## [0.22.0] — 2026-11-21 (WebGL2 Playground & FX Foundation)
+
+### Added
+- WebGL2 GPU compositor integrated into the normal five-layer Playground without a separate demo mode; existing sandboxed Canvas2D/WebGL1 generators keep independent rendering contexts and provide frames to the host.
+- Local HTML FX support through the existing file picker, with provisional `fragment-webgl2` module identity/version, GLSL ES 3.00 shaders, up to three passes, per-instance GPU history and independent RESET HISTORY.
+- Bounded GPU preview resources, context loss/recovery handling, diagnostics and explicit Canvas2D fallback (`?renderer=canvas2d`).
+- Original local two-pass feedback FX fixture, synthetic GPU pixel/alpha oracles, browser integration regressions and provisional FX documentation.
+- Open Graph and Twitter large-image metadata on secondary public pages, using a favicon-derived JPEG for robust social previews.
+
+### Changed
+- Aligned the desktop Tool header's **CHANGE TOOL** label with the existing **PLAYGROUND** navigation typography; mobile label visibility remains unchanged.
+- Expanded each Playground layer's transparent selection button to cover the layer name area while keeping visibility, CLEAR, opacity and blend controls independent.
+- Updated platform build labels and Download All `project.releaseBuild` to `0.22.0`; individual generator versions are unchanged.
+
+### Compatibility and limitations
+- Generator Tool Contract v1.0, all 20 creative algorithms, manifests/defaults and Sketch adapters remain unchanged.
+- The WebGL2 FX API is provisional, not a shared Bridge engine, and no OpenMosh effect or numerical Bridge parity has been validated.
+- Automated Chromium software-WebGL regression checks: 107/107 PASS on the final pre-release feature baseline. Targeted native M5 visual/function smoke: 5/5 PASS (maintainer, 2026-11-21). Exhaustive M5/Intel GPU numerical parity, Safari/Firefox and broad hardware performance verification remain pending.
+- CF-001 (Cellular Field Intel standalone rendering) remains open. Browser rendering depends on WebGL2 availability; legacy Canvas2D mode cannot run WebGL2-only FX.
+
 ## [0.21.3] — 2026-11-15 (maintenance & UI improvements)
 
 ### Fixed

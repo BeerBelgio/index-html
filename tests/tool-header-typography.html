@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>INDEX Tool Header Typography Regression</title>
+<style>body{font:14px monospace;padding:20px;background:#f1f1ee}iframe{display:block;width:1200px;max-width:100%;height:220px;border:1px solid #aaa}pre{white-space:pre-wrap}</style>
+</head>
+<body>
+<h1>Tool desktop header typography — PLAYGROUND / CHANGE TOOL</h1>
+<iframe id="tool" src="../tool.html?tool=formshift" title="Tool desktop header"></iframe>
+<pre id="results" data-result="PENDING">Loading...</pre>
+<script>
+(async function(){
+ 'use strict';
+ const frame=document.getElementById('tool'),out=document.getElementById('results');
+ const rows=[];let pass=0,fail=0;
+ function check(label,valid,details){
+  rows.push((valid?'PASS ':'FAIL ')+label+(valid?'':': '+details));
+  if(valid)pass++;else fail++;
+ }
+ await new Promise((resolve,reject)=>{
+  frame.addEventListener('load',resolve,{once:true});
+  frame.addEventListener('error',reject,{once:true});
+ });
+ const d=frame.contentDocument,win=frame.contentWindow;
+ const link=d.querySelector('.tool-playground-link'),label=d.querySelector('.tool-switcher-label');
+ const cs=el=>win.getComputedStyle(el);
+ const properties=['fontFamily','fontSize','fontWeight','letterSpacing','lineHeight'];
+ check('both nav labels exist',!!link&&!!label,'missing navigation label');
+ if(link&&label){
+  for(const property of properties){
+   const x=cs(link)[property],y=cs(label)[property];
+   check(property+' computed style equality',x===y,'PLAYGROUND='+x+' CHANGE TOOL='+y);
+  }
+  check('both nav labels visible on desktop',cs(link).display!=='none'&&cs(label).display!=='none');
+  check('selector button still present',!!d.getElementById('tool-picker-button'));
+  check('selector popup still present',!!d.getElementById('tool-picker-menu'));
+ }
+ check('release build metadata 0.22.0',d.querySelector('meta[name="index-html-build"]')?.content==='0.22.0');
+ out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
+ out.dataset.result=fail===0?'PASS':'FAIL';
+ document.title='TOOL_HEADER_'+(fail===0?'PASS':'FAIL');
+})();
+</script>
+</body></html>
