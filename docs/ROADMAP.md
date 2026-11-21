@@ -1,7 +1,7 @@
 # INDEX HTML — Development roadmap
 
-**Status:** Active working reference · **Last reviewed:** 2026-10-19  
-**Current published platform:** `0.21.3`  
+**Status:** Active working reference · **Last reviewed:** 2026-11-21  
+**Current platform build / release candidate:** `0.22.0` (official GitHub Release pending approval)  
 **Scope:** INDEX HTML website, Playground and standalone tool ecosystem; **not** the separately versioned INDEX-HTML Bridge.
 
 This roadmap records approved directions and open technical questions. It is **not** a release promise, schedule, frozen feature specification or change to the [INDEX Tool Contract](INDEX-TOOL-CONTRACT.md). Priorities may change after experimentation and maintainer review.
@@ -11,11 +11,11 @@ This roadmap records approved directions and open technical questions. It is **n
 - 20 standalone, INDEX-native HTML generators, with canonical `INDEX_TOOL` and derived Sketch-compatible adapters.
 - Frozen **generator** Tool Contract v1.0; manifest identity, creative defaults and per-tool versions remain authoritative.
 - Public catalogue, tool pages, multi-layer Playground and Download All; site releases follow [Release Policy](RELEASE_POLICY.md).
-- Fragment FX execution is experimental/provisional; native compositor and direct audio-input interfaces are **not frozen**.
+- The Playground has a WebGL2 compositing path with local HTML FX import, multipass and per-instance GPU history. The generator contract remains v1.0; the FX API and direct audio-input interfaces are **not frozen**.
 
 ## Next work — candidates, scope not yet frozen
 
-- **INDEX-native FX:** create and test new standalone FX; evaluate the current fragment-processing proposal in the Playground and other compatible hosts before considering an FX contract freeze. A future `0.22.x` milestone is a candidate, **not an assigned or guaranteed release scope**.
+- **INDEX-native FX:** use the available local WebGL2 Playground runtime to prototype and test new standalone FX, then verify at least one real third-party effect before considering broader compatibility or an FX contract freeze. This does not certify Bridge or OpenMosh parity.
 - **Tool development:** continue generator/FX experiments under the existing [development and FREEZE guidelines](INDEX-TOOL-CONTRACT.md), preserving quality and host-independent creative controls.
 - **Host compatibility:** validate new capabilities per host without inheriting Sketch/Bridge parameter-bank limits as native INDEX architecture.
 
