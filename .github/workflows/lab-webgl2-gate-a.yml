@@ -86,7 +86,7 @@ jobs:
           sleep 1
           if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --window-size=1500,720 --virtual-time-budget=14000 --dump-dom "http://127.0.0.1:8769/tests/tool-header-typography.html" >tool-header-result.html 2>tool-header-stderr.txt
-          sed -n '/<pre id="results"/,/TOTAL .*<\\/pre>/p' tool-header-result.html | head -35
+          grep -E 'TOTAL [0-9]+ PASS|data-result=' tool-header-result.html | tail -8
           grep -q 'data-result="PASS"' tool-header-result.html
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --window-size=1500,720 --virtual-time-budget=10000 --screenshot=tool-header-desktop.png "http://127.0.0.1:8769/tests/tool-header-typography.html" >/dev/null 2>tool-header-screenshot-stderr.txt
       - name: Chromium headless pixel-oracle fixture
