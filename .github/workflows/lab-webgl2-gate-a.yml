@@ -5,6 +5,7 @@ on:
     branches:
       - lab/playground-webgl2-gate-a-20261120
       - fix/playground-native-webgl2-no-demo-20261120
+      - fix/tool-header-and-release-0.22.0-20261121
 
 concurrency:
   group: index-webgl2-${{ github.ref }}
@@ -42,6 +43,38 @@ jobs:
           assert all(x in lab for x in ['uLower', 'uUpper', 'uOpacity', 'uBlend'])
           assert 'localStorage' not in lab and 'indexedDB' not in lab
           print('Static invariants PASS')
+          PY
+      - name: Release metadata and Tool header typography invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          version = "0.22.0"
+          data = json.loads(Path("data/tools.json").read_text())
+          assert data["project"]["releaseBuild"] == version, "Download All build mismatch"
+          assert len(data["tools"]) == 20, "generator catalogue count changed"
+          for page in ("index.html", "about.html", "tool.html", "playground.html"):
+              html = Path(page).read_text()
+              assert html.count('name="index-html-build" content="' + version + '"') == 1, page + " version mismatch"
+          assert version in Path("README.md").read_text()
+          assert "## [" + version + "]" in Path("CHANGELOG.md").read_text()
+          assert version in Path("docs/ROADMAP.md").read_text()
+          css = Path("assets/css/tool-page.css").read_text()
+          def rule(selector):
+              start = css.index(selector + " {") + len(selector + " {")
+              return css[start:css.index("}", start)]
+          link = rule(".tool-playground-link")
+          label = rule(".tool-switcher-label")
+          for declaration in ("font-family: inherit;", "font-size: 11px;",
+                              "line-height: 1;", "font-weight: 800;",
+                              "letter-spacing: .08em;"):
+              assert declaration in link and declaration in label, declaration
+          assert ".tool-switcher-label { display: none; }" in css, "mobile label rule missing"
+          assert 'assets/css/tool-page.css?v=0220' in Path("tool.html").read_text(), "Tool CSS cache not invalidated"
+          assert "pg-webgl2-entry" not in Path("playground.html").read_text(), "demo UI regression"
+          print("Release 0.22.0 metadata and Tool desktop/mobile CSS invariants PASS")
           PY
       - name: Chromium headless pixel-oracle fixture
         shell: bash
