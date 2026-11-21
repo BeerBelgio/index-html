@@ -76,6 +76,19 @@ jobs:
           assert "pg-webgl2-entry" not in Path("playground.html").read_text(), "demo UI regression"
           print("Release 0.22.0 metadata and Tool desktop/mobile CSS invariants PASS")
           PY
+      - name: Desktop Tool header computed typography and screenshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8769 --bind 127.0.0.1 > tool-header-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --window-size=1500,720 --virtual-time-budget=14000 --dump-dom "http://127.0.0.1:8769/tests/tool-header-typography.html" >tool-header-result.html 2>tool-header-stderr.txt
+          sed -n '/<pre id="results"/,/TOTAL .*<\\/pre>/p' tool-header-result.html | head -35
+          grep -q 'data-result="PASS"' tool-header-result.html
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --window-size=1500,720 --virtual-time-budget=10000 --screenshot=tool-header-desktop.png "http://127.0.0.1:8769/tests/tool-header-typography.html" >/dev/null 2>tool-header-screenshot-stderr.txt
       - name: Chromium headless pixel-oracle fixture
         shell: bash
         run: |
@@ -152,6 +165,10 @@ jobs:
             gate-a-browser-result.html
             gate-a-browser-stderr.txt
             gate-a-browser.png
+            tool-header-result.html
+            tool-header-stderr.txt
+            tool-header-desktop.png
+            tool-header-http.log
             gate-a-app-smoke.html
             public-demo-result.html
             local-fx-result.html
