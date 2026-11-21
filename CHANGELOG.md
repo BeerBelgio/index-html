@@ -2,7 +2,7 @@
 
 Changes to the INDEX HTML site, Playground, public contract and tool collection. Versions here are **independent** from INDEX-HTML Bridge and from each individual tool's creative version.
 
-## [0.22.0] — 2026-11-21 (WebGL2 Playground & FX Foundation — release candidate)
+## [0.22.0] — 2026-11-21 (WebGL2 Playground & FX Foundation)
 
 ### Added
 - WebGL2 GPU compositor integrated into the normal five-layer Playground without a separate demo mode; existing sandboxed Canvas2D/WebGL1 generators keep independent rendering contexts and provide frames to the host.
@@ -19,11 +19,8 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 ### Compatibility and limitations
 - Generator Tool Contract v1.0, all 20 creative algorithms, manifests/defaults and Sketch adapters remain unchanged.
 - The WebGL2 FX API is provisional, not a shared Bridge engine, and no OpenMosh effect or numerical Bridge parity has been validated.
-- Automated Chromium software-WebGL checks have passed; native M5/Intel, Safari/Firefox and broad hardware performance verification remain pending.
+- Automated Chromium software-WebGL regression checks: 107/107 PASS on the final pre-release feature baseline. Targeted native M5 visual/function smoke: 5/5 PASS (maintainer, 2026-11-21). Exhaustive M5/Intel GPU numerical parity, Safari/Firefox and broad hardware performance verification remain pending.
 - CF-001 (Cellular Field Intel standalone rendering) remains open. Browser rendering depends on WebGL2 availability; legacy Canvas2D mode cannot run WebGL2-only FX.
-
-### Release process
-- Candidate documentation and version metadata prepared in a review branch; Git tag and official release require explicit approval and acceptance checks.
 
 ## [0.21.3] — 2026-11-15 (maintenance & UI improvements)
 
