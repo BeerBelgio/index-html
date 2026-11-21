@@ -47,7 +47,19 @@ window.indexDraw=(state,hostContext)=>{const c=document.getElementById('sketch-c
     const frameReady=await until(()=>d.querySelector('#pg-log')?.textContent.includes('first frame displayed') && d.querySelector('.pg-layer-card')?.textContent.includes('Local Test Generator'),18000);
     check('local HTML import produces first frame',()=>{if(!frameReady)throw Error('status='+d.querySelector('#pg-status')?.textContent+' log='+d.querySelector('#pg-log')?.textContent.slice(-1800)+' layer='+d.querySelector('.pg-layer-card')?.textContent);return true;});
     const gpuActive=await until(()=>d.querySelector('#pg-gpu-lab')?.style.display!=='none' && d.querySelector('#pg-composite')?.style.visibility==='hidden',6000);
-    check('GPU overlay activates automatically after local import',()=>gpuActive);
+    check('GPU overlay activates automatically after local import',()=>{
+      if(!gpuActive){
+        const gpu=d.querySelector('#pg-gpu-lab'),classic=d.querySelector('#pg-composite');
+        throw Error('gpu='+String(!!gpu)
+          +' inlineDisplay='+String(gpu?.style.display)
+          +' computedDisplay='+String(gpu&&getComputedStyle(gpu).display)
+          +' inlineClassicVisibility='+String(classic?.style.visibility)
+          +' computedClassicVisibility='+String(classic&&getComputedStyle(classic).visibility)
+          +' status='+String(d.querySelector('#pg-status')?.textContent).slice(-180)
+          +' log='+String(d.querySelector('#pg-log')?.textContent).slice(-750));
+      }
+      return true;
+    });
     check('sandboxed local tool iframe exists',()=>d.querySelectorAll('.pg-layer-frame[sandbox="allow-scripts"]').length===1);
     const alphaSlider=d.querySelector('#pg-colors input[type="range"]');
     check('generator exposes host colorOpacity control',()=>!!alphaSlider);
