@@ -13,6 +13,7 @@ Changes to the INDEX HTML site, Playground, public contract and tool collection.
 
 ### Changed
 - Aligned the desktop Tool header's **CHANGE TOOL** label with the existing **PLAYGROUND** navigation typography; mobile label visibility remains unchanged.
+- Expanded each Playground layer's transparent selection button to cover the layer name area while keeping visibility, CLEAR, opacity and blend controls independent.
 - Updated platform build labels and Download All `project.releaseBuild` to `0.22.0`; individual generator versions are unchanged.
 
 ### Compatibility and limitations
