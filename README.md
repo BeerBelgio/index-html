@@ -36,6 +36,7 @@ The tool's color `hostContext.colorOpacity` values range from 0 to 1 without con
 - `data/tools.json`: editorial catalog, file paths and stable tool identity metadata.
 - `assets/`: site UI, scripts, styles, artwork and bundled fonts.
 - `docs/THIRD_PARTY_NOTICES.md`: creative lineage and third-party credits.
+- `openmosh-fx/`: effects exported from OpenMosh for the WebGL2 FX path (MIT, generated; see its `README.md`).
 - `LICENSE.md`: repository-level licensing summary (kept at root for discoverability).
 - `index.html`, `tool.html`, `about.html`, `playground.html`: public site pages.
 - `docs/INDEX-TOOL-CONTRACT.md`: frozen generator runtime contract, creative development guidelines and FREEZE checklist.
