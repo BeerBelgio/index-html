@@ -6,6 +6,7 @@ on:
       - lab/playground-webgl2-gate-a-20261120
       - fix/playground-native-webgl2-no-demo-20261120
       - fix/tool-header-and-release-0.22.0-20261121
+      - feat/playground-import-compatibility-preflight-20261125
 
 concurrency:
   group: index-webgl2-${{ github.ref }}
@@ -101,6 +102,20 @@ jobs:
           if ! grep -q 'data-result="PASS"' gate-a-browser-result.html; then
             echo 'Browser oracle FAIL or not completed'; exit 1
           fi
+      - name: Import capability matrix and non-destructive replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/playground-import-preflight.js
+          node --check assets/js/playground.js
+          node tests/preflight-compatibility.mjs
+          python3 -m http.server 8771 --bind 127.0.0.1 >import-compat-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          node tests/run-browser-smoke.mjs "http://127.0.0.1:8771/tests/playground-import-nondestructive.html" import-compat-result.html "$browser"
+          grep -q 'data-result="PASS"' import-compat-result.html
       - name: Playground integration smoke (offline-capable local server)
         shell: bash
         run: |
@@ -164,6 +179,8 @@ jobs:
             gate-a-browser-result.html
             gate-a-browser-stderr.txt
             gate-a-browser.png
+            import-compat-result.html
+            import-compat-http.log
             tool-header-result.html
             tool-header-stderr.txt
             tool-header-desktop.png
