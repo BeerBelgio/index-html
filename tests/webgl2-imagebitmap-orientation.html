@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>WebGL2 ImageBitmap orientation oracle</title>
+<style>body{font:13px monospace}#surface{position:relative;width:64px;height:64px}canvas{image-rendering:pixelated}#sample,#expected{width:128px;height:128px}pre{white-space:pre-wrap}</style></head>
+<body><h1>INDEX — four-corner ImageBitmap → WebGL2 COMPOSE oracle</h1>
+<div id="surface"><canvas id="legacy" width="64" height="64"></canvas><div id="empty" hidden></div></div>
+<div><canvas id="expected" width="64" height="64"></canvas><canvas id="sample" width="64" height="64"></canvas></div>
+<pre id="results" data-result="PENDING">Starting...</pre>
+<script src="../assets/js/playground-webgl2-lab.js"></script>
+<script>
+(async()=>{
+ const output=document.getElementById('results'),rows=[];let pass=0,fail=0,lab,bmp;
+ function check(label,ok,detail=''){rows.push((ok?'PASS ':'FAIL ')+label+(ok?'':' '+detail));ok?pass++:fail++;}
+ const pattern=document.getElementById('expected'),p=pattern.getContext('2d',{willReadFrequently:true});
+ p.fillStyle='#ff0000';p.fillRect(0,0,32,32);        // top-left red
+ p.fillStyle='#00ff00';p.fillRect(32,0,32,32);        // top-right green
+ p.fillStyle='#0000ff';p.fillRect(0,32,32,32);        // bottom-left blue
+ p.fillStyle='#ffff00';p.fillRect(32,32,32,32);       // bottom-right yellow
+ const surfaces={surface:document.getElementById('surface'),legacyCanvas:document.getElementById('legacy'),emptyElement:document.getElementById('empty')};
+ const points=[[16,16,'top-left'],[48,16,'top-right'],[16,48,'bottom-left'],[48,48,'bottom-right']];
+ function capture(){
+   const c=document.getElementById('sample'),x=c.getContext('2d',{willReadFrequently:true});
+   x.clearRect(0,0,64,64);x.drawImage(document.getElementById('pg-gpu-lab'),0,0);
+   return x;
+ }
+ function corners(x){return points.map(([cx,cy])=>Array.from(x.getImageData(cx,cy,1,1).data));}
+ function same(actual,expected,tol=5){return actual.every((a,i)=>Math.abs(a-expected[i])<=tol);}
+ function compare(label,actual,expected){for(let i=0;i<points.length;i++)check(label+' '+points[i][2],same(actual[i],expected[i]),'actual='+actual[i]+' expected='+expected[i]);}
+ function sourceLayer(){return {role:'generator',bitmap:bmp,visible:true,loading:false,opacity:1,blend:'normal',manifest:{name:'asymmetric source'}};}
+ try {
+   bmp=await createImageBitmap(pattern);
+   lab=window.IndexWebGL2Lab.create(surfaces);
+   const reference=corners(p),layer=sourceLayer();
+   const legacy=surfaces.legacyCanvas.getContext('2d',{willReadFrequently:true});
+   legacy.drawImage(bmp,0,0);
+   compare('Canvas2D ImageBitmap reference',corners(legacy),reference);
+   lab.render([layer],64,64,{running:true,frameId:1,time:0});
+   compare('WebGL2 generator matches upright reference',corners(capture()),reference);
+   const effectManifest={params:[],colors:[],effect:{
+     apiVersion:2,type:'fragment-webgl2',moduleId:'orientation-fixture-copy',moduleVersion:'0.0.1',
+     history:true,passes:[{fragment:`#version 300 es
+precision highp float;
+in vec2 vUV;
+uniform sampler2D uInput;
+out vec4 fragColor;
+void main(){fragColor=texture(uInput,vUV);}`}],
+     provenance:{author:'INDEX test',source:'synthetic',adaptation:'none',license:'test',notice:'original'}
+   }};
+   const fx={role:'effect-webgl2',loading:false,visible:true,opacity:1,blend:'normal',
+     manifest:effectManifest,state:{},alpha:{}};
+   fx.fx=lab.createFX('orientation-test-history',effectManifest.effect);
+   lab.render([layer,fx],64,64,{running:true,frameId:2,time:.016});
+   compare('FX pass/history remains upright (no extra flip)',corners(capture()),reference);
+   check('FX history seeded and advanced',lab.getFxStats(fx.fx.instanceId)?.frame===1);
+   fx.fx.resetHistory();
+   check('RESET HISTORY resets this instance',lab.getFxStats(fx.fx.instanceId)?.frame===0);
+   lab.render([layer,fx],64,64,{running:false,frameId:3,time:.032});
+   compare('paused copy after history reset remains upright',corners(capture()),reference);
+   fx.fx.dispose();
+   lab.render([layer],128,64,{running:false,frameId:4,time:.048});
+   const outputCanvas=document.getElementById('pg-gpu-lab');
+   check('resize supported without GPU error',outputCanvas.width===128&&outputCanvas.height===64);
+   lab.render([layer],64,64,{running:true,frameId:5,time:.064});
+   compare('restored size remains upright',corners(capture()),reference);
+   lab.dispose();
+   check('dispose restores Canvas2D fallback',surfaces.legacyCanvas.style.visibility!=='hidden');
+ }catch(e){check('test initialization/render',false,String(e.stack||e));}
+ finally{try{lab?.dispose()}catch{}bmp?.close();}
+ output.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
+ output.dataset.result=fail===0?'PASS':'FAIL';
+ document.title='BITMAP_ORIENTATION_'+(fail===0?'PASS':'FAIL');
+})();
+</script></body></html>
