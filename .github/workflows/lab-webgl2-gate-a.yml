@@ -6,6 +6,7 @@ on:
       - lab/playground-webgl2-gate-a-20261120
       - fix/playground-native-webgl2-no-demo-20261120
       - fix/tool-header-and-release-0.22.0-20261121
+      - feat/playground-import-compatibility-preflight-20261125
       - fix/webgl2-imagebitmap-orientation-20261125
 
 concurrency:
@@ -111,6 +112,20 @@ jobs:
           grep -E "PASS |FAIL |TOTAL " bitmap-orientation-result.html | tail -32
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --window-size=1000,620 --virtual-time-budget=15000 --screenshot=bitmap-orientation-screen.png "file://$GITHUB_WORKSPACE/tests/webgl2-imagebitmap-orientation.html" >/dev/null 2>&1
           grep -q 'data-result="PASS"' bitmap-orientation-result.html
+      - name: Import capability matrix and non-destructive replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/playground-import-preflight.js
+          node --check assets/js/playground.js
+          node tests/preflight-compatibility.mjs
+          python3 -m http.server 8771 --bind 127.0.0.1 >import-compat-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          node tests/run-browser-smoke.mjs "http://127.0.0.1:8771/tests/playground-import-nondestructive.html" import-compat-result.html "$browser"
+          grep -q 'data-result="PASS"' import-compat-result.html
       - name: Playground integration smoke (offline-capable local server)
         shell: bash
         run: |
@@ -144,7 +159,7 @@ jobs:
           trap 'kill "$server" 2>/dev/null || true' EXIT
           sleep 1
           if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
-          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=100000 --dump-dom "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" >local-fx-result.html 2>local-fx-stderr.txt
+          node tests/run-browser-smoke.mjs "http://127.0.0.1:8768/tests/playground-webgl2-local-fx-smoke.html" local-fx-result.html "$browser"
           sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' local-fx-result.html | head -45
           grep -q 'data-result="PASS"' local-fx-result.html
       - name: WebGL2 FX multipass and history oracle
@@ -174,6 +189,8 @@ jobs:
             gate-a-browser-result.html
             gate-a-browser-stderr.txt
             gate-a-browser.png
+            import-compat-result.html
+            import-compat-http.log
             bitmap-orientation-result.html
             bitmap-orientation-stderr.txt
             bitmap-orientation-screen.png

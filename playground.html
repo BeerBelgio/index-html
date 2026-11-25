@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://beerbelgio.github.io/index-html/assets/branding/index-html-favicon-og.jpg" />
 <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/home-page.css?v=0193">
-<link rel="stylesheet" href="assets/css/playground.css?v=0220">
+<link rel="stylesheet" href="assets/css/playground.css?v=0220-compat01">
 
 <style>
 /* Small-screen advisory only: the full Playground remains usable after dismissal. */
@@ -150,6 +150,13 @@
 <details class="pg-console" id="pg-diagnostics">
   <summary class="pg-bar"><span>DIAGNOSTICS</span><span id="pg-status" role="status">Ready for a standalone HTML file.</span></summary>
   <div class="pg-diagnostics-body">
+    <div id="pg-compat-guidance" class="pg-compat-guidance" hidden>
+      <strong id="pg-compat-tool">HTML compatibility</strong>
+      <p id="pg-compat-reason"></p>
+      <p id="pg-compat-alternative"></p>
+      <a href="https://github.com/BeerBelgio/index-html/blob/main/docs/labs/FX-WEBGL2-PROVISIONAL-API.md" target="_blank" rel="noopener">COMPATIBILITY DOCUMENTATION</a>
+      <a href="about.html#privacy">CONTACT BEERBELGIO</a>
+    </div>
     <p class="pg-perf-note">Renderer performance is estimated from completed composite frames, layer JavaScript drawing and composition cost. GPU execution and bitmap transfers are not fully measured; background tabs may throttle FPS.</p>
     <div class="pg-log-header"><span>EVENT LOG</span><button type="button" id="pg-clear">CLEAR LOG</button></div>
     <pre id="pg-log">Awaiting tool…</pre>
@@ -202,5 +209,6 @@
 })();
 </script>
 <script src="assets/js/playground-webgl2-lab.js?v=fx-webgl2-bitmapflip-01"></script>
-<script src="assets/js/playground.js?v=fx-webgl2-auto-01"></script>
+<script src="assets/js/playground-import-preflight.js?v=compat-01"></script>
+<script src="assets/js/playground.js?v=compat-01"></script>
 </body></html>

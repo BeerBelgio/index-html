@@ -51,6 +51,23 @@ The shader must explicitly determine output alpha; the host blends the FX result
 - Explicit errors: invalid manifest, unknown shader version, shader compilation errors or memory budget exhaustion are reported. A failed FX is bypassed without replacing the lower image; unsupported WebGL1 FX must be run on the legacy URL. Context loss switches to Canvas2D, with resource reallocation/history reset upon restoration.
 - Hardware variation: RGBA8 textures, texture filtering, alpha premultiplication and shader precision can affect numerical results. Renderer parity is measured, not assumed.
 
+## Import compatibility preflight (host-only, provisional)
+
+The Playground validates an imported HTML module **before replacing** an existing layer. A candidate runs in a temporary sandboxed iframe; generators must produce a first transferable frame, and fragment FX shaders must compile and allocate successfully before the instance is committed. On a rejected, timed-out or superseded import the previous layer's HTML, parameters, opacity, visibility, GPU history and sibling layers remain available. Candidate resources are disposed; no uploads or automatic updates are performed.
+
+Preflight results:
+- **SUPPORTED:** manifest, required capabilities and control values can be handled by the current Playground. The candidate is installed after preparation succeeds.
+- **SUPPORTED_WITH_FALLBACK:** an optional numeric control presentation type is not implemented natively but the numeric representation is lossless; the Playground uses its existing sliders and reports the mapping.
+- **UNSUPPORTED:** a mandatory capability or version is unavailable, a parameter cannot be represented faithfully, the FX fails shader compilation/resource allocation, or the HTML fails to produce a generator frame. The previous instance remains active. The diagnostics show the imported name, a specific reason and links to this documentation and BeerBelgio contact.
+
+The generator schema v1.0 and existing param keys/ranges remain unchanged. Optional descriptive fields are preserved; an unknown required `capabilities.requires.*` field is rejected rather than guessed. Only `renderer`, `visualInput` and `audioInput` have host-defined mandatory handling today. The Playground does **not** infer the version or capabilities of Bridge.
+
+Numeric fallbacks are intentionally conservative: `checkbox`/`toggle` require 0/1 bounds and step 1; `select` requires explicit finite numeric options that cover exactly the slider step grid without adding unintended values; other unknown `params[].type` values can use a numeric slider only when bounds, default and step are valid. Nonnumeric select options and semantically lossy mappings are **UNSUPPORTED**, not silently approximated. Colors still require six-digit HEX defaults.
+
+Compatibility is checked against the currently selected Playground renderer. `fragment-webgl2` FX require provisional API v2, lower-composite input, no direct audio, explicit history and 1–3 GLSL ES 3.00 passes. In `?renderer=canvas2d` mode these FX are unsupported, with a link to use the normal WebGL2-capable Playground. Existing WebGL1 FX use their legacy path subject to the host's mixing restrictions.
+
+This is a UI/runtime capability preflight, **not a revision of the frozen generator contract**, not a Bridge compatibility declaration and not a guarantee that unknown future metadata will preserve arbitrary creative semantics. Test an imported effect with actual image input before distributing it.
+
 ## Resource limits
 
 - Preview maximum dimension: 2048 px (the longer edge); other dimension scales proportionally.

@@ -9,7 +9,9 @@ const layers=Array.from({length:5},(_,i)=>({id:i+1,token:0,frame:null,bitmap:nul
 let selected=0,catalogue=[],running=false,raf=0,last=0,clock=0,scheduledAt=0,dirty=true,canvasW=0,canvasH=0,frameCosts=[],paintCount=0,perfStart=0,autoTicks=[],previousTick=0,perfWindows=0;
 const ctx=ui.composite.getContext('2d',{alpha:true});
 const forceClassic=new URLSearchParams(window.location.search).get('renderer')==='canvas2d';
-let gpuLab=null, gpuFrameId=0;
+let gpuLab=null, gpuFrameId=0, importCounter=1000;
+const stagedImports=new Map();
+const compatGuidance=$('pg-compat-guidance');
 const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
 const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
 const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
@@ -71,7 +73,7 @@ function updatePerf(now){if(!running)return;if(!perfStart){perfStart=now;return;
  frameCosts=[];paintCount=0;perfStart=now;perfWindows++;
 }
 ui.fpsTarget.addEventListener('change',resetPerf);
-function placeholder(){const any=visibleReady();const busy=layers.some(l=>l.loading);ui.empty.hidden=any;ui.placeholderArt.src=busy?loadingArt:idleArt;ui.placeholderArt.alt=busy?'Loading tool':'Drop a tool to start';ui.empty.setAttribute('aria-busy',String(busy));ui.role.textContent=layers.filter(l=>l.manifest).length+' / 5 LAYERS';}
+function placeholder(){const any=visibleReady();const busy=layers.some(l=>l.loading)||stagedImports.size>0;ui.empty.hidden=any;ui.placeholderArt.src=busy?loadingArt:idleArt;ui.placeholderArt.alt=busy?'Loading tool':'Drop a tool to start';ui.empty.setAttribute('aria-busy',String(busy));ui.role.textContent=layers.filter(l=>l.manifest).length+' / 5 LAYERS';}
 function normalize(raw){if(!raw||!Array.isArray(raw.params)||!Array.isArray(raw.colors))throw Error('Manifest needs params[] and colors[].');const seen=new Set();for(const x of [...raw.params,...raw.colors]){if(!x.key||seen.has(x.key))throw Error('Duplicate/missing control key: '+x.key);seen.add(x.key);}for(const p of raw.params)if(![p.min,p.max,p.step,p.default].every(n=>Number.isFinite(Number(n)))||Number(p.step)<=0||Number(p.min)>Number(p.max))throw Error('Invalid numeric parameter: '+p.key);for(const c of raw.colors)if(!/^#[0-9a-f]{6}$/i.test(c.default))throw Error('Invalid HEX color: '+c.key);return {...raw,role:raw.index?.role||raw.role||'generator',effect:raw.index?.effect||raw.effect||null};}
 function safeHtml(html,layerId,token){
  const boot=`<script>(function(){const lid=${layerId},token=${token};const originalGetContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,options){if(/^(webgl2?|experimental-webgl)$/i.test(type))options={...(options||{}),preserveDrawingBuffer:true};return originalGetContext.call(this,type,options)};const send=(type,data,bitmap)=>{const msg={indexPlaygroundLayer:lid,token,type,data};if(bitmap){msg.bitmap=bitmap;parent.postMessage(msg,'*',[bitmap]);}else parent.postMessage(msg,'*');};addEventListener('error',e=>send('error',e.message));addEventListener('unhandledrejection',e=>send('error',String(e.reason)));let pending=false;addEventListener('message',async e=>{const m=e.data;if(e.source!==parent||!m||m.layerCommand!==lid||m.token!==token)return;try{if(m.action==='resize'){const fn=window.indexResize||window.sketchResize;if(fn)fn(m.width,m.height)}if(m.action==='draw'&&!pending){pending=true;const start=performance.now();try{const fn=window.indexDraw||window.sketchDraw;if(fn)await fn(m.state,m.context);const drawMs=performance.now()-start;const canvas=document.querySelector('#sketch-canvas')||document.querySelector('canvas');if(!canvas)throw Error('Generator canvas not found');const bitmap=await createImageBitmap(canvas);send('frame',{drawMs},bitmap);}finally{pending=false}}}catch(err){pending=false;send('error',String(err.stack||err))}});})();<\/script>`;
@@ -81,66 +83,161 @@ function safeHtml(html,layerId,token){
  if(/<\/body>/i.test(html))return html.replace(/<\/body>/i,end+'</body>');return html+end;
 }
 function send(layer,action,more={}){layer.frame?.contentWindow?.postMessage({layerCommand:layer.id,token:layer.token,action,...more},'*');}
-function kill(layer){clearTimeout(layer.loadTimer);layer.abort?.abort();layer.abort=null;layer.frame?.remove();layer.frame=null;layer.bitmap?.close();layer.bitmap=null;layer.fx?.dispose();layer.fx=null;layer.pending=false;layer.firstFrame=false;layer.loading=false;layer.manifest=null;layer.role=null;layer.state=null;layer.alpha={};layer.name='';layer.drawCost=0;layer.token++;}
-function clearLayer(layer){kill(layer);if(!loaded().length){running=false;cancelAnimationFrame(raf);raf=0;ui.play.textContent='PAUSE';resetPerf();}dirty=true;renderLayerRack();renderEditor();placeholder();paint();info('Cleared L'+layer.id);}
-function beginLoad(layer,name){kill(layer);layer.loading=true;layer.name=name;const token=layer.token;
- layer.loadTimer=setTimeout(()=>{if(layer.token!==token||layer.firstFrame)return;fail('No first frame after 16 seconds. This tool may be blocking the browser.',layer);layer.loading=false;renderLayerRack();placeholder();},16000);
- renderLayerRack();renderEditor();placeholder();info('Loading '+name+' into L'+layer.id+'…');log('L'+layer.id+' loading '+name);
- return token;
+function cancelImport(candidate){
+ if(!candidate||stagedImports.get(candidate.id)!==candidate)return;
+ stagedImports.delete(candidate.id);
+ clearTimeout(candidate.loadTimer);
+ candidate.abort?.abort();candidate.frame?.remove();candidate.bitmap?.close();candidate.fx?.dispose();
+ candidate.frame=null;candidate.bitmap=null;candidate.fx=null;
 }
-function openLayer(layer,html,name,token){if(layer.token!==token)return;if(html.length>2*1024*1024)throw Error('Maximum HTML size is 2 MB.');
- const frame=document.createElement('iframe');frame.className='pg-layer-frame';frame.setAttribute('sandbox','allow-scripts');frame.setAttribute('referrerpolicy','no-referrer');frame.title='Isolated L'+layer.id+' visual renderer';frame.setAttribute('aria-hidden','true');
- frame.srcdoc=safeHtml(html,layer.id,token);layer.frame=frame;ui.frameHost.append(frame);
- info('Inspecting L'+layer.id+' manifest…');
+function rejectImport(candidate,error){
+ if(stagedImports.get(candidate.id)!==candidate)return;
+ const assessment=error?.assessment||candidate.compat;
+ const name=assessment?.name||candidate.name;
+ const reason=assessment?.status==='UNSUPPORTED'?assessment.reason:String(error?.message||error);
+ const alternative=assessment?.status==='UNSUPPORTED'?assessment.alternative:'The previous layer remains active. Check the FX compatibility documentation or contact BeerBelgio.';
+ cancelImport(candidate);
+ compatGuidance.hidden=false;
+ $('pg-compat-tool').textContent='UNSUPPORTED IMPORT — '+name;
+ $('pg-compat-reason').textContent=reason;
+ $('pg-compat-alternative').textContent=alternative||'';
+ fail('Import rejected for '+name+': '+reason+' Previous layer preserved.',layers[candidate.id-1]);
+ placeholder();renderLayerRack();renderEditor();
 }
-async function local(file){const layer=active();if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html')){fail('Choose an HTML file.');return;}if(file.size>2*1024*1024){fail('Maximum HTML size is 2 MB.');return;}
- const token=beginLoad(layer,file.name);try{const content=await file.text();openLayer(layer,content,file.name,token)}catch(e){if(layer.token===token){layer.loading=false;fail(e.message,layer);renderLayerRack();placeholder();}}}
+function kill(layer){
+ const staged=stagedImports.get(layer.id);if(staged)cancelImport(staged);
+ clearTimeout(layer.loadTimer);layer.abort?.abort();layer.abort=null;
+ layer.frame?.remove();layer.frame=null;layer.bitmap?.close();layer.bitmap=null;
+ layer.fx?.dispose();layer.fx=null;layer.pending=false;layer.firstFrame=false;
+ layer.loading=false;layer.manifest=null;layer.role=null;layer.state=null;layer.alpha={};
+ layer.name='';layer.drawCost=0;layer.token++;
+}
+function clearLayer(layer){
+ kill(layer);if(!loaded().length){running=false;cancelAnimationFrame(raf);raf=0;ui.play.textContent='PAUSE';resetPerf();}
+ dirty=true;renderLayerRack();renderEditor();placeholder();paint();info('Cleared L'+layer.id);
+}
+function beginLoad(layer,name){
+ const prior=stagedImports.get(layer.id);if(prior)cancelImport(prior);
+ const candidate={id:layer.id,token:++importCounter,name,frame:null,bitmap:null,fx:null,
+  manifest:null,role:null,state:null,alpha:{},abort:null,loadTimer:0,compat:null,loading:true};
+ stagedImports.set(layer.id,candidate);
+ candidate.loadTimer=setTimeout(()=>rejectImport(candidate,Error('No first frame after 16 seconds. This HTML may be blocking the browser.')),16000);
+ compatGuidance.hidden=true;
+ placeholder();info('Inspecting '+name+' for L'+layer.id+' (current layer preserved)…');
+ log('L'+layer.id+' staging '+name);
+ return candidate;
+}
+function openLayer(candidate,html,name){
+ if(stagedImports.get(candidate.id)!==candidate)return;
+ if(html.length>2*1024*1024)throw Error('Maximum HTML size is 2 MB.');
+ const frame=document.createElement('iframe');frame.className='pg-layer-frame';frame.setAttribute('sandbox','allow-scripts');
+ frame.setAttribute('referrerpolicy','no-referrer');frame.title='Staged isolated L'+candidate.id+' HTML renderer';
+ frame.setAttribute('aria-hidden','true');frame.srcdoc=safeHtml(html,candidate.id,candidate.token);
+ candidate.frame=frame;ui.frameHost.append(frame);
+ info('Inspecting L'+candidate.id+' manifest (current layer retained)…');
+}
+async function local(file){
+ const layer=active();if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html')){fail('Choose an HTML file.');return;}
+ if(file.size>2*1024*1024){fail('Maximum HTML size is 2 MB.');return;}
+ const candidate=beginLoad(layer,file.name);
+ try{const content=await file.text();if(stagedImports.get(candidate.id)===candidate)openLayer(candidate,content,file.name);}
+ catch(e){rejectImport(candidate,e);}
+}
 ui.file.addEventListener('change',()=>{if(ui.file.files[0])local(ui.file.files[0]);ui.file.value='';});ui.file.previousElementSibling?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ui.file.click();}});
 for(const evt of ['dragenter','dragover'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.add('drag')});
 for(const evt of ['dragleave','drop'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.remove('drag')});
 ui.drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])local(e.dataTransfer.files[0]);});
 fetch('data/tools.json').then(r=>{if(!r.ok)throw Error('Catalogue HTTP '+r.status);return r.json()}).then(data=>{catalogue=data.tools||[];for(const tool of catalogue){const opt=document.createElement('option');opt.value=tool.toolId;opt.textContent=tool.name+' · '+tool.version;ui.select.append(opt);}}).catch(e=>log('Catalogue unavailable: '+e.message));
 ui.select.addEventListener('change',()=>ui.load.disabled=!ui.select.value);
-ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;const layer=active(),token=beginLoad(layer,item.name);ui.load.disabled=true;
- try{const ctrl=new AbortController();layer.abort=ctrl;const r=await fetch(item.file,{cache:'no-store',signal:ctrl.signal});if(!r.ok)throw Error('HTTP '+r.status);const content=await r.text();openLayer(layer,content,item.name,token);}catch(err){if(layer.token===token){layer.loading=false;fail(err.message,layer);renderLayerRack();placeholder();}}finally{ui.load.disabled=!ui.select.value;}});
+ui.load.addEventListener('click',async()=>{
+ const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;
+ const layer=active(),candidate=beginLoad(layer,item.name);ui.load.disabled=true;
+ try{
+  const ctrl=new AbortController();candidate.abort=ctrl;
+  const r=await fetch(item.file,{cache:'no-store',signal:ctrl.signal});
+  if(!r.ok)throw Error('HTTP '+r.status);
+  const content=await r.text();
+  if(stagedImports.get(candidate.id)===candidate)openLayer(candidate,content,item.name);
+ }catch(err){rejectImport(candidate,err);}
+ finally{ui.load.disabled=!ui.select.value;}
+});
 function paramsFrom(manifest){const state={time:clock},alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1;}return {state,alpha};}
-function activate(layer,raw){const manifest=normalize(raw.manifest);
- const role=manifest.role==='effect'&&manifest.capabilities?.requires?.renderer==='fragment-webgl2'?'effect-webgl2':manifest.role;
- if(role==='generator'||role==='effect-webgl2')ensureGPU();
- if(role!=='generator'&&role!=='effect'&&role!=='effect-webgl2')throw Error('Unsupported role '+role+'. Compositor A/B requires a separate tool contract.');
- if(role==='effect'&&gpuLab){
-  const hasGpuFx=layers.some(l=>l!==layer&&l.role==='effect-webgl2'&&l.fx);
-  if(hasGpuFx)throw Error('Legacy WebGL1 FX cannot be mixed with active WebGL2 FX. Remove the WebGL2 FX or use ?renderer=canvas2d for legacy shaders.');
+function commitCandidate(candidate){
+ if(stagedImports.get(candidate.id)!==candidate)return;
+ const layer=layers[candidate.id-1];
+ stagedImports.delete(candidate.id);clearTimeout(candidate.loadTimer);candidate.abort=null;
+ // Only after manifest, shader and first-frame validation do we dispose live state.
+ kill(layer);
+ layer.token=candidate.token;layer.frame=candidate.frame;layer.bitmap=candidate.bitmap;
+ layer.fx=candidate.fx;layer.manifest=candidate.manifest;layer.role=candidate.role;
+ layer.state=candidate.state;layer.alpha=candidate.alpha;layer.name=candidate.manifest.name||candidate.name;
+ layer.firstFrame=true;layer.loading=false;layer.pending=false;layer.drawCost=candidate.drawCost||0;
+ candidate.frame=null;candidate.bitmap=null;candidate.fx=null;
+ if(layer.role==='effect'&&gpuLab){
+  // Other WebGL2 FX were ruled out by the nonmutating preflight.
   gpuLab.dispose();gpuLab=null;gpuDisabled=true;
-  log('Legacy WebGL1 FX detected; switching compositor to Canvas2D. Reload to reactivate WebGL2.');
+  log('Legacy FX enabled Canvas2D mode. Reload to reactivate WebGL2.');
  }
- if(role==='effect-webgl2'&&!gpuLab)throw Error('This FX requires WebGL2. Use a browser with WebGL2 enabled and reload the Playground; for legacy effects, keep Canvas2D.');
- if(role==='effect-webgl2'&&(manifest.capabilities?.requires?.visualInput!=='lower-composite'&&manifest.role==='effect'||
-    manifest.capabilities?.requires?.audioInput!=='none'&&manifest.role==='effect'))
-  throw Error('WebGL2 FX requires lower-composite visual input and no direct audio input.');
- if(role==='generator'&&(!raw.hasResize||!raw.hasDraw))throw Error('Missing resize/draw entrypoint.');
- if(role==='effect'&&(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string'))throw Error('FX needs GLSL fragment shader.');
- const preparedGpuFx=role==='effect-webgl2'?gpuLab.createFX('L'+layer.id+'-T'+layer.token,manifest.effect):null;
- const {state,alpha}=paramsFrom(manifest);layer.name=manifest.name||layer.name;layer.manifest=manifest;layer.role=role;layer.state=state;layer.alpha=alpha;
- if(role==='effect'){layer.fx=makeFx(manifest.effect.fragment);layer.fx.manifest=manifest;layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);}
- else if(role==='effect-webgl2'){
-  layer.fx=preparedGpuFx;
-  layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);
- }
- else resizeOne(layer);
  renderLayerRack();if(active()===layer)renderEditor();placeholder();dirty=true;
  if(!running&&layers.filter(x=>x.manifest).length===1){running=true;ui.play.textContent='PAUSE';resetPerf();}
- info('L'+layer.id+' ready: '+manifest.name+' · '+manifest.params.length+' parameters · '+manifest.colors.length+' colors');
- log('L'+layer.id+' manifest ready · '+role+(raw.native?' · INDEX_NATIVE':' · LEGACY'));
+ const fallback=candidate.compat?.status==='SUPPORTED_WITH_FALLBACK';
+ info('L'+layer.id+' ready: '+layer.name+(fallback?' · Numeric slider fallback: '+candidate.compat.reason:''));
+ if(layer.role==='generator')log('L'+layer.id+' first frame displayed');
+ log('L'+layer.id+' '+(fallback?'SUPPORTED_WITH_FALLBACK':'SUPPORTED')+' · '+layer.role+(candidate.native?' · INDEX_NATIVE':' · LEGACY'));
  if(!running)paint();else if(!raf)raf=requestAnimationFrame(tick);
+}
+function prepareCandidate(candidate,raw){
+ const existing=layers[candidate.id-1];
+ const assessment=window.IndexImportPreflight.assess(raw.manifest,{
+  filename:candidate.name,native:raw.native,hasDraw:raw.hasDraw,hasResize:raw.hasResize,forceClassic:gpuDisabled,
+  otherGpuFX:layers.some(l=>l!==existing&&l.role==='effect-webgl2'&&l.fx)
+ });
+ candidate.compat=assessment;
+ if(assessment.status==='UNSUPPORTED'){
+  const e=Error(assessment.reason);e.assessment=assessment;throw e;
+ }
+ const manifest=normalize(raw.manifest),role=assessment.role;
+ candidate.manifest=manifest;candidate.role=role;candidate.native=raw.native;
+ const defaults=paramsFrom(manifest);candidate.state=defaults.state;candidate.alpha=defaults.alpha;
+ if(role==='generator'){
+  ensureGPU(); // Preserve the existing default automatic WebGL2 mode for supported generators.
+  // Candidate draws in an isolated iframe until its first ImageBitmap succeeds.
+  send(candidate,'resize',{width:canvasW,height:canvasH});
+  candidate.state.time=clock;
+  send(candidate,'draw',{state:{...candidate.state},context:{colorOpacity:{...candidate.alpha}}});
+  return;
+ }
+ if(role==='effect-webgl2'){
+  ensureGPU();
+  if(!gpuLab)throw Error('This FX requires an available WebGL2 renderer. Try a WebGL2-capable browser.');
+  candidate.fx=gpuLab.createFX('L'+candidate.id+'-IMPORT'+candidate.token,manifest.effect);
+ }else{
+  candidate.fx=makeFx(manifest.effect.fragment);
+  candidate.fx.manifest=manifest;
+  candidate.fx.resize(canvasW,canvasH);
+ }
+ commitCandidate(candidate);
 }
 window.addEventListener('message',event=>{
  const msg=event.data;
- if(!msg||!Number.isInteger(msg.indexPlaygroundLayer)||msg.indexPlaygroundLayer<1||msg.indexPlaygroundLayer>5){return;}
- const layer=layers[msg.indexPlaygroundLayer-1];
+ if(!msg||!Number.isInteger(msg.indexPlaygroundLayer)||msg.indexPlaygroundLayer<1||msg.indexPlaygroundLayer>5)return;
+ const id=msg.indexPlaygroundLayer;
+ const candidate=stagedImports.get(id);
+ if(candidate&&event.source===candidate.frame?.contentWindow&&msg.token===candidate.token){
+  if(msg.type==='error'){rejectImport(candidate,Error(String(msg.data).slice(0,1300)));return;}
+  if(msg.type==='ready'){try{prepareCandidate(candidate,msg.data)}catch(e){rejectImport(candidate,e);}return;}
+  if(msg.type==='frame'){
+   if(candidate.role!=='generator'){msg.bitmap?.close?.();rejectImport(candidate,Error('Unexpected generator frame before manifest preflight.'));return;}
+   candidate.bitmap=msg.bitmap;candidate.drawCost=Number(msg.data?.drawMs)||0;
+   if(!candidate.bitmap){rejectImport(candidate,Error('Generator did not produce a transferable frame.'));return;}
+   commitCandidate(candidate);return;
+  }
+  msg.bitmap?.close?.();return;
+ }
+ const layer=layers[id-1];
  if(event.source!==layer.frame?.contentWindow||msg.token!==layer.token){msg.bitmap?.close?.();return;}
  if(msg.type==='error'){layer.pending=false;layer.loading=false;clearTimeout(layer.loadTimer);fail(String(msg.data).slice(0,1300),layer);renderLayerRack();placeholder();return;}
- if(msg.type==='ready'){try{activate(layer,msg.data)}catch(err){layer.loading=false;clearTimeout(layer.loadTimer);fail(err.message,layer);renderLayerRack();placeholder();}return;}
+ if(msg.type==='ready'){/* Already activated through staging; ignore duplicate ready. */return;}
  if(msg.type==='frame'){
   if(layer.bitmap&&layer.bitmap!==msg.bitmap)layer.bitmap.close();
   layer.bitmap=msg.bitmap;layer.pending=false;layer.drawCost=Number(msg.data?.drawMs)||0;
@@ -152,7 +249,9 @@ window.addEventListener('message',event=>{
 function resizeOne(layer){if(layer.role==='generator')send(layer,'resize',{width:canvasW,height:canvasH});else if(layer.role==='effect')layer.fx?.resize(canvasW,canvasH);}
 function resize(){const rect=ui.surface.getBoundingClientRect();const scale=Math.min(1.5,window.devicePixelRatio||1);const w=Math.max(1,Math.round(rect.width*scale)),h=Math.max(1,Math.round(rect.height*scale));
  if(w===canvasW&&h===canvasH)return;canvasW=w;canvasH=h;ui.composite.width=w;ui.composite.height=h;
- for(const l of layers)resizeOne(l);dirty=true;if(!running)paint();}
+ for(const l of layers)resizeOne(l);
+ for(const c of stagedImports.values())if(c.role==='generator'){send(c,'resize',{width:canvasW,height:canvasH});send(c,'draw',{state:{...c.state},context:{colorOpacity:{...c.alpha}}});}
+ dirty=true;if(!running)paint();}
 const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(ui.surface);
 function choose(index){selected=index;ui.loadTarget.textContent=(layers[index].manifest?'REPLACE ':'LOAD TO ')+'L'+(index+1);
  renderLayerRack();renderEditor();}
@@ -223,6 +322,7 @@ ui.play.addEventListener('click',()=>{if(!loaded().length)return;running=!runnin
 ui.reset.addEventListener('click',()=>{const l=active();if(!l.manifest)return;const defaults=paramsFrom(l.manifest);l.state=defaults.state;l.state.time=clock;l.alpha=defaults.alpha;renderEditor();if(!running)requestSingle(l);info('L'+l.id+' reset to manifest defaults.');});
 $('pg-clear').addEventListener('click',()=>{ui.log.textContent='';});
 function makeFx(fragment){const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:true});if(!gl)throw Error('WebGL unavailable.');
+ try{
  const vertex='attribute vec2 aPos;attribute vec2 aUV;varying vec2 vUV;void main(){vUV=aUV;gl_Position=vec4(aPos,0.,1.);}';
  function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const error=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw Error('GLSL: '+error);}return shader;}
  const vs=compile(gl.VERTEX_SHADER,vertex),fs=compile(gl.FRAGMENT_SHADER,fragment);const prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.deleteShader(vs);gl.deleteShader(fs);
@@ -238,6 +338,7 @@ function makeFx(fragment){const canvas=document.createElement('canvas'),gl=canva
   for(const c of this.manifest.colors){const n=uniform('u_'+c.key);if(n!==null){const hex=state[c.key],rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);gl.uniform4f(n,...rgb,alpha[c.key]??1);}}
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;
  },manifest:null,dispose(){gl.deleteTexture(tex);gl.deleteBuffer(buf);gl.deleteProgram(prog);}};
+ }catch(e){try{gl.getExtension('WEBGL_lose_context')?.loseContext();}catch(_){}throw e;}
 }
 // Each effect uses the actual lower-layer composite as its uInput texture.
 // The layer's own runtime is never allowed to make network requests.
