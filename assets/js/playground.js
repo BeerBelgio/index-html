@@ -320,6 +320,7 @@ ui.play.addEventListener('click',()=>{if(!loaded().length)return;running=!runnin
 ui.reset.addEventListener('click',()=>{const l=active();if(!l.manifest)return;const defaults=paramsFrom(l.manifest);l.state=defaults.state;l.state.time=clock;l.alpha=defaults.alpha;renderEditor();if(!running)requestSingle(l);info('L'+l.id+' reset to manifest defaults.');});
 $('pg-clear').addEventListener('click',()=>{ui.log.textContent='';});
 function makeFx(fragment){const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:true});if(!gl)throw Error('WebGL unavailable.');
+ try{
  const vertex='attribute vec2 aPos;attribute vec2 aUV;varying vec2 vUV;void main(){vUV=aUV;gl_Position=vec4(aPos,0.,1.);}';
  function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const error=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw Error('GLSL: '+error);}return shader;}
  const vs=compile(gl.VERTEX_SHADER,vertex),fs=compile(gl.FRAGMENT_SHADER,fragment);const prog=gl.createProgram();gl.attachShader(prog,vs);gl.attachShader(prog,fs);gl.linkProgram(prog);gl.deleteShader(vs);gl.deleteShader(fs);
@@ -335,6 +336,7 @@ function makeFx(fragment){const canvas=document.createElement('canvas'),gl=canva
   for(const c of this.manifest.colors){const n=uniform('u_'+c.key);if(n!==null){const hex=state[c.key],rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);gl.uniform4f(n,...rgb,alpha[c.key]??1);}}
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;
  },manifest:null,dispose(){gl.deleteTexture(tex);gl.deleteBuffer(buf);gl.deleteProgram(prog);}};
+ }catch(e){try{gl.getExtension('WEBGL_lose_context')?.loseContext();}catch(_){}throw e;}
 }
 // Each effect uses the actual lower-layer composite as its uInput texture.
 // The layer's own runtime is never allowed to make network requests.
