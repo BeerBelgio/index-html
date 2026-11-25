@@ -1,7 +1,7 @@
 # INDEX HTML — Development roadmap
 
-**Status:** Active working reference · **Last reviewed:** 2026-11-21  
-**Current platform release:** `0.22.0`  
+**Status:** Active working reference · **Last reviewed:** 2026-11-25  
+**Current platform release:** `0.22.1`  
 **Scope:** INDEX HTML website, Playground and standalone tool ecosystem; **not** the separately versioned INDEX-HTML Bridge.
 
 This roadmap records approved directions and open technical questions. It is **not** a release promise, schedule, frozen feature specification or change to the [INDEX Tool Contract](INDEX-TOOL-CONTRACT.md). Priorities may change after experimentation and maintainer review.
@@ -12,6 +12,8 @@ This roadmap records approved directions and open technical questions. It is **n
 - Frozen **generator** Tool Contract v1.0; manifest identity, creative defaults and per-tool versions remain authoritative.
 - Public catalogue, tool pages, multi-layer Playground and Download All; site releases follow [Release Policy](RELEASE_POLICY.md).
 - The Playground has a WebGL2 compositing path with local HTML FX import, multipass and per-instance GPU history. The generator contract remains v1.0; the FX API and direct audio-input interfaces are **not frozen**.
+
+- Playground imports now preflight compatibility, preserve active layers on rejection and expose concise diagnostics; ImageBitmap orientation corrected. Third-party FX porting is still candidate work.
 
 ## Next work — candidates, scope not yet frozen
 

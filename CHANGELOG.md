@@ -2,6 +2,14 @@
 
 Changes to the INDEX HTML site, Playground, public contract and tool collection. Versions here are **independent** from INDEX-HTML Bridge and from each individual tool's creative version.
 
+## [0.22.1] — 2026-11-25 (Playground Refinements)
+
+- Fixed ImageBitmap generator vertical orientation in WebGL2 composition without changing FX orientation.
+- Added compatibility preflight, safe numeric metadata fallback and non-destructive HTML import; rejected candidates preserve active layer state and FX history.
+- Added per-failure OK dialog, failed-tool markers, concise diagnostics, collapsible copyable event log and multiline layer names.
+- Aligned platform build metadata and Download All packaging; all 20 generator versions/defaults and the frozen generator contract v1.0 remain unchanged. No migration for existing supported tools.
+- Final feature baseline: 188/188 Chromium regression checks passed; maintainer confirmed live orientation and import UI tests on 2026-11-25. FX API remains provisional; CF-001 remains open. Broad native GPU/browser parity and Bridge/OpenMosh FX compatibility remain unverified.
+
 ## [0.22.0] — 2026-11-21 (WebGL2 Playground & FX Foundation)
 
 ### Added

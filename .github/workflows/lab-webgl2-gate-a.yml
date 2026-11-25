@@ -9,6 +9,7 @@ on:
       - feat/playground-import-compatibility-preflight-20261125
       - fix/webgl2-imagebitmap-orientation-20261125
       - fix/playground-import-feedback-diagnostics-20261125
+      - chore/release-0.22.1-20261125
 
 concurrency:
   group: index-webgl2-${{ github.ref }}
@@ -54,7 +55,7 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-          version = "0.22.0"
+          version = "0.22.1"
           data = json.loads(Path("data/tools.json").read_text())
           assert data["project"]["releaseBuild"] == version, "Download All build mismatch"
           assert len(data["tools"]) == 20, "generator catalogue count changed"
@@ -77,7 +78,7 @@ jobs:
           assert ".tool-switcher-label { display: none; }" in css, "mobile label rule missing"
           assert 'assets/css/tool-page.css?v=0220' in Path("tool.html").read_text(), "Tool CSS cache not invalidated"
           assert "pg-webgl2-entry" not in Path("playground.html").read_text(), "demo UI regression"
-          print("Release 0.22.0 metadata and Tool desktop/mobile CSS invariants PASS")
+          print("Release 0.22.1 metadata and Tool desktop/mobile CSS invariants PASS")
           PY
       - name: Desktop Tool header computed typography and screenshot
         shell: bash
