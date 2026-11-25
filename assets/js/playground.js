@@ -9,7 +9,9 @@ const layers=Array.from({length:5},(_,i)=>({id:i+1,token:0,frame:null,bitmap:nul
 let selected=0,catalogue=[],running=false,raf=0,last=0,clock=0,scheduledAt=0,dirty=true,canvasW=0,canvasH=0,frameCosts=[],paintCount=0,perfStart=0,autoTicks=[],previousTick=0,perfWindows=0;
 const ctx=ui.composite.getContext('2d',{alpha:true});
 const forceClassic=new URLSearchParams(window.location.search).get('renderer')==='canvas2d';
-let gpuLab=null, gpuFrameId=0;
+let gpuLab=null, gpuFrameId=0, importCounter=1000;
+const stagedImports=new Map();
+const compatGuidance=$('pg-compat-guidance');
 const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
 const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
 const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
@@ -71,7 +73,7 @@ function updatePerf(now){if(!running)return;if(!perfStart){perfStart=now;return;
  frameCosts=[];paintCount=0;perfStart=now;perfWindows++;
 }
 ui.fpsTarget.addEventListener('change',resetPerf);
-function placeholder(){const any=visibleReady();const busy=layers.some(l=>l.loading);ui.empty.hidden=any;ui.placeholderArt.src=busy?loadingArt:idleArt;ui.placeholderArt.alt=busy?'Loading tool':'Drop a tool to start';ui.empty.setAttribute('aria-busy',String(busy));ui.role.textContent=layers.filter(l=>l.manifest).length+' / 5 LAYERS';}
+function placeholder(){const any=visibleReady();const busy=layers.some(l=>l.loading)||stagedImports.size>0;ui.empty.hidden=any;ui.placeholderArt.src=busy?loadingArt:idleArt;ui.placeholderArt.alt=busy?'Loading tool':'Drop a tool to start';ui.empty.setAttribute('aria-busy',String(busy));ui.role.textContent=layers.filter(l=>l.manifest).length+' / 5 LAYERS';}
 function normalize(raw){if(!raw||!Array.isArray(raw.params)||!Array.isArray(raw.colors))throw Error('Manifest needs params[] and colors[].');const seen=new Set();for(const x of [...raw.params,...raw.colors]){if(!x.key||seen.has(x.key))throw Error('Duplicate/missing control key: '+x.key);seen.add(x.key);}for(const p of raw.params)if(![p.min,p.max,p.step,p.default].every(n=>Number.isFinite(Number(n)))||Number(p.step)<=0||Number(p.min)>Number(p.max))throw Error('Invalid numeric parameter: '+p.key);for(const c of raw.colors)if(!/^#[0-9a-f]{6}$/i.test(c.default))throw Error('Invalid HEX color: '+c.key);return {...raw,role:raw.index?.role||raw.role||'generator',effect:raw.index?.effect||raw.effect||null};}
 function safeHtml(html,layerId,token){
  const boot=`<script>(function(){const lid=${layerId},token=${token};const originalGetContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,options){if(/^(webgl2?|experimental-webgl)$/i.test(type))options={...(options||{}),preserveDrawingBuffer:true};return originalGetContext.call(this,type,options)};const send=(type,data,bitmap)=>{const msg={indexPlaygroundLayer:lid,token,type,data};if(bitmap){msg.bitmap=bitmap;parent.postMessage(msg,'*',[bitmap]);}else parent.postMessage(msg,'*');};addEventListener('error',e=>send('error',e.message));addEventListener('unhandledrejection',e=>send('error',String(e.reason)));let pending=false;addEventListener('message',async e=>{const m=e.data;if(e.source!==parent||!m||m.layerCommand!==lid||m.token!==token)return;try{if(m.action==='resize'){const fn=window.indexResize||window.sketchResize;if(fn)fn(m.width,m.height)}if(m.action==='draw'&&!pending){pending=true;const start=performance.now();try{const fn=window.indexDraw||window.sketchDraw;if(fn)await fn(m.state,m.context);const drawMs=performance.now()-start;const canvas=document.querySelector('#sketch-canvas')||document.querySelector('canvas');if(!canvas)throw Error('Generator canvas not found');const bitmap=await createImageBitmap(canvas);send('frame',{drawMs},bitmap);}finally{pending=false}}}catch(err){pending=false;send('error',String(err.stack||err))}});})();<\/script>`;
@@ -81,28 +83,84 @@ function safeHtml(html,layerId,token){
  if(/<\/body>/i.test(html))return html.replace(/<\/body>/i,end+'</body>');return html+end;
 }
 function send(layer,action,more={}){layer.frame?.contentWindow?.postMessage({layerCommand:layer.id,token:layer.token,action,...more},'*');}
-function kill(layer){clearTimeout(layer.loadTimer);layer.abort?.abort();layer.abort=null;layer.frame?.remove();layer.frame=null;layer.bitmap?.close();layer.bitmap=null;layer.fx?.dispose();layer.fx=null;layer.pending=false;layer.firstFrame=false;layer.loading=false;layer.manifest=null;layer.role=null;layer.state=null;layer.alpha={};layer.name='';layer.drawCost=0;layer.token++;}
-function clearLayer(layer){kill(layer);if(!loaded().length){running=false;cancelAnimationFrame(raf);raf=0;ui.play.textContent='PAUSE';resetPerf();}dirty=true;renderLayerRack();renderEditor();placeholder();paint();info('Cleared L'+layer.id);}
-function beginLoad(layer,name){kill(layer);layer.loading=true;layer.name=name;const token=layer.token;
- layer.loadTimer=setTimeout(()=>{if(layer.token!==token||layer.firstFrame)return;fail('No first frame after 16 seconds. This tool may be blocking the browser.',layer);layer.loading=false;renderLayerRack();placeholder();},16000);
- renderLayerRack();renderEditor();placeholder();info('Loading '+name+' into L'+layer.id+'…');log('L'+layer.id+' loading '+name);
- return token;
+function cancelImport(candidate){
+ if(!candidate||stagedImports.get(candidate.id)!==candidate)return;
+ stagedImports.delete(candidate.id);
+ clearTimeout(candidate.loadTimer);
+ candidate.abort?.abort();candidate.frame?.remove();candidate.bitmap?.close();candidate.fx?.dispose();
+ candidate.frame=null;candidate.bitmap=null;candidate.fx=null;
 }
-function openLayer(layer,html,name,token){if(layer.token!==token)return;if(html.length>2*1024*1024)throw Error('Maximum HTML size is 2 MB.');
- const frame=document.createElement('iframe');frame.className='pg-layer-frame';frame.setAttribute('sandbox','allow-scripts');frame.setAttribute('referrerpolicy','no-referrer');frame.title='Isolated L'+layer.id+' visual renderer';frame.setAttribute('aria-hidden','true');
- frame.srcdoc=safeHtml(html,layer.id,token);layer.frame=frame;ui.frameHost.append(frame);
- info('Inspecting L'+layer.id+' manifest…');
+function rejectImport(candidate,error){
+ if(stagedImports.get(candidate.id)!==candidate)return;
+ const assessment=error?.assessment||candidate.compat;
+ const name=assessment?.name||candidate.name;
+ const reason=assessment?.status==='UNSUPPORTED'?assessment.reason:String(error?.message||error);
+ const alternative=assessment?.status==='UNSUPPORTED'?assessment.alternative:'The previous layer remains active. Check the FX compatibility documentation or contact BeerBelgio.';
+ cancelImport(candidate);
+ compatGuidance.hidden=false;
+ $('pg-compat-tool').textContent='UNSUPPORTED IMPORT — '+name;
+ $('pg-compat-reason').textContent=reason;
+ $('pg-compat-alternative').textContent=alternative||'';
+ fail('Import rejected for '+name+': '+reason+' Previous layer preserved.',layers[candidate.id-1]);
+ placeholder();renderLayerRack();renderEditor();
 }
-async function local(file){const layer=active();if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html')){fail('Choose an HTML file.');return;}if(file.size>2*1024*1024){fail('Maximum HTML size is 2 MB.');return;}
- const token=beginLoad(layer,file.name);try{const content=await file.text();openLayer(layer,content,file.name,token)}catch(e){if(layer.token===token){layer.loading=false;fail(e.message,layer);renderLayerRack();placeholder();}}}
+function kill(layer){
+ const staged=stagedImports.get(layer.id);if(staged)cancelImport(staged);
+ clearTimeout(layer.loadTimer);layer.abort?.abort();layer.abort=null;
+ layer.frame?.remove();layer.frame=null;layer.bitmap?.close();layer.bitmap=null;
+ layer.fx?.dispose();layer.fx=null;layer.pending=false;layer.firstFrame=false;
+ layer.loading=false;layer.manifest=null;layer.role=null;layer.state=null;layer.alpha={};
+ layer.name='';layer.drawCost=0;layer.token++;
+}
+function clearLayer(layer){
+ kill(layer);if(!loaded().length){running=false;cancelAnimationFrame(raf);raf=0;ui.play.textContent='PAUSE';resetPerf();}
+ dirty=true;renderLayerRack();renderEditor();placeholder();paint();info('Cleared L'+layer.id);
+}
+function beginLoad(layer,name){
+ const prior=stagedImports.get(layer.id);if(prior)cancelImport(prior);
+ const candidate={id:layer.id,token:++importCounter,name,frame:null,bitmap:null,fx:null,
+  manifest:null,role:null,state:null,alpha:{},abort:null,loadTimer:0,compat:null,loading:true};
+ stagedImports.set(layer.id,candidate);
+ candidate.loadTimer=setTimeout(()=>rejectImport(candidate,Error('No first frame after 16 seconds. This HTML may be blocking the browser.')),16000);
+ compatGuidance.hidden=true;
+ placeholder();info('Inspecting '+name+' for L'+layer.id+' (current layer preserved)…');
+ log('L'+layer.id+' staging '+name);
+ return candidate;
+}
+function openLayer(candidate,html,name){
+ if(stagedImports.get(candidate.id)!==candidate)return;
+ if(html.length>2*1024*1024)throw Error('Maximum HTML size is 2 MB.');
+ const frame=document.createElement('iframe');frame.className='pg-layer-frame';frame.setAttribute('sandbox','allow-scripts');
+ frame.setAttribute('referrerpolicy','no-referrer');frame.title='Staged isolated L'+candidate.id+' HTML renderer';
+ frame.setAttribute('aria-hidden','true');frame.srcdoc=safeHtml(html,candidate.id,candidate.token);
+ candidate.frame=frame;ui.frameHost.append(frame);
+ info('Inspecting L'+candidate.id+' manifest (current layer retained)…');
+}
+async function local(file){
+ const layer=active();if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html')){fail('Choose an HTML file.');return;}
+ if(file.size>2*1024*1024){fail('Maximum HTML size is 2 MB.');return;}
+ const candidate=beginLoad(layer,file.name);
+ try{const content=await file.text();if(stagedImports.get(candidate.id)===candidate)openLayer(candidate,content,file.name);}
+ catch(e){rejectImport(candidate,e);}
+}
 ui.file.addEventListener('change',()=>{if(ui.file.files[0])local(ui.file.files[0]);ui.file.value='';});ui.file.previousElementSibling?.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();ui.file.click();}});
 for(const evt of ['dragenter','dragover'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.add('drag')});
 for(const evt of ['dragleave','drop'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.remove('drag')});
 ui.drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])local(e.dataTransfer.files[0]);});
 fetch('data/tools.json').then(r=>{if(!r.ok)throw Error('Catalogue HTTP '+r.status);return r.json()}).then(data=>{catalogue=data.tools||[];for(const tool of catalogue){const opt=document.createElement('option');opt.value=tool.toolId;opt.textContent=tool.name+' · '+tool.version;ui.select.append(opt);}}).catch(e=>log('Catalogue unavailable: '+e.message));
 ui.select.addEventListener('change',()=>ui.load.disabled=!ui.select.value);
-ui.load.addEventListener('click',async()=>{const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;const layer=active(),token=beginLoad(layer,item.name);ui.load.disabled=true;
- try{const ctrl=new AbortController();layer.abort=ctrl;const r=await fetch(item.file,{cache:'no-store',signal:ctrl.signal});if(!r.ok)throw Error('HTTP '+r.status);const content=await r.text();openLayer(layer,content,item.name,token);}catch(err){if(layer.token===token){layer.loading=false;fail(err.message,layer);renderLayerRack();placeholder();}}finally{ui.load.disabled=!ui.select.value;}});
+ui.load.addEventListener('click',async()=>{
+ const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;
+ const layer=active(),candidate=beginLoad(layer,item.name);ui.load.disabled=true;
+ try{
+  const ctrl=new AbortController();candidate.abort=ctrl;
+  const r=await fetch(item.file,{cache:'no-store',signal:ctrl.signal});
+  if(!r.ok)throw Error('HTTP '+r.status);
+  const content=await r.text();
+  if(stagedImports.get(candidate.id)===candidate)openLayer(candidate,content,item.name);
+ }catch(err){rejectImport(candidate,err);}
+ finally{ui.load.disabled=!ui.select.value;}
+});
 function paramsFrom(manifest){const state={time:clock},alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1;}return {state,alpha};}
 function activate(layer,raw){const manifest=normalize(raw.manifest);
  const role=manifest.role==='effect'&&manifest.capabilities?.requires?.renderer==='fragment-webgl2'?'effect-webgl2':manifest.role;
