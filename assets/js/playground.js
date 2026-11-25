@@ -200,6 +200,7 @@ function prepareCandidate(candidate,raw){
  candidate.manifest=manifest;candidate.role=role;candidate.native=raw.native;
  const defaults=paramsFrom(manifest);candidate.state=defaults.state;candidate.alpha=defaults.alpha;
  if(role==='generator'){
+  ensureGPU(); // Preserve the existing default automatic WebGL2 mode for supported generators.
   // Candidate draws in an isolated iframe until its first ImageBitmap succeeds.
   send(candidate,'resize',{width:canvasW,height:canvasH});
   candidate.state.time=clock;
