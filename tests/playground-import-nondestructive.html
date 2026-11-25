@@ -1,0 +1,93 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>INDEX staged import integration</title>
+<style>body{font:13px monospace}iframe{width:1100px;height:900px;border:1px solid #999}pre{white-space:pre-wrap}</style></head><body>
+<h1>INDEX — import preflight and non-destructive replacement</h1>
+<iframe id="app" src="../playground.html" title="Playground"></iframe>
+<pre id="results" data-result="PENDING">Starting...</pre>
+<script>
+(async()=>{
+ const iframe=document.getElementById('app'),out=document.getElementById('results');
+ const rows=[];let pass=0,fail=0;
+ function check(name,ok,detail=''){rows.push((ok?'PASS ':'FAIL ')+name+(ok?'':' '+detail));ok?pass++:fail++;}
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+ async function until(fn,limit=12000){const start=performance.now();while(performance.now()-start<limit){try{if(fn())return true;}catch(e){}await sleep(80);}return false;}
+ function htmlGen(name,type='slider',renderer='canvas2d',draw='ok'){
+ return \`<!doctype html><html><head><title>Test</title></head><body><canvas id="sketch-canvas"></canvas>
+ <script>
+ window.INDEX_TOOL={schemaVersion:1,role:'generator',name:\${JSON.stringify(name)},
+ capabilities:{requires:{renderer:\${JSON.stringify(renderer)},visualInput:'none',audioInput:'none'}},
+ params:[{key:'size',label:'Size',min:0,max:10,step:1,default:5,type:\${JSON.stringify(type)}}],
+ colors:[{key:'color',label:'Color',default:'#fb2244'}]};
+ window.indexResize=(w,h)=>{const c=document.getElementById('sketch-canvas');c.width=w;c.height=h;};
+ window.indexDraw=async(s,ctx)=>{if(\${JSON.stringify(draw)}==='slow')await new Promise(r=>setTimeout(r,4000));
+ const c=document.getElementById('sketch-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
+ x.fillStyle=s.color;x.globalAlpha=ctx?.colorOpacity?.color??1;x.fillRect(0,0,c.width,c.height);x.globalAlpha=1;};
+ <\/script></body></html>\`;
+ }
+ function load(d,html,name){const input=d.getElementById('pg-file'),transfer=new DataTransfer();
+ transfer.items.add(new File([html],name,{type:'text/html'}));
+ input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));}
+ function activeCard(d,i){return d.querySelectorAll('.pg-layer-card')[i];}
+ function pick(d,i){activeCard(d,i).querySelector('.pg-layer-pick').click();}
+ try{
+ await new Promise((ok,no)=>{iframe.addEventListener('load',ok,{once:true});iframe.addEventListener('error',no,{once:true});});
+ const d=iframe.contentDocument,win=iframe.contentWindow;
+ const create=win.IndexWebGL2Lab.create;
+ win.IndexWebGL2Lab.create=args=>{const lab=create(args);win.__testLab=lab;const make=lab.createFX;lab.createFX=(id,def)=>{const fx=make(id,def);win.__lastFx=fx;return fx;};return lab;};
+ check('compatibility preflight module present',!!win.IndexImportPreflight);
+ load(d,htmlGen('Original generator'),'original.html');
+ check('valid generator first frame',await until(()=>d.getElementById('pg-title').textContent==='Original generator'&&
+  d.querySelector('#pg-log').textContent.includes('first frame displayed')));
+ const original=()=>d.querySelector('.pg-layer-frame');
+ const liveFrame=original();
+ const size=d.querySelector('#pg-params input[type="range"]');size.value='7';size.dispatchEvent(new Event('input',{bubbles:true}));
+ const colorOpacity=d.querySelector('#pg-colors input[type="range"]');colorOpacity.value='.4';colorOpacity.dispatchEvent(new Event('input',{bubbles:true}));
+ const opacity=activeCard(d,0).querySelector('.pg-opacity-slider');opacity.value='72';opacity.dispatchEvent(new Event('input',{bubbles:true}));
+ check('baseline controls set',d.querySelector('#pg-params input[type="range"]').value==='7' &&
+   d.querySelector('#pg-colors input[type="range"]').value==='0.4');
+ load(d,htmlGen('Unrecognized requirement','slider','webgl2'),'unsupported.html');
+ check('unknown mandatory renderer reports UNSUPPORTED',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
+  d.getElementById('pg-compat-reason').textContent.includes('renderer')));
+ check('rejected import preserves original iframe',original()===liveFrame);
+ check('rejected import retains controls and opacity',d.querySelector('#pg-params input[type="range"]').value==='7' &&
+  d.querySelector('#pg-colors input[type="range"]').value==='0.4' &&
+  activeCard(d,0).querySelector('.pg-opacity-slider').value==='72');
+ check('diagnostics includes docs and contact links',d.querySelectorAll('#pg-compat-guidance a').length===2);
+ check('no staged iframe leaked after rejection',d.querySelectorAll('.pg-layer-frame').length===1);
+ load(d,htmlGen('Future rotary','future-rotary'),'fallback.html');
+ check('unknown numeric control uses slider fallback',await until(()=>d.getElementById('pg-title').textContent==='Future rotary' &&
+  d.getElementById('pg-status').textContent.includes('Numeric slider fallback')));
+ check('successful replacement disposes original iframe',original()!==liveFrame&&d.querySelectorAll('.pg-layer-frame').length===1);
+ const fallbackFrame=original();
+ load(d,htmlGen('Slow cancelled','slider','canvas2d','slow'),'slow.html');
+ await sleep(150);
+ load(d,htmlGen('Next valid'),'next.html');
+ check('superseded candidate commits only latest',await until(()=>d.getElementById('pg-title').textContent==='Next valid'));
+ check('superseded candidate never replaced original early',original()!==fallbackFrame && d.querySelectorAll('.pg-layer-frame').length===1);
+ pick(d,1);
+ const originalFX=await(await fetch('../assets/fx/original-feedback-history.html')).text();
+ load(d,originalFX,'feedback.html');
+ check('valid WebGL2 history FX imported to L2',await until(()=>d.getElementById('pg-title').textContent.includes('Original Feedback History') && !!win.__lastFx));
+ const fx=win.__lastFx,fxFrame=d.querySelectorAll('.pg-layer-frame')[1];
+ check('history instance available',!!fx?.stats?.().history);
+ await sleep(450);
+ const frameBefore=fx.stats().frame;
+ const broken=originalFX.replace('vec4 source = texture(uInput, vUV);','this is invalid GLSL;');
+ check('broken fixture differs',broken!==originalFX);
+ load(d,broken,'broken-fx.html');
+ check('invalid GLSL displays compile failure',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
+  /GLSL|shader|compile/i.test(d.getElementById('pg-compat-reason').textContent)));
+ check('failed GLSL retains same FX frame',d.querySelectorAll('.pg-layer-frame')[1]===fxFrame);
+ check('failed GLSL retains same GPU history instance',fx.stats().seeded && fx.stats().frame>=frameBefore);
+ check('failed shader does not leak sandbox iframe',d.querySelectorAll('.pg-layer-frame').length===2);
+ const invalidAPI=originalFX.replace('apiVersion: 2','apiVersion: 3');
+ load(d,invalidAPI,'future-api.html');
+ check('unsupported future API reported',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
+  d.getElementById('pg-compat-reason').textContent.includes('API version 2')));
+ check('future API preserves existing FX',fxFrame===d.querySelectorAll('.pg-layer-frame')[1]);
+ check('other layer remains intact',!!d.querySelectorAll('.pg-layer-frame')[0]&&d.querySelectorAll('.pg-layer-frame').length===2);
+ }catch(e){check('integration infrastructure',false,String(e.stack||e));}
+ out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
+ out.dataset.result=fail===0?'PASS':'FAIL';
+ document.title='IMPORT_PREFLIGHT_'+(fail===0?'PASS':'FAIL');
+})();
+</script></body></html>
