@@ -140,6 +140,16 @@
  dismiss();
  check('bad extension flags attempted file only after OK',activeCard(d,2).querySelector('.pg-layer-name').textContent.includes('bad.txt') &&
   d.getElementById('pg-title').textContent===veryLong);
+ pick(d,3);
+ load(d,htmlGen('Incompatible empty layer','slider','webgl2'),'bad-empty.html');
+ check('incompatible empty-layer upload produces popup',await until(()=>modal.open && d.getElementById('pg-log').textContent.includes('Incompatible empty layer')));
+ dismiss();
+ check('empty layer failure marker can be cleared',!activeCard(d,3).querySelector('.pg-layer-clear').disabled &&
+   activeCard(d,3).classList.contains('is-import-error'));
+ activeCard(d,3).querySelector('.pg-layer-clear').click();
+ check('CLEAR removes empty-layer error badge',!activeCard(d,3).classList.contains('is-import-error') &&
+   activeCard(d,3).querySelector('.pg-layer-name').textContent==='EMPTY LAYER');
+
 
  }catch(e){check('integration infrastructure',false,String(e.stack||e));}
  out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
