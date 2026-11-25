@@ -6,6 +6,7 @@ on:
       - lab/playground-webgl2-gate-a-20261120
       - fix/playground-native-webgl2-no-demo-20261120
       - fix/tool-header-and-release-0.22.0-20261121
+      - fix/webgl2-imagebitmap-orientation-20261125
 
 concurrency:
   group: index-webgl2-${{ github.ref }}
@@ -101,6 +102,15 @@ jobs:
           if ! grep -q 'data-result="PASS"' gate-a-browser-result.html; then
             echo 'Browser oracle FAIL or not completed'; exit 1
           fi
+      - name: ImageBitmap orientation corner oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --virtual-time-budget=15000 --dump-dom "file://$GITHUB_WORKSPACE/tests/webgl2-imagebitmap-orientation.html" >bitmap-orientation-result.html 2>bitmap-orientation-stderr.txt
+          grep -E "PASS |FAIL |TOTAL " bitmap-orientation-result.html | tail -32
+          "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --allow-file-access-from-files --window-size=1000,620 --virtual-time-budget=15000 --screenshot=bitmap-orientation-screen.png "file://$GITHUB_WORKSPACE/tests/webgl2-imagebitmap-orientation.html" >/dev/null 2>&1
+          grep -q 'data-result="PASS"' bitmap-orientation-result.html
       - name: Playground integration smoke (offline-capable local server)
         shell: bash
         run: |
@@ -164,6 +174,9 @@ jobs:
             gate-a-browser-result.html
             gate-a-browser-stderr.txt
             gate-a-browser.png
+            bitmap-orientation-result.html
+            bitmap-orientation-stderr.txt
+            bitmap-orientation-screen.png
             tool-header-result.html
             tool-header-stderr.txt
             tool-header-desktop.png
