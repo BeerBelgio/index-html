@@ -11,17 +11,17 @@
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  async function until(fn,limit=12000){const start=performance.now();while(performance.now()-start<limit){try{if(fn())return true;}catch(e){}await sleep(80);}return false;}
  function htmlGen(name,type='slider',renderer='canvas2d',draw='ok'){
- return \`<!doctype html><html><head><title>Test</title></head><body><canvas id="sketch-canvas"></canvas>
+ return `<!doctype html><html><head><title>Test</title></head><body><canvas id="sketch-canvas"></canvas>
  <script>
- window.INDEX_TOOL={schemaVersion:1,role:'generator',name:\${JSON.stringify(name)},
- capabilities:{requires:{renderer:\${JSON.stringify(renderer)},visualInput:'none',audioInput:'none'}},
- params:[{key:'size',label:'Size',min:0,max:10,step:1,default:5,type:\${JSON.stringify(type)}}],
+ window.INDEX_TOOL={schemaVersion:1,role:'generator',name:${JSON.stringify(name)},
+ capabilities:{requires:{renderer:${JSON.stringify(renderer)},visualInput:'none',audioInput:'none'}},
+ params:[{key:'size',label:'Size',min:0,max:10,step:1,default:5,type:${JSON.stringify(type)}}],
  colors:[{key:'color',label:'Color',default:'#fb2244'}]};
  window.indexResize=(w,h)=>{const c=document.getElementById('sketch-canvas');c.width=w;c.height=h;};
- window.indexDraw=async(s,ctx)=>{if(\${JSON.stringify(draw)}==='slow')await new Promise(r=>setTimeout(r,4000));
+ window.indexDraw=async(s,ctx)=>{if(${JSON.stringify(draw)}==='slow')await new Promise(r=>setTimeout(r,4000));
  const c=document.getElementById('sketch-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
  x.fillStyle=s.color;x.globalAlpha=ctx?.colorOpacity?.color??1;x.fillRect(0,0,c.width,c.height);x.globalAlpha=1;};
- <\/script></body></html>\`;
+ <\/script></body></html>`;
  }
  function load(d,html,name){const input=d.getElementById('pg-file'),transfer=new DataTransfer();
  transfer.items.add(new File([html],name,{type:'text/html'}));
