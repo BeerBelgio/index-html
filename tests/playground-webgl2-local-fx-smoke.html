@@ -15,7 +15,7 @@
   const d=frame.contentDocument;
   check('GPU engine loads on normal URL',!!d.defaultView.IndexWebGL2Lab);
   const localTool=`<!doctype html><html><head><title>Solid Color Fixture</title></head><body><canvas id="sketch-canvas"></canvas><script>
-    window.INDEX_TOOL={schemaVersion:1,role:'generator',name:'Solid Color Fixture',params:[],colors:[]};
+    window.INDEX_TOOL={schemaVersion:1,role:'generator',name:'Solid Color Fixture',capabilities:{requires:{renderer:'canvas2d',visualInput:'none',audioInput:'none'}},params:[],colors:[]};
     window.indexResize=(w,h)=>{const c=document.querySelector('canvas');c.width=w;c.height=h;};
     window.indexDraw=()=>{const c=document.querySelector('canvas');const ctx=c.getContext('2d');ctx.fillStyle='#dd2266';ctx.fillRect(0,0,c.width,c.height);};
   <\/script></body></html>`;
