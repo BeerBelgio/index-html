@@ -5,16 +5,52 @@ const ui={stage:$('pg-stage'),surface:$('pg-surface'),frameHost:$('pg-frame-host
 const idleArt='assets/branding/playground_NOTOOL.svg?v=0192';
 const loadingArt='assets/branding/playground_LOADING-TOOL.svg?v=0194';
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
-const layers=Array.from({length:5},(_,i)=>({id:i+1,token:0,frame:null,bitmap:null,fx:null,manifest:null,role:null,state:null,alpha:{},name:'',pending:false,visible:true,opacity:1,blend:'normal',loading:false,firstFrame:false,loadTimer:0,abort:null,drawCost:0}));
+const layers=Array.from({length:5},(_,i)=>({id:i+1,token:0,frame:null,bitmap:null,fx:null,manifest:null,role:null,state:null,alpha:{},name:'',pending:false,visible:true,opacity:1,blend:'normal',loading:false,firstFrame:false,loadTimer:0,abort:null,drawCost:0,failedImport:null,lastImportToken:0}));
 let selected=0,catalogue=[],running=false,raf=0,last=0,clock=0,scheduledAt=0,dirty=true,canvasW=0,canvasH=0,frameCosts=[],paintCount=0,perfStart=0,autoTicks=[],previousTick=0,perfWindows=0;
 const ctx=ui.composite.getContext('2d',{alpha:true});
 const forceClassic=new URLSearchParams(window.location.search).get('renderer')==='canvas2d';
 let gpuLab=null, gpuFrameId=0, importCounter=1000;
 const stagedImports=new Map();
 const compatGuidance=$('pg-compat-guidance');
-const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
+const importErrorDialog=$('pg-import-error-dialog'),importErrorQueue=[];
+let currentImportError=null;
+const COMPACT_ERROR="WAIT, THERE'S AN ERROR! Check here for more info about it";
+function nextImportError(){
+ if(currentImportError||!importErrorQueue.length)return;
+ currentImportError=importErrorQueue.shift();
+ if(typeof importErrorDialog.showModal==='function'&&!importErrorDialog.open)importErrorDialog.showModal();
+ else importErrorDialog.setAttribute('open','');
+ $('pg-import-error-ok').focus();
+}
+function acknowledgeImportError(){
+ const notice=currentImportError;if(!notice)return;
+ currentImportError=null;
+ if(typeof importErrorDialog.close==='function')importErrorDialog.close();
+ else importErrorDialog.removeAttribute('open');
+ const layer=layers[notice.layerId-1];
+ if(layer&&layer.lastImportToken===notice.token){
+  layer.failedImport={name:notice.name,reason:notice.reason};
+  renderLayerRack();
+ }
+ nextImportError();
+}
+$('pg-import-error-ok').addEventListener('click',acknowledgeImportError);
+importErrorDialog.addEventListener('cancel',e=>e.preventDefault());
+function reportImportError(layer,name,reason,token,status='UNSUPPORTED'){
+ compatGuidance.hidden=false;
+ $('pg-compat-tool').textContent=status==='UNSUPPORTED'?'UNSUPPORTED IMPORT':'IMPORT FAILED';
+ fail('Import rejected for '+name+': '+reason+' Previous layer preserved.',layer,false);
+ importErrorQueue.push({layerId:layer.id,name,reason,token});
+ nextImportError();
+}
+function invalidFile(layer,name,reason){
+ const token=++importCounter;
+ layer.lastImportToken=token;layer.failedImport=null;
+ reportImportError(layer,name,reason,token,'FAILED');
+}
+const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;const copy=$('pg-copy-log');if(copy){copy.textContent='COPY LOG';copy.title='Copy the complete event log';}};
 const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
-const fail=(m,layer=null)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=(layer?'L'+layer.id+': ':'')+m;ui.status.classList.add('pg-status-error');ui.diagnostics.open=true;};
+const fail=(m,layer=null,expandDiagnostics=true)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=COMPACT_ERROR;ui.status.classList.add('pg-status-error');if(expandDiagnostics)ui.diagnostics.open=true;};
 let gpuDisabled=forceClassic;
 if(forceClassic)log('Canvas2D fallback selected explicitly. WebGL2 FX are unavailable in this mode.');
 function ensureGPU(){
@@ -95,13 +131,8 @@ function rejectImport(candidate,error){
  const assessment=error?.assessment||candidate.compat;
  const name=assessment?.name||candidate.name;
  const reason=assessment?.status==='UNSUPPORTED'?assessment.reason:String(error?.message||error);
- const alternative=assessment?.status==='UNSUPPORTED'?assessment.alternative:'The previous layer remains active. Check the FX compatibility documentation or contact BeerBelgio.';
  cancelImport(candidate);
- compatGuidance.hidden=false;
- $('pg-compat-tool').textContent='UNSUPPORTED IMPORT — '+name;
- $('pg-compat-reason').textContent=reason;
- $('pg-compat-alternative').textContent=alternative||'';
- fail('Import rejected for '+name+': '+reason+' Previous layer preserved.',layers[candidate.id-1]);
+ reportImportError(layers[candidate.id-1],name,reason,candidate.token,assessment?.status==='UNSUPPORTED'?'UNSUPPORTED':'FAILED');
  placeholder();renderLayerRack();renderEditor();
 }
 function kill(layer){
@@ -110,7 +141,7 @@ function kill(layer){
  layer.frame?.remove();layer.frame=null;layer.bitmap?.close();layer.bitmap=null;
  layer.fx?.dispose();layer.fx=null;layer.pending=false;layer.firstFrame=false;
  layer.loading=false;layer.manifest=null;layer.role=null;layer.state=null;layer.alpha={};
- layer.name='';layer.drawCost=0;layer.token++;
+ layer.name='';layer.drawCost=0;layer.failedImport=null;layer.lastImportToken=0;layer.token++;
 }
 function clearLayer(layer){
  kill(layer);if(!loaded().length){running=false;cancelAnimationFrame(raf);raf=0;ui.play.textContent='PAUSE';resetPerf();}
@@ -121,6 +152,7 @@ function beginLoad(layer,name){
  const candidate={id:layer.id,token:++importCounter,name,frame:null,bitmap:null,fx:null,
   manifest:null,role:null,state:null,alpha:{},abort:null,loadTimer:0,compat:null,loading:true};
  stagedImports.set(layer.id,candidate);
+ layer.lastImportToken=candidate.token;layer.failedImport=null;renderLayerRack();
  candidate.loadTimer=setTimeout(()=>rejectImport(candidate,Error('No first frame after 16 seconds. This HTML may be blocking the browser.')),16000);
  compatGuidance.hidden=true;
  placeholder();info('Inspecting '+name+' for L'+layer.id+' (current layer preserved)…');
@@ -137,8 +169,9 @@ function openLayer(candidate,html,name){
  info('Inspecting L'+candidate.id+' manifest (current layer retained)…');
 }
 async function local(file){
- const layer=active();if(!file||(!/\.html?$/i.test(file.name)&&file.type!=='text/html')){fail('Choose an HTML file.');return;}
- if(file.size>2*1024*1024){fail('Maximum HTML size is 2 MB.');return;}
+ const layer=active();if(!file)return;
+ if(!/\.html?$/i.test(file.name)&&file.type!=='text/html'){invalidFile(layer,file.name,'Choose an HTML file.');return;}
+ if(file.size>2*1024*1024){invalidFile(layer,file.name,'Maximum HTML size is 2 MB.');return;}
  const candidate=beginLoad(layer,file.name);
  try{const content=await file.text();if(stagedImports.get(candidate.id)===candidate)openLayer(candidate,content,file.name);}
  catch(e){rejectImport(candidate,e);}
@@ -168,7 +201,7 @@ function commitCandidate(candidate){
  stagedImports.delete(candidate.id);clearTimeout(candidate.loadTimer);candidate.abort=null;
  // Only after manifest, shader and first-frame validation do we dispose live state.
  kill(layer);
- layer.token=candidate.token;layer.frame=candidate.frame;layer.bitmap=candidate.bitmap;
+ layer.token=candidate.token;layer.lastImportToken=candidate.token;layer.frame=candidate.frame;layer.bitmap=candidate.bitmap;
  layer.fx=candidate.fx;layer.manifest=candidate.manifest;layer.role=candidate.role;
  layer.state=candidate.state;layer.alpha=candidate.alpha;layer.name=candidate.manifest.name||candidate.name;
  layer.firstFrame=true;layer.loading=false;layer.pending=false;layer.drawCost=candidate.drawCost||0;
@@ -256,15 +289,20 @@ const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(ui.surfac
 function choose(index){selected=index;ui.loadTarget.textContent=(layers[index].manifest?'REPLACE ':'LOAD TO ')+'L'+(index+1);
  renderLayerRack();renderEditor();}
 function renderLayerRack(){const focus=document.activeElement,id=focus?.dataset?.focusKey;
- ui.layers.replaceChildren();for(const layer of layers){const card=document.createElement('div');card.className='pg-layer-card'+(selected===layer.id-1?' is-active':'')+(layer.loading?' is-loading':'');
+ ui.layers.replaceChildren();for(const layer of layers){const failed=layer.failedImport;const card=document.createElement('div');card.className='pg-layer-card'+(selected===layer.id-1?' is-active':'')+(layer.loading?' is-loading':'')+(failed?' is-import-error':'');
  const top=document.createElement('div');top.className='pg-layer-top';
- const pick=document.createElement('button');pick.type='button';pick.className='pg-layer-pick';pick.dataset.focusKey='pick-'+layer.id;pick.setAttribute('aria-pressed',String(selected===layer.id-1));pick.setAttribute('aria-label','Select L'+layer.id+(layer.name?', '+layer.name:''));pick.addEventListener('click',()=>choose(layer.id-1));
+ const pick=document.createElement('button');pick.type='button';pick.className='pg-layer-pick';pick.dataset.focusKey='pick-'+layer.id;pick.setAttribute('aria-pressed',String(selected===layer.id-1));pick.setAttribute('aria-label','Select L'+layer.id+(failed?', failed import: '+failed.name+'; active: '+(layer.name||'none'):(layer.name?', '+layer.name:'')));pick.addEventListener('click',()=>choose(layer.id-1));
  const number=document.createElement('span');number.className='pg-layer-number';number.textContent='L'+layer.id;
- const tool=document.createElement('span');tool.className='pg-layer-name';tool.title=layer.name||'Empty';tool.textContent=layer.loading?'LOADING…':layer.name||'EMPTY LAYER';
- pick.append(number,tool);
+ const tool=document.createElement('span');tool.className='pg-layer-name'+(failed?' pg-layer-name-failed':'');tool.title=failed?'Import failed: '+failed.name+' — '+failed.reason+'; active: '+(layer.name||'none'):(layer.name||'Empty');
+ if(failed){
+  const mark=document.createElement('span');mark.className='pg-layer-error-icon';mark.textContent='!';mark.setAttribute('aria-hidden','true');
+  tool.append(mark,document.createTextNode(failed.name));
+  const retained=document.createElement('span');retained.className='pg-layer-retained';retained.textContent=layer.name?'ACTIVE: '+layer.name:'NO ACTIVE TOOL';retained.title=layer.name||'No active tool';
+  pick.append(number,tool,retained);
+ }else{tool.textContent=layer.loading?'LOADING…':layer.name||'EMPTY LAYER';pick.append(number,tool);}
  const actions=document.createElement('div');actions.className='pg-layer-actions';
  const eye=document.createElement('button');eye.type='button';eye.className='pg-layer-visibility';eye.textContent=layer.visible?'ON':'OFF';eye.dataset.focusKey='vis-'+layer.id;eye.setAttribute('aria-pressed',String(layer.visible));eye.title='L'+layer.id+' visibility';eye.addEventListener('click',()=>{layer.visible=!layer.visible;dirty=true;renderLayerRack();placeholder();paint();});
- const clear=document.createElement('button');clear.type='button';clear.className='pg-layer-clear';clear.textContent='×';clear.dataset.focusKey='clear-'+layer.id;clear.disabled=!layer.manifest&&!layer.loading;clear.title='Clear L'+layer.id;clear.setAttribute('aria-label','Clear L'+layer.id);clear.addEventListener('click',()=>clearLayer(layer));
+ const clear=document.createElement('button');clear.type='button';clear.className='pg-layer-clear';clear.textContent='×';clear.dataset.focusKey='clear-'+layer.id;clear.disabled=!layer.manifest&&!layer.loading&&!failed;clear.title='Clear L'+layer.id;clear.setAttribute('aria-label','Clear L'+layer.id);clear.addEventListener('click',()=>clearLayer(layer));
  actions.append(eye,clear);top.append(pick,actions);
  const row=document.createElement('div');row.className='pg-opacity-row';
  const slider=document.createElement('input');slider.type='range';slider.min='0';slider.max='100';slider.step='1';slider.value=String(Math.round(layer.opacity*100));slider.className='pg-opacity-slider';slider.dataset.focusKey='opacity-'+layer.id;slider.setAttribute('aria-label','L'+layer.id+' opacity percentage');
@@ -320,7 +358,20 @@ function tick(now){if(!running){raf=0;return;}if(previousTick){const d=now-previ
 }
 ui.play.addEventListener('click',()=>{if(!loaded().length)return;running=!running;ui.play.textContent=running?'PAUSE':'PLAY';cancelAnimationFrame(raf);raf=0;last=0;previousTick=0;resetPerf();if(running){ui.perf.dataset.health='monitoring';raf=requestAnimationFrame(tick);}else{ui.perf.dataset.health='paused';gauge('fps','0.0','',0,'paused');}});
 ui.reset.addEventListener('click',()=>{const l=active();if(!l.manifest)return;const defaults=paramsFrom(l.manifest);l.state=defaults.state;l.state.time=clock;l.alpha=defaults.alpha;renderEditor();if(!running)requestSingle(l);info('L'+l.id+' reset to manifest defaults.');});
-$('pg-clear').addEventListener('click',()=>{ui.log.textContent='';});
+$('pg-copy-log').addEventListener('click',async()=>{
+ const button=$('pg-copy-log'),content=ui.log.textContent;
+ let copied=false;
+ try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(content);copied=true;}}catch(_){}
+ if(!copied){
+  const textarea=document.createElement('textarea');textarea.value=content;textarea.style.cssText='position:fixed;left:-9999px;top:-9999px';
+  document.body.append(textarea);textarea.focus();textarea.select();
+  try{copied=document.execCommand('copy');}catch(_){}
+  textarea.remove();
+ }
+ button.textContent=copied?'COPIED':'COPY FAILED';
+ button.title=copied?'Full event log copied':'Select the log manually to copy';
+});
+$('pg-clear').addEventListener('click',()=>{ui.log.textContent='';$('pg-copy-log').textContent='COPY LOG';});
 function makeFx(fragment){const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:true});if(!gl)throw Error('WebGL unavailable.');
  try{
  const vertex='attribute vec2 aPos;attribute vec2 aUV;varying vec2 vUV;void main(){vUV=aUV;gl_Position=vec4(aPos,0.,1.);}';

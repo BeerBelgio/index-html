@@ -8,6 +8,7 @@ on:
       - fix/tool-header-and-release-0.22.0-20261121
       - feat/playground-import-compatibility-preflight-20261125
       - fix/webgl2-imagebitmap-orientation-20261125
+      - fix/playground-import-feedback-diagnostics-20261125
 
 concurrency:
   group: index-webgl2-${{ github.ref }}
