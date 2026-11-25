@@ -53,6 +53,7 @@
  check('unknown mandatory renderer reports UNSUPPORTED',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
   d.getElementById('pg-log').textContent.includes('Unsupported generator renderer')));
  check('rejected import shows an OK modal',modal.open&&d.getElementById('pg-import-error-title').textContent==="WAIT, THERE'S AN ERROR!");
+ check('no failed-name marker before popup OK',!activeCard(d,0).classList.contains('is-import-error'));
  check('compact diagnostics show only short error',d.getElementById('pg-status').textContent==="WAIT, THERE'S AN ERROR! Check here for more info about it");
  check('diagnostics stay collapsed until opened',!d.getElementById('pg-diagnostics').open);
  check('compact compatibility card omits filename and internal reason',d.getElementById('pg-compat-tool').textContent==='UNSUPPORTED IMPORT' &&
@@ -106,7 +107,7 @@
  check('invalid GLSL displays compile failure',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
   /GLSL|shader|compile/i.test(d.getElementById('pg-log').textContent) && modal.open));
  dismiss();
- check('failed FX filename appears on L2 after OK',activeCard(d,1).querySelector('.pg-layer-name').textContent.includes('broken-fx.html') &&
+ check('failed FX module appears on L2 after OK',activeCard(d,1).querySelector('.pg-layer-name').textContent.includes('Original Feedback History') &&
    activeCard(d,1).querySelector('.pg-layer-retained').textContent.includes('Original Feedback History'));
  check('failed GLSL retains same FX frame',d.querySelectorAll('.pg-layer-frame')[1]===fxFrame);
  check('failed GLSL retains same GPU history instance',fx.stats().seeded && fx.stats().frame>=frameBefore);
@@ -116,10 +117,30 @@
  check('unsupported future API reported',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
   d.getElementById('pg-log').textContent.includes('API version 2') && modal.open));
  dismiss();
- check('unsupported API also updates failed layer indicator after OK',activeCard(d,1).querySelector('.pg-layer-name').textContent.includes('Fixture WebGL2 FX') ||
+ check('unsupported API also updates failed layer indicator after OK',activeCard(d,1).classList.contains('is-import-error') &&
   activeCard(d,1).querySelector('.pg-layer-name').textContent.includes('Original Feedback History'));
  check('future API preserves existing FX',fxFrame===d.querySelectorAll('.pg-layer-frame')[1]);
  check('other layer remains intact',!!d.querySelectorAll('.pg-layer-frame')[0]&&d.querySelectorAll('.pg-layer-frame').length===2);
+ // A longer generator label uses the whole left-hand selection button, not a single-line ellipsis.
+ pick(d,2);
+ const veryLong='INDEX Four Corners Orientation Demonstration With Long Generator Name For Wrapping';
+ load(d,htmlGen(veryLong),'long-title.html');
+ check('long-name generator loads',await until(()=>d.getElementById('pg-title').textContent===veryLong));
+ const longCard=activeCard(d,2),longPick=longCard.querySelector('.pg-layer-pick'),longLabel=longCard.querySelector('.pg-layer-name');
+ const style=win.getComputedStyle(longLabel),labelBox=longLabel.getBoundingClientRect(),pickBox=longPick.getBoundingClientRect();
+ check('long tool label permits multiple lines',style.whiteSpace==='normal' && style.webkitLineClamp==='4');
+ check('long label uses full selector width',labelBox.width>=pickBox.width-12);
+ check('long text is bounded by selection area',labelBox.bottom<=pickBox.bottom+1 && labelBox.height>15);
+ check('full name remains accessible as title',longLabel.title===veryLong);
+ // Drag-and-drop of unsupported extension must also report failure and preserve layer.
+ const file=d.getElementById('pg-file'),files=new DataTransfer();
+ files.items.add(new File(['not an HTML document'],'bad.txt',{type:'text/plain'}));file.files=files.files;
+ file.dispatchEvent(new Event('change',{bubbles:true}));
+ check('invalid file triggers popup',await until(()=>modal.open&&d.getElementById('pg-log').textContent.includes('Choose an HTML file')));
+ dismiss();
+ check('bad extension flags attempted file only after OK',activeCard(d,2).querySelector('.pg-layer-name').textContent.includes('bad.txt') &&
+  d.getElementById('pg-title').textContent===veryLong);
+
  }catch(e){check('integration infrastructure',false,String(e.stack||e));}
  out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
  out.dataset.result=fail===0?'PASS':'FAIL';
