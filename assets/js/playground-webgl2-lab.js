@@ -17,11 +17,15 @@ uniform sampler2D uUpper;
 uniform float uOpacity;
 uniform int uBlend;
 uniform int uUpperPremultiplied;
+uniform int uUpperIsBitmap;
 out vec4 fragColor;
 void main() {
   vec4 below = texture(uLower, vUV);
-  vec4 above = texture(uUpper, vUV);
-  // ImageBitmap inputs arrive premultiplied on Chromium; intermediate FX textures do not.
+  // ImageBitmap upload ignores UNPACK_FLIP_Y_WEBGL: correct only bitmap sources here.
+  // FX, multipass, and history textures already use GPU-native bottom-left UVs.
+  vec2 upperUV = uUpperIsBitmap == 1 ? vec2(vUV.x, 1.0 - vUV.y) : vUV;
+  vec4 above = texture(uUpper, upperUV);
+  // Bitmap alpha handling is independent from the source orientation.
   if (uUpperPremultiplied == 1 && above.a > 0.0) above.rgb = clamp(above.rgb / above.a, 0.0, 1.0);
   float a = clamp(above.a * uOpacity, 0.0, 1.0);
   float b = clamp(below.a, 0.0, 1.0);
@@ -191,10 +195,11 @@ void main() {
     function upload(bitmap) {
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D, source);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+      // WebGL ignores unpack flip/premultiply flags for ImageBitmap inputs.
+      // Keep the source pixels unchanged; COMPOSE handles only the bitmap Y direction.
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
       return source;
     }
 
@@ -377,6 +382,8 @@ void main() {
         if (blend !== null) gl.uniform1i(blend, mode);
         const premul = gl.getUniformLocation(composeProgram, 'uUpperPremultiplied');
         if (premul !== null) gl.uniform1i(premul, isBitmap ? 1 : 0);
+        const bitmapOrigin = gl.getUniformLocation(composeProgram, 'uUpperIsBitmap');
+        if (bitmapOrigin !== null) gl.uniform1i(bitmapOrigin, isBitmap ? 1 : 0);
         const next = 1 - read;
         draw(pair[next].fbo);
         read = next; wrote = true;
