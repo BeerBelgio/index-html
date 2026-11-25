@@ -48,7 +48,7 @@ function invalidFile(layer,name,reason){
  layer.lastImportToken=token;layer.failedImport=null;
  reportImportError(layer,name,reason,token,'FAILED');
 }
-const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;};
+const log=(m)=>{ui.log.textContent=(ui.log.textContent==='Awaiting tool…'?'':ui.log.textContent+'\n')+m;ui.log.scrollTop=ui.log.scrollHeight;const copy=$('pg-copy-log');if(copy){copy.textContent='COPY LOG';copy.title='Copy the complete event log';}};
 const info=(m)=>{ui.status.textContent=m;ui.status.classList.remove('pg-status-error');};
 const fail=(m,layer=null,expandDiagnostics=true)=>{if(layer)log('ERROR L'+layer.id+': '+m);else log('ERROR: '+m);ui.status.textContent=COMPACT_ERROR;ui.status.classList.add('pg-status-error');if(expandDiagnostics)ui.diagnostics.open=true;};
 let gpuDisabled=forceClassic;
@@ -371,7 +371,7 @@ $('pg-copy-log').addEventListener('click',async()=>{
  button.textContent=copied?'COPIED':'COPY FAILED';
  button.title=copied?'Full event log copied':'Select the log manually to copy';
 });
-$('pg-clear').addEventListener('click',()=>{ui.log.textContent='';});
+$('pg-clear').addEventListener('click',()=>{ui.log.textContent='';$('pg-copy-log').textContent='COPY LOG';});
 function makeFx(fragment){const canvas=document.createElement('canvas'),gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,preserveDrawingBuffer:true});if(!gl)throw Error('WebGL unavailable.');
  try{
  const vertex='attribute vec2 aPos;attribute vec2 aUV;varying vec2 vUV;void main(){vUV=aUV;gl_Position=vec4(aPos,0.,1.);}';
