@@ -162,43 +162,80 @@ ui.load.addEventListener('click',async()=>{
  finally{ui.load.disabled=!ui.select.value;}
 });
 function paramsFrom(manifest){const state={time:clock},alpha={};for(const p of manifest.params)state[p.key]=Number(p.default);for(const c of manifest.colors){state[c.key]=c.default;alpha[c.key]=1;}return {state,alpha};}
-function activate(layer,raw){const manifest=normalize(raw.manifest);
- const role=manifest.role==='effect'&&manifest.capabilities?.requires?.renderer==='fragment-webgl2'?'effect-webgl2':manifest.role;
- if(role==='generator'||role==='effect-webgl2')ensureGPU();
- if(role!=='generator'&&role!=='effect'&&role!=='effect-webgl2')throw Error('Unsupported role '+role+'. Compositor A/B requires a separate tool contract.');
- if(role==='effect'&&gpuLab){
-  const hasGpuFx=layers.some(l=>l!==layer&&l.role==='effect-webgl2'&&l.fx);
-  if(hasGpuFx)throw Error('Legacy WebGL1 FX cannot be mixed with active WebGL2 FX. Remove the WebGL2 FX or use ?renderer=canvas2d for legacy shaders.');
+function commitCandidate(candidate){
+ if(stagedImports.get(candidate.id)!==candidate)return;
+ const layer=layers[candidate.id-1];
+ stagedImports.delete(candidate.id);clearTimeout(candidate.loadTimer);candidate.abort=null;
+ // Only after manifest, shader and first-frame validation do we dispose live state.
+ kill(layer);
+ layer.token=candidate.token;layer.frame=candidate.frame;layer.bitmap=candidate.bitmap;
+ layer.fx=candidate.fx;layer.manifest=candidate.manifest;layer.role=candidate.role;
+ layer.state=candidate.state;layer.alpha=candidate.alpha;layer.name=candidate.manifest.name||candidate.name;
+ layer.firstFrame=true;layer.loading=false;layer.pending=false;layer.drawCost=candidate.drawCost||0;
+ candidate.frame=null;candidate.bitmap=null;candidate.fx=null;
+ if(layer.role==='effect'&&gpuLab){
+  // Other WebGL2 FX were ruled out by the nonmutating preflight.
   gpuLab.dispose();gpuLab=null;gpuDisabled=true;
-  log('Legacy WebGL1 FX detected; switching compositor to Canvas2D. Reload to reactivate WebGL2.');
+  log('Legacy FX enabled Canvas2D mode. Reload to reactivate WebGL2.');
  }
- if(role==='effect-webgl2'&&!gpuLab)throw Error('This FX requires WebGL2. Use a browser with WebGL2 enabled and reload the Playground; for legacy effects, keep Canvas2D.');
- if(role==='effect-webgl2'&&(manifest.capabilities?.requires?.visualInput!=='lower-composite'&&manifest.role==='effect'||
-    manifest.capabilities?.requires?.audioInput!=='none'&&manifest.role==='effect'))
-  throw Error('WebGL2 FX requires lower-composite visual input and no direct audio input.');
- if(role==='generator'&&(!raw.hasResize||!raw.hasDraw))throw Error('Missing resize/draw entrypoint.');
- if(role==='effect'&&(manifest.effect?.type!=='fragment'||typeof manifest.effect?.fragment!=='string'))throw Error('FX needs GLSL fragment shader.');
- const preparedGpuFx=role==='effect-webgl2'?gpuLab.createFX('L'+layer.id+'-T'+layer.token,manifest.effect):null;
- const {state,alpha}=paramsFrom(manifest);layer.name=manifest.name||layer.name;layer.manifest=manifest;layer.role=role;layer.state=state;layer.alpha=alpha;
- if(role==='effect'){layer.fx=makeFx(manifest.effect.fragment);layer.fx.manifest=manifest;layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);}
- else if(role==='effect-webgl2'){
-  layer.fx=preparedGpuFx;
-  layer.firstFrame=true;layer.loading=false;clearTimeout(layer.loadTimer);
- }
- else resizeOne(layer);
  renderLayerRack();if(active()===layer)renderEditor();placeholder();dirty=true;
  if(!running&&layers.filter(x=>x.manifest).length===1){running=true;ui.play.textContent='PAUSE';resetPerf();}
- info('L'+layer.id+' ready: '+manifest.name+' · '+manifest.params.length+' parameters · '+manifest.colors.length+' colors');
- log('L'+layer.id+' manifest ready · '+role+(raw.native?' · INDEX_NATIVE':' · LEGACY'));
+ const fallback=candidate.compat?.status==='SUPPORTED_WITH_FALLBACK';
+ info('L'+layer.id+' ready: '+layer.name+(fallback?' · Numeric slider fallback: '+candidate.compat.reason:''));
+ log('L'+layer.id+' '+(fallback?'SUPPORTED_WITH_FALLBACK':'SUPPORTED')+' · '+layer.role+(candidate.native?' · INDEX_NATIVE':' · LEGACY'));
  if(!running)paint();else if(!raf)raf=requestAnimationFrame(tick);
+}
+function prepareCandidate(candidate,raw){
+ const existing=layers[candidate.id-1];
+ const assessment=window.IndexImportPreflight.assess(raw.manifest,{
+  filename:candidate.name,native:raw.native,hasDraw:raw.hasDraw,hasResize:raw.hasResize,forceClassic:gpuDisabled,
+  otherGpuFX:layers.some(l=>l!==existing&&l.role==='effect-webgl2'&&l.fx)
+ });
+ candidate.compat=assessment;
+ if(assessment.status==='UNSUPPORTED'){
+  const e=Error(assessment.reason);e.assessment=assessment;throw e;
+ }
+ const manifest=normalize(raw.manifest),role=assessment.role;
+ candidate.manifest=manifest;candidate.role=role;candidate.native=raw.native;
+ const defaults=paramsFrom(manifest);candidate.state=defaults.state;candidate.alpha=defaults.alpha;
+ if(role==='generator'){
+  // Candidate draws in an isolated iframe until its first ImageBitmap succeeds.
+  send(candidate,'resize',{width:canvasW,height:canvasH});
+  candidate.state.time=clock;
+  send(candidate,'draw',{state:{...candidate.state},context:{colorOpacity:{...candidate.alpha}}});
+  return;
+ }
+ if(role==='effect-webgl2'){
+  ensureGPU();
+  if(!gpuLab)throw Error('This FX requires an available WebGL2 renderer. Try a WebGL2-capable browser.');
+  candidate.fx=gpuLab.createFX('L'+candidate.id+'-IMPORT'+candidate.token,manifest.effect);
+ }else{
+  candidate.fx=makeFx(manifest.effect.fragment);
+  candidate.fx.manifest=manifest;
+  candidate.fx.resize(canvasW,canvasH);
+ }
+ commitCandidate(candidate);
 }
 window.addEventListener('message',event=>{
  const msg=event.data;
- if(!msg||!Number.isInteger(msg.indexPlaygroundLayer)||msg.indexPlaygroundLayer<1||msg.indexPlaygroundLayer>5){return;}
- const layer=layers[msg.indexPlaygroundLayer-1];
+ if(!msg||!Number.isInteger(msg.indexPlaygroundLayer)||msg.indexPlaygroundLayer<1||msg.indexPlaygroundLayer>5)return;
+ const id=msg.indexPlaygroundLayer;
+ const candidate=stagedImports.get(id);
+ if(candidate&&event.source===candidate.frame?.contentWindow&&msg.token===candidate.token){
+  if(msg.type==='error'){rejectImport(candidate,Error(String(msg.data).slice(0,1300)));return;}
+  if(msg.type==='ready'){try{prepareCandidate(candidate,msg.data)}catch(e){rejectImport(candidate,e);}return;}
+  if(msg.type==='frame'){
+   if(candidate.role!=='generator'){msg.bitmap?.close?.();rejectImport(candidate,Error('Unexpected generator frame before manifest preflight.'));return;}
+   candidate.bitmap=msg.bitmap;candidate.drawCost=Number(msg.data?.drawMs)||0;
+   if(!candidate.bitmap){rejectImport(candidate,Error('Generator did not produce a transferable frame.'));return;}
+   commitCandidate(candidate);return;
+  }
+  msg.bitmap?.close?.();return;
+ }
+ const layer=layers[id-1];
  if(event.source!==layer.frame?.contentWindow||msg.token!==layer.token){msg.bitmap?.close?.();return;}
  if(msg.type==='error'){layer.pending=false;layer.loading=false;clearTimeout(layer.loadTimer);fail(String(msg.data).slice(0,1300),layer);renderLayerRack();placeholder();return;}
- if(msg.type==='ready'){try{activate(layer,msg.data)}catch(err){layer.loading=false;clearTimeout(layer.loadTimer);fail(err.message,layer);renderLayerRack();placeholder();}return;}
+ if(msg.type==='ready'){/* Already activated through staging; ignore duplicate ready. */return;}
  if(msg.type==='frame'){
   if(layer.bitmap&&layer.bitmap!==msg.bitmap)layer.bitmap.close();
   layer.bitmap=msg.bitmap;layer.pending=false;layer.drawCost=Number(msg.data?.drawMs)||0;
@@ -210,7 +247,9 @@ window.addEventListener('message',event=>{
 function resizeOne(layer){if(layer.role==='generator')send(layer,'resize',{width:canvasW,height:canvasH});else if(layer.role==='effect')layer.fx?.resize(canvasW,canvasH);}
 function resize(){const rect=ui.surface.getBoundingClientRect();const scale=Math.min(1.5,window.devicePixelRatio||1);const w=Math.max(1,Math.round(rect.width*scale)),h=Math.max(1,Math.round(rect.height*scale));
  if(w===canvasW&&h===canvasH)return;canvasW=w;canvasH=h;ui.composite.width=w;ui.composite.height=h;
- for(const l of layers)resizeOne(l);dirty=true;if(!running)paint();}
+ for(const l of layers)resizeOne(l);
+ for(const c of stagedImports.values())if(c.role==='generator'){send(c,'resize',{width:canvasW,height:canvasH});send(c,'draw',{state:{...c.state},context:{colorOpacity:{...c.alpha}}});}
+ dirty=true;if(!running)paint();}
 const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(ui.surface);
 function choose(index){selected=index;ui.loadTarget.textContent=(layers[index].manifest?'REPLACE ':'LOAD TO ')+'L'+(index+1);
  renderLayerRack();renderEditor();}
