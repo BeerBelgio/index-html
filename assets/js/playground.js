@@ -170,7 +170,7 @@ function openLayer(candidate,html,name){
 }
 async function local(file){
  const layer=active();if(!file)return;
- if(!/\\.html?$/i.test(file.name)&&file.type!=='text/html'){invalidFile(layer,file.name,'Choose an HTML file.');return;}
+ if(!/\.html?$/i.test(file.name)&&file.type!=='text/html'){invalidFile(layer,file.name,'Choose an HTML file.');return;}
  if(file.size>2*1024*1024){invalidFile(layer,file.name,'Maximum HTML size is 2 MB.');return;}
  const candidate=beginLoad(layer,file.name);
  try{const content=await file.text();if(stagedImports.get(candidate.id)===candidate)openLayer(candidate,content,file.name);}
