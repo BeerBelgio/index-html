@@ -182,6 +182,7 @@ function commitCandidate(candidate){
  if(!running&&layers.filter(x=>x.manifest).length===1){running=true;ui.play.textContent='PAUSE';resetPerf();}
  const fallback=candidate.compat?.status==='SUPPORTED_WITH_FALLBACK';
  info('L'+layer.id+' ready: '+layer.name+(fallback?' · Numeric slider fallback: '+candidate.compat.reason:''));
+ if(layer.role==='generator')log('L'+layer.id+' first frame displayed');
  log('L'+layer.id+' '+(fallback?'SUPPORTED_WITH_FALLBACK':'SUPPORTED')+' · '+layer.role+(candidate.native?' · INDEX_NATIVE':' · LEGACY'));
  if(!running)paint();else if(!raf)raf=requestAnimationFrame(tick);
 }
