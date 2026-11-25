@@ -22,7 +22,7 @@
   <meta name="twitter:image" content="https://beerbelgio.github.io/index-html/assets/branding/index-html-favicon-og.jpg" />
 <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/css/home-page.css?v=0193">
-<link rel="stylesheet" href="assets/css/playground.css?v=0220-compat01">
+<link rel="stylesheet" href="assets/css/playground.css?v=0220-import-ui02">
 
 <style>
 /* Small-screen advisory only: the full Playground remains usable after dismissal. */
@@ -151,15 +151,18 @@
   <summary class="pg-bar"><span>DIAGNOSTICS</span><span id="pg-status" role="status">Ready for a standalone HTML file.</span></summary>
   <div class="pg-diagnostics-body">
     <div id="pg-compat-guidance" class="pg-compat-guidance" hidden>
-      <strong id="pg-compat-tool">HTML compatibility</strong>
-      <p id="pg-compat-reason"></p>
-      <p id="pg-compat-alternative"></p>
-      <a href="https://github.com/BeerBelgio/index-html/blob/main/docs/labs/FX-WEBGL2-PROVISIONAL-API.md" target="_blank" rel="noopener">COMPATIBILITY DOCUMENTATION</a>
-      <a href="about.html#privacy">CONTACT BEERBELGIO</a>
+      <strong id="pg-compat-tool">UNSUPPORTED IMPORT</strong>
+      <p>Read the <a href="https://github.com/BeerBelgio/index-html/blob/main/docs/labs/FX-WEBGL2-PROVISIONAL-API.md" target="_blank" rel="noopener">compatibility documentation</a> or contact <a href="about.html#privacy">BeerBelgio</a>.</p>
     </div>
     <p class="pg-perf-note">Renderer performance is estimated from completed composite frames, layer JavaScript drawing and composition cost. GPU execution and bitmap transfers are not fully measured; background tabs may throttle FPS.</p>
-    <div class="pg-log-header"><span>EVENT LOG</span><button type="button" id="pg-clear">CLEAR LOG</button></div>
-    <pre id="pg-log">Awaiting tool…</pre>
+    <details class="pg-event-log-details" id="pg-event-log-details">
+      <summary>EVENT LOG</summary>
+      <div class="pg-log-actions">
+        <button type="button" id="pg-copy-log">COPY LOG</button>
+        <button type="button" id="pg-clear">CLEAR LOG</button>
+      </div>
+      <pre id="pg-log">Awaiting tool…</pre>
+    </details>
   </div>
 </details>
 </main>
@@ -175,6 +178,15 @@
     <a class="hub-link" href="https://beerbelgio.github.io/" target="_blank" rel="noopener"><span>BEERBELGIO</span><img src="assets/BeerBelgio-button.svg" alt="" aria-hidden="true" /></a>
   </nav>
 </footer>
+
+<dialog class="pg-import-error-dialog" id="pg-import-error-dialog" aria-labelledby="pg-import-error-title" aria-describedby="pg-import-error-description">
+  <div class="pg-import-error-inner">
+    <p class="pg-import-error-kicker">INDEX HTML / PLAYGROUND</p>
+    <h2 id="pg-import-error-title">WAIT, THERE'S AN ERROR!</h2>
+    <p id="pg-import-error-description">There was a problem loading this HTML. Check the DIAGNOSTICS section for more information. Your previous layer is still available.</p>
+    <button type="button" id="pg-import-error-ok">OK</button>
+  </div>
+</dialog>
 
 <dialog class="pg-mobile-entry" id="pg-mobile-entry" aria-labelledby="pg-mobile-entry-heading" aria-describedby="pg-mobile-entry-description">
  <div class="pg-mobile-entry-inner">
@@ -210,5 +222,5 @@
 </script>
 <script src="assets/js/playground-webgl2-lab.js?v=fx-webgl2-bitmapflip-01"></script>
 <script src="assets/js/playground-import-preflight.js?v=compat-01"></script>
-<script src="assets/js/playground.js?v=compat-01"></script>
+<script src="assets/js/playground.js?v=import-ui02"></script>
 </body></html>
