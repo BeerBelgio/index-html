@@ -34,6 +34,11 @@
  const create=win.IndexWebGL2Lab.create;
  win.IndexWebGL2Lab.create=args=>{const lab=create(args);win.__testLab=lab;const make=lab.createFX;lab.createFX=(id,def)=>{const fx=make(id,def);win.__lastFx=fx;return fx;};return lab;};
  check('compatibility preflight module present',!!win.IndexImportPreflight);
+ check('event log collapsed by default',!d.getElementById('pg-event-log-details').open);
+ check('diagnostics collapsed by default',!d.getElementById('pg-diagnostics').open);
+ const modal=d.getElementById('pg-import-error-dialog');
+ const dismiss=()=>d.getElementById('pg-import-error-ok').click();
+
  load(d,htmlGen('Original generator'),'original.html');
  check('valid generator first frame',await until(()=>d.getElementById('pg-title').textContent==='Original generator'&&
   d.querySelector('#pg-log').textContent.includes('first frame displayed')));
@@ -46,12 +51,36 @@
    d.querySelector('#pg-colors input[type="range"]').value==='0.4');
  load(d,htmlGen('Unrecognized requirement','slider','webgl2'),'unsupported.html');
  check('unknown mandatory renderer reports UNSUPPORTED',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
-  d.getElementById('pg-compat-reason').textContent.includes('renderer')));
+  d.getElementById('pg-log').textContent.includes('Unsupported generator renderer')));
+ check('rejected import shows an OK modal',modal.open&&d.getElementById('pg-import-error-title').textContent==="WAIT, THERE'S AN ERROR!");
+ check('compact diagnostics show only short error',d.getElementById('pg-status').textContent==="WAIT, THERE'S AN ERROR! Check here for more info about it");
+ check('diagnostics stay collapsed until opened',!d.getElementById('pg-diagnostics').open);
+ check('compact compatibility card omits filename and internal reason',d.getElementById('pg-compat-tool').textContent==='UNSUPPORTED IMPORT' &&
+   !d.getElementById('pg-compat-guidance').textContent.includes('Unrecognized requirement') &&
+   !d.getElementById('pg-compat-guidance').textContent.includes('renderer'));
+ dismiss();
+ check('failed filename appears on layer after OK',activeCard(d,0).classList.contains('is-import-error') &&
+  activeCard(d,0).querySelector('.pg-layer-name').textContent.includes('Unrecognized requirement') &&
+  activeCard(d,0).querySelector('.pg-layer-error-icon')?.textContent==='!');
+ check('failed layer still identifies actual running generator',activeCard(d,0).querySelector('.pg-layer-retained')?.textContent.includes('Original generator'));
+
  check('rejected import preserves original iframe',original()===liveFrame);
  check('rejected import retains controls and opacity',d.querySelector('#pg-params input[type="range"]').value==='7' &&
   d.querySelector('#pg-colors input[type="range"]').value==='0.4' &&
   activeCard(d,0).querySelector('.pg-opacity-slider').value==='72');
  check('diagnostics includes docs and contact links',d.querySelectorAll('#pg-compat-guidance a').length===2);
+ d.getElementById('pg-diagnostics').open=true;
+ const logDetails=d.getElementById('pg-event-log-details');
+ check('event log stays collapsed when diagnostics opens',!logDetails.open);
+ logDetails.open=true;
+ check('event log expands with detailed rejected module reason',d.getElementById('pg-log').textContent.includes('Unsupported generator renderer'));
+ let clipboardText='';
+ Object.defineProperty(win.navigator,'clipboard',{configurable:true,value:{writeText:async text=>{clipboardText=text;}}});
+ d.getElementById('pg-copy-log').click();
+ check('COPY LOG copies complete visible log',await until(()=>clipboardText.includes('Unsupported generator renderer') &&
+  clipboardText.includes('L1 staging original.html')));
+ logDetails.open=false;d.getElementById('pg-diagnostics').open=false;
+
  check('no staged iframe leaked after rejection',d.querySelectorAll('.pg-layer-frame').length===1);
  load(d,htmlGen('Future rotary','future-rotary'),'fallback.html');
  check('unknown numeric control uses slider fallback',await until(()=>d.getElementById('pg-title').textContent==='Future rotary' &&
@@ -75,14 +104,20 @@
  check('broken fixture differs',broken!==originalFX);
  load(d,broken,'broken-fx.html');
  check('invalid GLSL displays compile failure',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
-  /GLSL|shader|compile/i.test(d.getElementById('pg-compat-reason').textContent)));
+  /GLSL|shader|compile/i.test(d.getElementById('pg-log').textContent) && modal.open));
+ dismiss();
+ check('failed FX filename appears on L2 after OK',activeCard(d,1).querySelector('.pg-layer-name').textContent.includes('broken-fx.html') &&
+   activeCard(d,1).querySelector('.pg-layer-retained').textContent.includes('Original Feedback History'));
  check('failed GLSL retains same FX frame',d.querySelectorAll('.pg-layer-frame')[1]===fxFrame);
  check('failed GLSL retains same GPU history instance',fx.stats().seeded && fx.stats().frame>=frameBefore);
  check('failed shader does not leak sandbox iframe',d.querySelectorAll('.pg-layer-frame').length===2);
  const invalidAPI=originalFX.replace('apiVersion: 2','apiVersion: 3');
  load(d,invalidAPI,'future-api.html');
  check('unsupported future API reported',await until(()=>d.getElementById('pg-compat-guidance').hidden===false &&
-  d.getElementById('pg-compat-reason').textContent.includes('API version 2')));
+  d.getElementById('pg-log').textContent.includes('API version 2') && modal.open));
+ dismiss();
+ check('unsupported API also updates failed layer indicator after OK',activeCard(d,1).querySelector('.pg-layer-name').textContent.includes('Fixture WebGL2 FX') ||
+  activeCard(d,1).querySelector('.pg-layer-name').textContent.includes('Original Feedback History'));
  check('future API preserves existing FX',fxFrame===d.querySelectorAll('.pg-layer-frame')[1]);
  check('other layer remains intact',!!d.querySelectorAll('.pg-layer-frame')[0]&&d.querySelectorAll('.pg-layer-frame').length===2);
  }catch(e){check('integration infrastructure',false,String(e.stack||e));}
