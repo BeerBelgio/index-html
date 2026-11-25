@@ -34,7 +34,7 @@
   check('selector button still present',!!d.getElementById('tool-picker-button'));
   check('selector popup still present',!!d.getElementById('tool-picker-menu'));
  }
- check('release build metadata 0.22.0',d.querySelector('meta[name="index-html-build"]')?.content==='0.22.0');
+ check('release build metadata 0.22.1',d.querySelector('meta[name="index-html-build"]')?.content==='0.22.1');
  out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';
  out.dataset.result=fail===0?'PASS':'FAIL';
  document.title='TOOL_HEADER_'+(fail===0?'PASS':'FAIL');

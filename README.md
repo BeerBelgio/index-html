@@ -6,7 +6,7 @@ An independently developed, source-available collection of 20 standalone HTML vi
 - **Website:** https://beerbelgio.github.io/index-html/
 - **Playground:** https://beerbelgio.github.io/index-html/playground.html
 - **Repository:** https://github.com/BeerBelgio/index-html
-- **Current platform release:** `0.22.0` (WebGL2 Playground compositor, local HTML FX, multipass and independent GPU history; generator contract v1.0 unchanged).
+- **Current platform release:** `0.22.1` (WebGL2 orientation fix, safer HTML imports and clearer Playground diagnostics; generator contract v1.0 unchanged).
 
 ## What INDEX is
 
@@ -54,6 +54,8 @@ The INDEX-native migration was based on successful user testing of 20 generators
 ## Testing and compatibility limits
 
 The WebGL2 compositor, local FX loader and history passed automated Chromium software-WebGL regression tests. The maintainer also confirmed five functional/visual checks on a native M5 on 2026-11-21 (desktop Tool header, layer selection, ON/OFF/CLEAR, opacity and generator/FX import). This targeted smoke test does not establish exhaustive native M5/Intel GPU parity, Safari/Firefox support or Bridge/OpenMosh FX compatibility. Known standalone issue [CF-001](docs/KNOWN_ISSUES.md) remains open. The twenty generator algorithms, manifests and creative defaults are unchanged in 0.22.0.
+
+For 0.22.1, the final feature baseline passed 188/188 automated Chromium regression checks (PR #14, final head). On 2026-11-25 the maintainer confirmed live orientation and import feedback/UI testing after the relevant merges. The generator algorithms, manifests and creative defaults remain unchanged. Broad native GPU/browser parity and Bridge/OpenMosh FX compatibility are not certified.
 
 ## License and provenance
 
