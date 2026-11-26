@@ -126,6 +126,16 @@ Internal creative reference for:
 This is same-owner project lineage rather than a third-party dependency or licence obligation.
 
 
+## OpenMosh — zivavu/OpenMosh
+
+Source: https://github.com/zivavu/OpenMosh  
+Source licence: MIT
+
+Included code, not only a reference: the effects in `openmosh-fx/` are OpenMosh's shaders, exported unchanged apart from a header that adapts them to the INDEX FX host. They stay under OpenMosh's MIT licence (`openmosh-fx/LICENSE.md`), not this repository's PolyForm Noncommercial licence, and each file carries the notice in its first comment and `effect.provenance`.
+
+Some of those effects were ported to OpenMosh from X-PostProcessing-Library (MIT) and Vidvox ISF-Files (MIT); their files carry those notices too. The OpenMosh effects are not catalogue tools, so the audit statement at the top of this file still describes the catalogue.
+
+
 ## Internal lineage
 
 - Topographic Mask is an internal derivative of Topographic.
