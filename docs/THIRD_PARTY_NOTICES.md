@@ -2,7 +2,7 @@
 
 INDEX HTML contains original HTML visual tools by BeerBelgio / Matteo Belgiovine. **Sketch is a current compatibility target, not the identity or owner of the project.**
 
-The current tool set has been audited against the sources listed below. No distributed tool is currently identified as retaining meaningful third-party implementation code or structure. The relationships below are therefore creative/conceptual references unless explicitly described as internal derivation or same-owner lineage.
+The 20 original generator tools have been audited against the sources listed below. No distributed generator is currently identified as retaining meaningful third-party implementation code or structure. OpenMosh FX are separately licensed third-party implementation code. The relationships below are therefore creative/conceptual references unless explicitly described as internal derivation or same-owner lineage.
 
 
 ## Sketch
@@ -133,7 +133,7 @@ Source licence: MIT
 
 Included code, not only a reference: the effects in `openmosh-fx/` are OpenMosh's shaders, exported unchanged apart from a header that adapts them to the INDEX FX host. They stay under OpenMosh's MIT licence (`openmosh-fx/LICENSE.md`), not this repository's PolyForm Noncommercial licence, and each file carries the notice in its first comment and `effect.provenance`.
 
-Some of those effects were ported to OpenMosh from X-PostProcessing-Library (MIT) and Vidvox ISF-Files (MIT); their files carry those notices too. The OpenMosh effects are not catalogue tools, so the audit statement at the top of this file still describes the catalogue.
+Some of those effects were ported to OpenMosh from X-PostProcessing-Library (MIT) and Vidvox ISF-Files (MIT); their files carry those notices too. The OpenMosh effects are listed in the separate `data/fx.json` catalogue; the generator audit statement above does not cover these FX.
 
 
 ## Internal lineage

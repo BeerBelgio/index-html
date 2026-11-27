@@ -534,7 +534,7 @@
     a.dataset.toolType = tool.toolType;
     a.dataset.toolTags = (tool.conceptTags || []).map((tag) => String(tag).toLowerCase()).join(' ');
 
-    const tags = (tool.conceptTags || [])
+    const tags = (tool.conceptTags || []).filter(tag=>tag!=='fx')
       .map((tag) => `<span class="tool-card-tag">${escapeHtml(tag)}</span>`)
       .join('');
 

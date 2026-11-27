@@ -1,0 +1,86 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><base href="../"><title>INDEX FX integration</title>
+<style>body{font:13px monospace}iframe{display:block;width:1100px;height:780px;border:1px solid #ccc}.probe{width:320px;height:180px;position:relative}.probe img,.probe canvas{width:100%;height:100%} [hidden]{display:none!important}pre{white-space:pre-wrap}</style></head>
+<body><pre id="results" data-result="PENDING">Running</pre><div id="mount"></div>
+<script src="assets/js/index-catalogues.js"></script><script src="assets/js/index-numeric-controls.js"></script><script src="assets/js/playground-import-preflight.js"></script><script src="assets/js/playground-webgl2-lab.js"></script><script src="assets/js/index-fx-preview.js"></script>
+<script>
+(async()=>{
+ const out=document.querySelector('#results'),mount=document.querySelector('#mount');let pass=0,fail=0;const rows=[];
+ const check=(name,ok,details='')=>{rows.push((ok?'PASS ':'FAIL ')+name+(ok?'':' '+details));ok?pass++:fail++;};
+ const until=async(fn,ms=8000)=>{const end=performance.now()+ms;while(performance.now()<end){try{if(fn())return true;}catch(_){}await new Promise(r=>setTimeout(r,40));}return false;};
+ const frame=src=>{const el=document.createElement('iframe');el.src=src;mount.replaceChildren(el);return el;};
+ const change=(el,value)=>{el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));};
+ const pixels=canvas=>{const c=document.createElement('canvas');c.width=64;c.height=36;const ctx=c.getContext('2d');ctx.drawImage(canvas,0,0,64,36);return [...ctx.getImageData(0,0,64,36).data];};
+ const hasImage=canvas=>{const p=pixels(canvas);return p.some((v,i)=>i%4===3&&v>0)&&p.some((v,i)=>i%4!==3&&v>40);};
+ try{
+  const catalog=await IndexCatalogues.load(),fx=catalog.tools.filter(t=>t.toolType==='effect');
+  check('58 entries and two distinct roles',catalog.tools.length===58&&fx.length===38);
+  let page=frame('index.html');
+  check('homepage mixed gallery',await until(()=>page.contentDocument.querySelectorAll('.tool-card').length===58));
+  let d=page.contentDocument;const filter=d.querySelector('#tool-category-filter');
+  change(filter,'effect');check('FX category filter',d.querySelectorAll('.tool-card:not([hidden])').length===38);
+  change(filter,'generator');check('generator category filter',d.querySelectorAll('.tool-card:not([hidden])').length===20);
+  change(filter,'effect');const grain=d.querySelector('a[href="tool.html?tool=openmosh-grain"]');grain.scrollIntoView();
+  check('homepage renders a static FX image',await until(()=>grain.querySelector('[data-preview-state="ready"] .fx-card-still')?.src.startsWith('data:image/'),12000));
+  check('homepage FX card has no iframe',!grain.querySelector('iframe'));
+  page.remove();
+
+  // Exercise the same shared gallery independently of headless pointer capabilities.
+  let contexts=0,active=0,peak=0;const original=IndexWebGL2Lab.create;
+  IndexWebGL2Lab.create=args=>{contexts++;const engine=original(args),make=engine.createFX;engine.createFX=(...args)=>{const instance=make(...args),dispose=instance.dispose;active++;peak=Math.max(peak,active);let done=false;instance.dispose=()=>{if(!done){done=true;active--;}dispose();};return instance;};return engine;};
+  const gallery=IndexFXPreview.gallery();
+  const attach=id=>{const card=document.createElement('div'),stage=document.createElement('div');stage.className='probe';stage.innerHTML='<span class="preview-placeholder"></span>';card.append(stage);mount.append(card);gallery.attach(stage,fx.find(t=>t.toolId===id),card,true);return{card,stage};};
+  const a=attach('openmosh-grain'),b=attach('openmosh-mirror');
+  check('two static previews rendered',await until(()=>a.stage.dataset.previewState==='ready'&&b.stage.dataset.previewState==='ready'));
+  const still=a.stage.querySelector('img').src;
+  check('representative FX thumbnails differ',still!==b.stage.querySelector('img').src);
+  for(let i=0;i<3;i++){
+    a.card.dispatchEvent(new PointerEvent('pointerenter',{pointerType:'mouse'}));
+    check('hover '+i+' renders live canvas',await until(()=>!a.stage.querySelector('canvas').hidden&&hasImage(a.stage.querySelector('canvas'))));
+    a.card.dispatchEvent(new PointerEvent('pointerleave',{pointerType:'mouse'}));
+    check('hover '+i+' releases instance and restores still',await until(()=>active===0&&a.stage.querySelector('canvas').hidden&&a.stage.querySelector('img').src===still));
+  }
+  check('one shared gallery context and at most one FX instance',contexts===1&&peak===1&&active===0);
+  gallery.dispose();IndexWebGL2Lab.create=original;mount.replaceChildren();
+
+  page=frame('tool.html?tool=formshift');
+  check('legacy generator link resolves',await until(()=>page.contentDocument.querySelector('#tool-frame').contentWindow.INDEX_TOOL&&page.contentDocument.querySelector('#tool-picker-menu button')));
+  d=page.contentDocument;check('generator picker 20 entries',d.querySelectorAll('#tool-picker-menu button').length===20);
+  change(d.querySelector('#tool-category'),'effect');check('FX category changes URL and picker',await until(()=>page.contentWindow.location.search.includes('openmosh-')&&d.querySelectorAll('#tool-picker-menu button').length===38));
+  d.querySelector('[data-tool-slug="openmosh-grain"]').click();
+  check('Grain detail preview renders',await until(()=>!d.querySelector('#fx-preview-canvas').hidden&&hasImage(d.querySelector('#fx-preview-canvas'))));
+  check('FX canonical and download',d.querySelector('link[rel=canonical]').href.endsWith('?tool=openmosh-grain')&&d.querySelector('#download-link').getAttribute('href').endsWith('Grain-v1.0.html'));
+  const toggle=d.querySelector('#controls input[role=switch]'),choice=d.querySelector('#controls select');
+  check('native detail toggle and choice',!!toggle&&!!choice&&choice.options.length===3);
+  toggle?.click();change(choice,'2');
+  const snapshot=JSON.parse(new URL(d.querySelector('#standalone-link').href).searchParams.get('state'));
+  check('detail serialized numeric state',snapshot.rgb===0&&snapshot.blendMode===2);
+  check('MIT notice distinct from INDEX license',d.querySelector('#lineage').textContent.includes('Reuse: MIT')&&!d.querySelector('#lineage').textContent.includes('Reuse: non-commercial'));
+  const standalone=d.querySelector('#standalone-link').href;
+  page=frame(standalone);check('FX standalone setup preview',await until(()=>!page.contentDocument.querySelector('#fx-preview-canvas').hidden&&hasImage(page.contentDocument.querySelector('#fx-preview-canvas'))));
+  page=frame('tool.html?tool=openmosh-feedback');
+  check('history preview and reset control',await until(()=>!page.contentDocument.querySelector('#fx-preview-reset-history').hidden&&hasImage(page.contentDocument.querySelector('#fx-preview-canvas'))));
+  page.contentDocument.querySelector('#fx-preview-reset-history').click();
+  page=frame('tool.html?tool=openmosh-blur');
+  check('multipass detail preview',await until(()=>!page.contentDocument.querySelector('#fx-preview-canvas').hidden&&hasImage(page.contentDocument.querySelector('#fx-preview-canvas'))));
+  page=frame('playground.html');check('Playground grouped catalogue',await until(()=>page.contentDocument.querySelectorAll('#pg-select optgroup option').length===58));
+  d=page.contentDocument;check('five layers unchanged',d.querySelectorAll('.pg-layer-card').length===5);
+  const win=page.contentWindow;let engine;const make=win.IndexWebGL2Lab.create;win.IndexWebGL2Lab.create=args=>(engine=make(args));
+  const select=d.querySelector('#pg-select'),load=d.querySelector('#pg-load');
+  const loadTool=async(id,name)=>{change(select,id);load.click();return until(()=>d.querySelector('#pg-title').textContent===name&&d.querySelector('#pg-status').textContent.includes('ready:'),10000);};
+  check('Playground catalogue generator',await loadTool('IDX-001','Linking Nodes'));
+  d.querySelectorAll('.pg-layer-pick')[1].click();
+  check('Playground catalogue stateless Grain',await loadTool('openmosh-grain','Grain'));
+  const pt=d.querySelector('#pg-params input[role=switch]'),pc=d.querySelector('#pg-params select');
+  check('Playground native controls',!!pt&&!!pc&&pc.options.length===3);
+  pt?.click();change(pc,'2');
+  check('Playground discrete numeric outputs',pt.closest('.pg-control').querySelector('output').textContent==='0'&&pc.closest('.pg-control').querySelector('output').textContent==='2');
+  check('Playground FX visible',hasImage(d.querySelector('#pg-gpu-lab')));
+  check('Playground history FX',await loadTool('openmosh-feedback','Feedback'));
+  check('history reset available',!d.querySelector('#pg-reset-fx-history').hidden);d.querySelector('#pg-reset-fx-history').click();
+  check('Playground multipass FX',await loadTool('openmosh-blur','Blur'));
+  check('no import error and generator retained',!d.querySelector('#pg-status').classList.contains('pg-status-error')&&d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Linking Nodes'));
+  page.remove();
+ }catch(e){check('integration infrastructure',false,String(e.stack||e));}
+ out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';out.dataset.result=fail?'FAIL':'PASS';
+})();
+</script></body></html>
