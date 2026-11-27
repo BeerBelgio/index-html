@@ -1,0 +1,476 @@
+<!doctype html>
+<!--
+MIT License
+
+Copyright (c) 2026 OpenMosh
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Channel Split · OpenMosh FX for INDEX</title>
+<style>*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0d0d0f;color:#e8e6e1;font:14px/1.45 system-ui,sans-serif}
+body{display:flex;min-height:100%}
+.stage{position:relative;flex:1;min-width:0;min-height:60vh}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.error{position:absolute;left:16px;right:16px;top:16px;margin:0;padding:12px;background:#3a1010;white-space:pre-wrap;font:12px/1.4 ui-monospace,monospace}
+.panel{width:320px;flex:none;overflow:auto;padding:20px;border-left:1px solid #26262b;background:#141417}
+.panel h1{margin:0 0 6px;font-size:20px}
+.panel p{margin:0 0 12px;color:#b5b2ab}
+.panel small{display:block;color:#7d7a74;margin-bottom:16px}
+.panel a{color:#9fd8c4}
+.controls{display:grid;gap:10px;margin:16px 0}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px}
+.row input[type=range]{grid-column:1/-1;width:100%}
+.row output{grid-row:1;grid-column:2;font:12px ui-monospace,monospace;color:#b5b2ab}
+.row select{max-width:170px}
+.buttons{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+button,select{background:#222227;color:inherit;border:1px solid #3a3a40;border-radius:4px;padding:5px 9px;font:inherit}
+button:hover{background:#2c2c33}
+@media (max-width:760px){body{flex-direction:column}.panel{width:auto;border-left:0;border-top:1px solid #26262b}}</style>
+</head>
+<body>
+<section id="about">
+<h1>Channel Split</h1>
+<p>Pulls red, green and blue apart, in a line, from the centre or as a prism.</p>
+<small>An OpenMosh effect for INDEX hosts (<code>fragment-webgl2</code>, effect API v2). Drop this file into the INDEX Playground above another layer, or try it here on the test card or your own image or video.</small>
+<small>From <a href="https://github.com/zivavu/OpenMosh">OpenMosh</a>, MIT licensed. The license is at the top of this file.</small>
+</section>
+<script>
+window.INDEX_TOOL = {
+  "schemaVersion": 1,
+  "role": "effect",
+  "name": "Channel Split",
+  "version": "v1.0",
+  "author": "OpenMosh",
+  "capabilities": {
+    "requires": {
+      "renderer": "fragment-webgl2",
+      "visualInput": "lower-composite",
+      "audioInput": "none"
+    },
+    "supports": {
+      "colorOpacity": false
+    }
+  },
+  "params": [
+    {
+      "key": "mode",
+      "label": "Mode",
+      "min": 0,
+      "max": 2,
+      "step": 1,
+      "default": 0,
+      "type": "choice",
+      "options": [
+        {
+          "value": 0,
+          "label": "Linear"
+        },
+        {
+          "value": 1,
+          "label": "Radial"
+        },
+        {
+          "value": 2,
+          "label": "Prismatic"
+        }
+      ]
+    },
+    {
+      "key": "amount",
+      "label": "Amount",
+      "min": 0,
+      "max": 50,
+      "step": 0.1,
+      "default": 10
+    },
+    {
+      "key": "angle",
+      "label": "Angle",
+      "min": 0,
+      "max": 360,
+      "step": 1,
+      "default": 0
+    },
+    {
+      "key": "falloff",
+      "label": "Falloff",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0.5
+    },
+    {
+      "key": "speed",
+      "label": "Speed",
+      "min": 0,
+      "max": 5,
+      "step": 0.1,
+      "default": 1
+    },
+    {
+      "key": "saturation",
+      "label": "Hue Shift",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0.5
+    }
+  ],
+  "colors": [],
+  "audio": [
+    "amount",
+    "angle",
+    "falloff",
+    "speed",
+    "saturation"
+  ],
+  "effect": {
+    "apiVersion": 2,
+    "type": "fragment-webgl2",
+    "moduleId": "openmosh-channel-split",
+    "moduleVersion": "v1.0",
+    "history": false,
+    "passes": [
+      {
+        "fragment": "#version 300 es\nprecision highp float;\nuniform sampler2D uInput;\nuniform vec2 uResolution;\nuniform float uTime;\nuniform float uDelta;\nin vec2 vUV;\nout vec4 outColor;\nuniform float u_mode;\nint om_mode() { int i = int(floor(u_mode + 0.5)); return i == 0 ? 0 : i == 1 ? 1 : 2; }\nuniform float u_amount;\nuniform float u_angle;\nuniform float u_falloff;\nuniform float u_saturation;\nuniform float u_speed;\n#define u_texture uInput\n#define u_feedback uHistory\n#define v_uv vec2(vUV.x, 1.0 - vUV.y)\n#define u_time (uTime * u_speed)\n#define u_delta (uDelta * u_speed)\n#define u_resolution (uResolution * (720.0 / max(min(uResolution.x, uResolution.y), 1.0)))\n#define omFragCoord vec4(gl_FragCoord.x, uResolution.y - gl_FragCoord.y, gl_FragCoord.zw)\nvec2 omMirror(vec2 uv) {\n  vec2 m = mod(uv, 2.0);\n  return mix(m, 2.0 - m, step(1.0, m));\n}\nvec4 omNearest(sampler2D s, vec2 uv) {\n  ivec2 size = textureSize(s, 0);\n  ivec2 p = clamp(ivec2(floor(omMirror(uv) * vec2(size))), ivec2(0), size - 1);\n  return texelFetch(s, ivec2(p.x, size.y - 1 - p.y), 0);\n}\nvec4 omLinear(sampler2D s, vec2 uv) {\n  vec2 m = omMirror(uv);\n  return texture(s, vec2(m.x, 1.0 - m.y));\n}\nvoid main() {\n  vec2 px = 1.0 / u_resolution;\n\n  if (om_mode() == 0) {\n    float rad = u_angle * 3.14159265 / 180.0;\n    vec2 d = vec2(cos(rad), sin(rad)) * u_amount * px;\n    outColor = vec4(\n      omNearest(u_texture, v_uv + d).r,\n      omNearest(u_texture, v_uv).g,\n      omNearest(u_texture, v_uv - d).b,\n      omNearest(u_texture, v_uv).a\n    );\n  } else if (om_mode() == 1) {\n    vec2 center = vec2(0.5);\n    vec2 dir = v_uv - center;\n    float dist = length(dir);\n    float strength = u_amount * pow(dist, 1.0 + u_falloff * 3.0) * 0.002;\n    vec2 offset = normalize(dir + 1e-6) * strength;\n    outColor = vec4(\n      omNearest(u_texture, v_uv + offset).r,\n      omNearest(u_texture, v_uv).g,\n      omNearest(u_texture, v_uv - offset).b,\n      omNearest(u_texture, v_uv).a\n    );\n  } else {\n    float t = u_time;\n    float rad = u_angle * 3.14159265 / 180.0;\n    vec2 dir = vec2(cos(rad), sin(rad));\n    float pos = dot(v_uv - 0.5, dir);\n    float disp = u_amount * 0.0016;\n    float drift = sin(t * 0.3) * 0.5;\n    vec2 uvR = v_uv - dir * disp * (pos + drift);\n    vec2 uvB = v_uv + dir * disp * (pos + drift);\n    float r = omNearest(u_texture, uvR).r;\n    float g = omNearest(u_texture, v_uv).g;\n    float b = omNearest(u_texture, uvB).b;\n    // Widest coverage of the three taps, so a split text layer keeps every channel it displaced.\n    float a = max(omNearest(u_texture, uvR).a,\n                  max(omNearest(u_texture, v_uv).a, omNearest(u_texture, uvB).a));\n    vec3 color = vec3(r, g, b);\n    float hueShift = pos * u_amount * 0.1 + t * 0.2;\n    float cosH = cos(hueShift);\n    float sinH = sin(hueShift);\n    vec3 k = vec3(0.57735);\n    vec3 rotated = color * cosH + cross(k, color) * sinH + k * dot(k, color) * (1.0 - cosH);\n    color = mix(color, rotated, u_saturation);\n    outColor = vec4(color, a);\n  }\n}"
+      }
+    ],
+    "provenance": {
+      "author": "OpenMosh",
+      "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/channel-split.ts",
+      "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+      "license": "MIT",
+      "notice": "Copyright (c) 2026 OpenMosh"
+    }
+  }
+};
+</script>
+<script>
+(function standalonePreview() {
+  if (window.parent !== window)
+    return;
+  const tool = window.INDEX_TOOL, fx = tool.effect, MAX_SIDE = 1600, el = (tag, props = {}, ...children) => {
+    const node = document.createElement(tag);
+    Object.assign(node, props);
+    node.append(...children);
+    return node;
+  }, intro = document.getElementById("about"), stage = el("div", { className: "stage" }), canvas = el("canvas"), errorBox = el("p", { className: "error", hidden: !0 });
+  stage.append(canvas, errorBox);
+  const controls = el("div", { className: "controls" }), panel = el("aside", { className: "panel" });
+  if (intro)
+    panel.append(intro);
+  document.body.append(stage, panel);
+  const showError = (message) => {
+    errorBox.hidden = !1;
+    errorBox.textContent = message;
+  }, gl = canvas.getContext("webgl2", {
+    alpha: !1,
+    antialias: !1,
+    depth: !1,
+    premultipliedAlpha: !1,
+    preserveDrawingBuffer: !1
+  });
+  if (!gl) {
+    showError("This preview needs WebGL2, which this browser doesn't offer.");
+    return;
+  }
+  const VERT = `#version 300 es
+precision highp float;
+out vec2 vUV;
+void main() {
+  vec2 p = vec2(gl_VertexID == 1 ? 3.0 : -1.0, gl_VertexID == 2 ? 3.0 : -1.0);
+  vUV = (p + 1.0) * 0.5;
+  gl_Position = vec4(p, 0.0, 1.0);
+}`, COPY = `#version 300 es
+precision highp float;
+in vec2 vUV;
+uniform sampler2D uInput;
+out vec4 outColor;
+void main() { outColor = texture(uInput, vUV); }`, compile = (type, code) => {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, code);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+      throw Error(gl.getShaderInfoLog(s) || "shader didn't compile");
+    return s;
+  }, program = (fragment) => {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fragment));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS))
+      throw Error(gl.getProgramInfoLog(p) || "program didn't link");
+    return p;
+  }, texture = () => {
+    const t = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return t;
+  }, target = () => ({ tex: texture(), fbo: gl.createFramebuffer() });
+  let programs, copy;
+  try {
+    programs = fx.passes.map((p) => program(p.fragment));
+    copy = program(COPY);
+  } catch (err) {
+    showError(String(err.message));
+    return;
+  }
+  gl.bindVertexArray(gl.createVertexArray());
+  const source = texture(), passTargets = fx.passes.map(target), history = fx.history ? [target(), target()] : [];
+  let historyIndex = 0, seeded = !1, width = 0, height = 0;
+  const values = {}, colors = {};
+  for (const p of tool.params)
+    values[p.key] = p.default;
+  for (const c of tool.colors)
+    colors[c.key] = c.default;
+  const row = (label, ...input) => el("label", { className: "row" }, el("span", {}, label), ...input);
+  for (const p of tool.params)
+    if (p.type === "toggle") {
+      const box = el("input", { type: "checkbox", checked: p.default > 0 });
+      box.addEventListener("change", () => values[p.key] = box.checked ? 1 : 0);
+      controls.append(row(p.label, box));
+    } else if (p.type === "choice" && p.options) {
+      const select = el("select");
+      for (const o of p.options)
+        select.append(el("option", { value: String(o.value), textContent: o.label }));
+      select.value = String(p.default);
+      select.addEventListener("change", () => values[p.key] = Number(select.value));
+      controls.append(row(p.label, select));
+    } else {
+      const out = el("output", { textContent: String(p.default) }), range = el("input", {
+        type: "range",
+        min: String(p.min),
+        max: String(p.max),
+        step: String(p.step),
+        value: String(p.default)
+      });
+      range.addEventListener("input", () => {
+        values[p.key] = Number(range.value);
+        out.textContent = range.value;
+      });
+      controls.append(row(p.label, range, out));
+    }
+  for (const c of tool.colors) {
+    const pick = el("input", { type: "color", value: c.default.toLowerCase() });
+    pick.addEventListener("input", () => colors[c.key] = pick.value);
+    controls.append(row(c.label, pick));
+  }
+  let playing = !0, bypass = !1;
+  const play = el("button", { type: "button", textContent: "Pause" });
+  play.addEventListener("click", () => {
+    playing = !playing;
+    play.textContent = playing ? "Pause" : "Play";
+  });
+  const bypassBox = el("input", { type: "checkbox" });
+  bypassBox.addEventListener("change", () => bypass = bypassBox.checked);
+  const reset = el("button", { type: "button", textContent: "Reset" });
+  reset.addEventListener("click", () => {
+    seeded = !1;
+    clock = 0;
+  });
+  const fileInput = el("input", {
+    type: "file",
+    accept: "image/*,video/*",
+    hidden: !0
+  }), open = el("button", {
+    type: "button",
+    textContent: "Your image or video"
+  });
+  open.addEventListener("click", () => fileInput.click());
+  const card = el("button", { type: "button", textContent: "Test card" });
+  panel.append(controls, el("div", { className: "buttons" }, play, reset, open, card, fileInput), row("Bypass", bypassBox));
+  let media = null;
+  const load = (file) => {
+    if (!file)
+      return;
+    const url = URL.createObjectURL(file);
+    if (file.type.startsWith("video/")) {
+      const video = el("video", {
+        src: url,
+        loop: !0,
+        muted: !0,
+        playsInline: !0
+      });
+      video.play();
+      media = video;
+    } else
+      media = el("img", { src: url });
+    seeded = !1;
+  };
+  fileInput.addEventListener("change", () => load(fileInput.files?.[0]));
+  card.addEventListener("click", () => {
+    media = null;
+    seeded = !1;
+  });
+  window.addEventListener("dragover", (e) => e.preventDefault());
+  window.addEventListener("drop", (e) => {
+    e.preventDefault();
+    load(e.dataTransfer?.files[0]);
+  });
+  const paper = document.createElement("canvas"), ctx = paper.getContext("2d"), testCard = (t) => {
+    const { width: w, height: h } = paper, s = Math.min(w, h), sky = ctx.createLinearGradient(0, 0, w, h);
+    sky.addColorStop(0, `hsl(${t * 12 % 360} 70% 22%)`);
+    sky.addColorStop(1, `hsl(${(t * 12 + 140) % 360} 75% 45%)`);
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    [
+      "#c0c0c0",
+      "#c0c000",
+      "#00c0c0",
+      "#00c000",
+      "#c000c0",
+      "#c00000",
+      "#0000c0"
+    ].forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(i * w / 7, h * 0.62, w / 7 + 1, h * 0.14);
+    });
+    for (let i = 0;i < 24; i++) {
+      ctx.fillStyle = i % 2 ? "#111" : "#eee";
+      ctx.fillRect(i * w / 24, h * 0.76, w / 24 + 1, h * 0.05);
+    }
+    for (let i = 0;i < 5; i++) {
+      const x = w * (0.5 + 0.38 * Math.sin(t * (0.5 + i * 0.17) + i * 1.3)), y = h * (0.35 + 0.22 * Math.cos(t * (0.4 + i * 0.11) + i * 2.1)), r = s * (0.07 + 0.025 * i), ball = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
+      ball.addColorStop(0, "#fff");
+      ball.addColorStop(0.35, `hsl(${i * 72 + t * 20} 90% 60%)`);
+      ball.addColorStop(1, `hsl(${i * 72 + t * 20} 90% 25%)`);
+      ctx.fillStyle = ball;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.save();
+    ctx.translate(w * 0.5, h * 0.9);
+    ctx.font = `800 ${Math.round(s * 0.09)}px system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff";
+    ctx.fillText(tool.name.toUpperCase(), 0, 0);
+    ctx.restore();
+  }, drawMedia = (m) => {
+    const mw = m instanceof HTMLVideoElement ? m.videoWidth : m.naturalWidth, mh = m instanceof HTMLVideoElement ? m.videoHeight : m.naturalHeight;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, paper.width, paper.height);
+    if (!mw || !mh)
+      return;
+    const k = Math.max(paper.width / mw, paper.height / mh);
+    ctx.drawImage(m, (paper.width - mw * k) / 2, (paper.height - mh * k) / 2, mw * k, mh * k);
+  }, allocate = (t) => {
+    gl.bindTexture(gl.TEXTURE_2D, t.tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, t.fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t.tex, 0);
+  }, resize = () => {
+    const box = stage.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2), k = Math.min(1, MAX_SIDE / Math.max(box.width * dpr, box.height * dpr, 1)), w = Math.max(1, Math.round(box.width * dpr * k)), h = Math.max(1, Math.round(box.height * dpr * k));
+    if (w === width && h === height)
+      return;
+    width = canvas.width = paper.width = w;
+    height = canvas.height = paper.height = h;
+    for (const t of [...passTargets, ...history])
+      allocate(t);
+    seeded = !1;
+  };
+  new ResizeObserver(resize).observe(stage);
+  const bind = (prog, unit, name, tex) => {
+    gl.activeTexture(gl.TEXTURE0 + unit);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    const at = gl.getUniformLocation(prog, name);
+    if (at)
+      gl.uniform1i(at, unit);
+  }, blit = (tex, fbo) => {
+    gl.useProgram(copy);
+    bind(copy, 0, "uInput", tex);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.viewport(0, 0, width, height);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  };
+  let clock = 0, last = 0, frame = 0;
+  const tick = (now) => {
+    requestAnimationFrame(tick);
+    resize();
+    if (!width || !height)
+      return;
+    const delta = playing && last ? Math.min(0.05, (now - last) / 1000) : 0;
+    last = now;
+    clock += delta;
+    if (playing || !media)
+      if (media)
+        drawMedia(media);
+      else
+        testCard(clock);
+    gl.bindTexture(gl.TEXTURE_2D, source);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, !0);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, paper);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, !1);
+    if (bypass) {
+      blit(source, null);
+      return;
+    }
+    if (fx.history && !seeded) {
+      for (const t of history)
+        blit(source, t.fbo);
+      seeded = !0;
+    }
+    let current = source;
+    programs.forEach((prog, i) => {
+      gl.useProgram(prog);
+      bind(prog, 0, "uInput", current);
+      bind(prog, 1, "uHistory", fx.history ? history[historyIndex].tex : source);
+      const set = (name, f) => {
+        const at = gl.getUniformLocation(prog, name);
+        if (at)
+          f(at);
+      };
+      set("uResolution", (at) => gl.uniform2f(at, width, height));
+      set("uTime", (at) => gl.uniform1f(at, clock));
+      set("uDelta", (at) => gl.uniform1f(at, delta));
+      set("uFrame", (at) => gl.uniform1i(at, frame));
+      for (const p of tool.params)
+        set(`u_${p.key}`, (at) => gl.uniform1f(at, values[p.key]));
+      for (const c of tool.colors) {
+        const hex = colors[c.key], rgb = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255);
+        set(`u_${c.key}`, (at) => gl.uniform4f(at, rgb[0], rgb[1], rgb[2], 1));
+      }
+      gl.bindFramebuffer(gl.FRAMEBUFFER, passTargets[i].fbo);
+      gl.viewport(0, 0, width, height);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      current = passTargets[i].tex;
+    });
+    if (delta > 0) {
+      if (fx.history) {
+        historyIndex = 1 - historyIndex;
+        blit(current, history[historyIndex].fbo);
+      }
+      frame++;
+    }
+    blit(current, null);
+  };
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

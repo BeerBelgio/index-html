@@ -23,12 +23,14 @@
     tools: [],
     cards: [],
     query: '',
-    tag: 'all'
+    tag: 'all',
+    category: 'all'
   };
 
   // Catalogue previews are loaded by our own queue. Avoid native iframe lazy-loading:
   // IntersectionObserver decides when a card is close enough, then at most two tools
   // initialise in parallel. This keeps the catalogue robust as the tool count grows.
+  const fxGallery = window.IndexFXPreview.gallery();
   const previewQueue = [];
   const livePreviews = new Set();
   const MAX_CONCURRENT_PREVIEW_LOADS = 2;
@@ -52,6 +54,14 @@
     searchToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     searchField.hidden = !open;
     searchShell.classList.toggle('is-open', open);
+    document.getElementById('tool-category-filter').hidden = open;
+    if (tagFilters) tagFilters.hidden = open;
+    searchToggle.setAttribute('aria-label', open ? 'Close search' : 'Search tools');
+    if (!open && searchInput?.value) {
+      searchInput.value = '';
+      catalogue.query = '';
+      applyFilters();
+    }
     if (open) requestAnimationFrame(() => searchInput?.focus());
   }
 
@@ -529,9 +539,10 @@
     a.className = 'tool-card';
     a.href = `tool.html?tool=${encodeURIComponent(tool.slug)}`;
     a.dataset.toolName = String(tool.name || '').toLowerCase();
+    a.dataset.toolType = tool.toolType;
     a.dataset.toolTags = (tool.conceptTags || []).map((tag) => String(tag).toLowerCase()).join(' ');
 
-    const tags = (tool.conceptTags || [])
+    const tags = (tool.conceptTags || []).filter(tag=>tag!=='fx')
       .map((tag) => `<span class="tool-card-tag">${escapeHtml(tag)}</span>`)
       .join('');
 
@@ -541,7 +552,7 @@
       </div>
       <div class="tool-card-copy">
         <div class="tool-card-meta">
-          <div class="tool-card-tags">${tags}</div>
+          <div class="tool-card-tags"><span class="tool-card-tag tool-category">${tool.toolType === "effect" ? "FX" : "GENERATOR"}</span>${tags}</div>
           <span class="tool-card-version">${escapeHtml(tool.version || '')}</span>
         </div>
         <h3>${escapeHtml(tool.name)}</h3>
@@ -550,6 +561,7 @@
       </div>`;
 
     const stage = a.querySelector('[data-preview-stage]');
+    if(tool.toolType==='effect'){fxGallery.attach(stage,tool,a,canHover&&!prefersReducedMotion);return a;}
     const io = new IntersectionObserver((entries, observer) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
@@ -599,7 +611,8 @@
       const haystack = `${card.dataset.toolName} ${card.dataset.toolTags}`;
       const queryMatch = !query || haystack.includes(query);
       const tagMatch = catalogue.tag === 'all' || card.dataset.toolTags.split(/\s+/).includes(catalogue.tag);
-      const show = queryMatch && tagMatch;
+      const categoryMatch = catalogue.category === 'all' || card.dataset.toolType === catalogue.category;
+      const show = queryMatch && tagMatch && categoryMatch;
       card.hidden = !show;
       if (show) visible += 1;
     }
@@ -613,14 +626,13 @@
       return;
     }
     try {
-      const response = await fetch('data/tools.json', { cache: 'no-store' });
-      if (!response.ok) throw new Error(`tools.json returned HTTP ${response.status}`);
-      const data = await response.json();
+      const data = await window.IndexCatalogues.load();
       const tools = Array.isArray(data.tools) ? data.tools : [];
       if (!tools.length) throw new Error('No tools are defined.');
 
       catalogue.tools = tools;
-      void initialiseHeroPreview(tools);
+      void initialiseHeroPreview(tools.filter(t=>t.toolType==='generator'));
+      document.getElementById('tool-category-filter').addEventListener('change',event=>{catalogue.category=event.target.value;applyFilters();});
       buildTagFilters(tools);
 
       const frag = document.createDocumentFragment();
@@ -638,10 +650,6 @@
 
       searchToggle?.addEventListener('click', () => {
         const open = searchToggle.getAttribute('aria-expanded') === 'true';
-        if (open && searchInput?.value) {
-          searchInput.focus();
-          return;
-        }
         setSearchOpen(!open);
       });
 
@@ -685,12 +693,14 @@
   });
 
   document.addEventListener('visibilitychange', () => {
+    if(document.hidden)fxGallery.pause();
     if (!heroPreview?.ready) return;
     if (document.hidden) stopHeroPreview();
     else if (heroVisible) startHeroPreview();
   });
 
   window.addEventListener('beforeunload', () => {
+    fxGallery.dispose();
     stopHeroPreview();
     heroPreview?.observer?.disconnect();
     for (const preview of livePreviews) {

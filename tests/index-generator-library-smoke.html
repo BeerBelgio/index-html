@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><base href="../"><title>Generator library smoke</title></head><body><pre id="results" data-result="PENDING">Running</pre><script>
+(async()=>{
+ const out=document.querySelector('#results');let pass=0,fail=0;const rows=[];
+ try{
+  const data=await(await fetch('data/tools.json')).json();
+  for(const tool of data.tools){
+   const f=document.createElement('iframe');f.width=320;f.height=180;f.src=tool.file+'?catalogue=1';document.body.append(f);
+   try{
+    await new Promise((ok,bad)=>{const timeout=setTimeout(()=>bad(Error('iframe timeout')),4000);f.onload=()=>{clearTimeout(timeout);ok();};f.onerror=()=>{clearTimeout(timeout);bad(Error('iframe error'));};});
+    const w=f.contentWindow,m=w.INDEX_TOOL||w.SKETCH_TOOL;
+    if(!m)throw Error('missing manifest');
+    const state=Object.fromEntries([...m.params,...m.colors].map(p=>[p.key,p.default]));state.time=1;
+    (w.indexResize||w.sketchResize)(320,180);await(w.indexDraw||w.sketchDraw)(state);
+    const c=f.contentDocument.querySelector('#sketch-canvas')||f.contentDocument.querySelector('canvas');
+    if(!c||!c.width||!c.height)throw Error('no canvas');
+    const bitmap=await createImageBitmap(c);bitmap.close();
+    if(m.capabilities?.requires?.renderer==='webgl1'){c.getContext('webgl')?.getExtension('WEBGL_lose_context')?.loseContext();}
+    rows.push('PASS '+tool.slug);pass++;
+   }catch(e){rows.push('FAIL '+tool.slug+' '+e.message);fail++;}
+   finally{f.remove();}
+  }
+ }catch(e){rows.push('FAIL '+e.message);fail++;}
+ out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';out.dataset.result=fail?'FAIL':'PASS';
+})();
+</script></body></html>

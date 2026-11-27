@@ -1,0 +1,3128 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "INDEX HTML / OpenMosh FX",
+    "sourceCommit": "9d4f76e5974728eee17dbcc2040de2e51ec1cb9f",
+    "sourcePullRequest": 16,
+    "status": "integration-candidate",
+    "license": "MIT",
+    "notice": "See original HTML headers and openmosh-fx/LICENSE.md. Generator library is independent."
+  },
+  "tools": [
+    {
+      "name": "Blur",
+      "slug": "openmosh-blur",
+      "toolId": "openmosh-blur",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Blur-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx",
+        "multipass"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "A smooth Gaussian blur.",
+        "about": "A smooth Gaussian blur.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 3 passes · no history"
+      },
+      "parameters": [
+        {
+          "key": "radius",
+          "label": "Radius",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/blur.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-blur",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 3,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/blur.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Bulge",
+      "slug": "openmosh-bulge",
+      "toolId": "openmosh-bulge",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Bulge-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Pushes the frame out from a point, or pinches it in.",
+        "about": "Pushes the frame out from a point, or pinches it in.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "radius",
+          "label": "Radius",
+          "behaviour": null
+        },
+        {
+          "key": "centerX",
+          "label": "Center X",
+          "behaviour": null
+        },
+        {
+          "key": "centerY",
+          "label": "Center Y",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/bulge.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-bulge",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/bulge.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Channel Split",
+      "slug": "openmosh-channel-split",
+      "toolId": "openmosh-channel-split",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Channel_Split-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Pulls red, green and blue apart, in a line, from the centre or as a prism.",
+        "about": "Pulls red, green and blue apart, in a line, from the centre or as a prism.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "mode",
+          "label": "Mode",
+          "behaviour": "Linear / Radial / Prismatic"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        },
+        {
+          "key": "falloff",
+          "label": "Falloff",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        },
+        {
+          "key": "saturation",
+          "label": "Hue Shift",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/channel-split.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-channel-split",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/channel-split.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Circle Warp",
+      "slug": "openmosh-circle-warp",
+      "toolId": "openmosh-circle-warp",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Circle_Warp-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Bends the frame's height into a ring.",
+        "about": "Bends the frame's height into a ring.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "radius",
+          "label": "Radius",
+          "behaviour": null
+        },
+        {
+          "key": "width",
+          "label": "Width",
+          "behaviour": null
+        },
+        {
+          "key": "rotation",
+          "label": "Rotation",
+          "behaviour": null
+        },
+        {
+          "key": "feather",
+          "label": "Feather",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/circle-warp.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-circle-warp",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/circle-warp.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Data Bend",
+      "slug": "openmosh-data-bend",
+      "toolId": "openmosh-data-bend",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Data_Bend-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Runs of blocks shift and smear like broken bytes in a file.",
+        "about": "Runs of blocks shift and smear like broken bytes in a file.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "intensity",
+          "label": "Intensity",
+          "behaviour": null
+        },
+        {
+          "key": "corruption",
+          "label": "Corruption",
+          "behaviour": null
+        },
+        {
+          "key": "channelShift",
+          "label": "Channel Shift",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/data-bend.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-data-bend",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/data-bend.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Duotone",
+      "slug": "openmosh-duotone",
+      "toolId": "openmosh-duotone",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Duotone-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Maps shadows and highlights to two colours of your choice.",
+        "about": "Maps shadows and highlights to two colours of your choice.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "intensity",
+          "label": "Intensity",
+          "behaviour": null
+        },
+        {
+          "key": "shadowColor",
+          "label": "Shadow",
+          "behaviour": null
+        },
+        {
+          "key": "highlightColor",
+          "label": "Highlight",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/duotone.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-duotone",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/duotone.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Feedback",
+      "slug": "openmosh-feedback",
+      "toolId": "openmosh-feedback",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Feedback-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx",
+        "history"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Layers each frame over the last, scaled, turned and hue shifted.",
+        "about": "Layers each frame over the last, scaled, turned and hue shifted.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · per-instance GPU history"
+      },
+      "parameters": [
+        {
+          "key": "decay",
+          "label": "Decay",
+          "behaviour": null
+        },
+        {
+          "key": "scale",
+          "label": "Scale",
+          "behaviour": null
+        },
+        {
+          "key": "rotate",
+          "label": "Rotate",
+          "behaviour": null
+        },
+        {
+          "key": "warp",
+          "label": "Warp",
+          "behaviour": null
+        },
+        {
+          "key": "hue",
+          "label": "Hue Shift",
+          "behaviour": null
+        },
+        {
+          "key": "blend",
+          "label": "Blend",
+          "behaviour": "Max / Screen / Add"
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/feedback.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-feedback",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": true,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/feedback.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Fiber Displace",
+      "slug": "openmosh-fiber-displace",
+      "toolId": "openmosh-fiber-displace",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Fiber_Displace-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Combs the frame into threads that pull it sideways.",
+        "about": "Combs the frame into threads that pull it sideways.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "strength",
+          "label": "Pull",
+          "behaviour": null
+        },
+        {
+          "key": "density",
+          "label": "Fiber Density",
+          "behaviour": null
+        },
+        {
+          "key": "comb",
+          "label": "Comb",
+          "behaviour": null
+        },
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        },
+        {
+          "key": "chrome",
+          "label": "Sheen",
+          "behaviour": null
+        },
+        {
+          "key": "smoothness",
+          "label": "Silk",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/fiber-displace.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-fiber-displace",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/fiber-displace.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Flow Contours",
+      "slug": "openmosh-flow-contours",
+      "toolId": "openmosh-flow-contours",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Flow_Contours-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx",
+        "history"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Bands the picture by brightness and slides the bands against each other.",
+        "about": "Bands the picture by brightness and slides the bands against each other.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · per-instance GPU history"
+      },
+      "parameters": [
+        {
+          "key": "bands",
+          "label": "Bands",
+          "behaviour": null
+        },
+        {
+          "key": "flow",
+          "label": "Flow",
+          "behaviour": null
+        },
+        {
+          "key": "cycle",
+          "label": "Hue Cycle",
+          "behaviour": null
+        },
+        {
+          "key": "sheen",
+          "label": "Sheen",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/flow-contours.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-flow-contours",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": true,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/flow-contours.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Glitch",
+      "slug": "openmosh-soft-glitch",
+      "toolId": "openmosh-soft-glitch",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Glitch-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Quiet stretches, then fits of torn bands and colour shifts.",
+        "about": "Quiet stretches, then fits of torn bands and colour shifts.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/soft-glitch.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-soft-glitch",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/soft-glitch.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Grain",
+      "slug": "openmosh-grain",
+      "toolId": "openmosh-grain",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Grain-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Film grain, in mono or colour, mixed in three ways.",
+        "about": "Film grain, in mono or colour, mixed in three ways.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "rgb",
+          "label": "RGB",
+          "behaviour": "On / off (0 / 1)"
+        },
+        {
+          "key": "blendMode",
+          "label": "Blend Mode",
+          "behaviour": "Additive / Softlight / Multiply"
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/grain.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-grain",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/grain.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Jitter",
+      "slug": "openmosh-jitter",
+      "toolId": "openmosh-jitter",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Jitter-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Patches of the frame twitch out of place, each on its own clock.",
+        "about": "Patches of the frame twitch out of place, each on its own clock.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/jitter.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-jitter",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/jitter.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Kaleido",
+      "slug": "openmosh-kaleido",
+      "toolId": "openmosh-kaleido",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Kaleido-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Repeats a wedge of the frame around the centre.",
+        "about": "Repeats a wedge of the frame around the centre.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "sides",
+          "label": "Sides",
+          "behaviour": null
+        },
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/kaleido.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-kaleido",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/kaleido.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Liquid Light",
+      "slug": "openmosh-liquid-light",
+      "toolId": "openmosh-liquid-light",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Liquid_Light-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx",
+        "history"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Refracts the frame through slow, merging blobs of liquid.",
+        "about": "Refracts the frame through slow, merging blobs of liquid.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · per-instance GPU history"
+      },
+      "parameters": [
+        {
+          "key": "scale",
+          "label": "Cell Size",
+          "behaviour": null
+        },
+        {
+          "key": "flow",
+          "label": "Flow",
+          "behaviour": null
+        },
+        {
+          "key": "refraction",
+          "label": "Refraction",
+          "behaviour": null
+        },
+        {
+          "key": "dispersion",
+          "label": "Dispersion",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/liquid-light.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-liquid-light",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": true,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/liquid-light.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Melt",
+      "slug": "openmosh-melt",
+      "toolId": "openmosh-melt",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Melt-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx",
+        "history"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Drips run down the frame and pile up, the bright parts first.",
+        "about": "Drips run down the frame and pile up, the bright parts first.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · per-instance GPU history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/melt.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-melt",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": true,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/melt.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Mirror",
+      "slug": "openmosh-mirror",
+      "toolId": "openmosh-mirror",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Mirror-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Folds one half of the frame over the other.",
+        "about": "Folds one half of the frame over the other.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "side",
+          "label": "Side",
+          "behaviour": null
+        },
+        {
+          "key": "position",
+          "label": "Position",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/mirror.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-mirror",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/mirror.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Optical Flow",
+      "slug": "openmosh-optical-flow",
+      "toolId": "openmosh-optical-flow",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Optical_Flow-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Smears colour along the picture's own contours, like brush strokes.",
+        "about": "Smears colour along the picture's own contours, like brush strokes.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/optical-flow.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-optical-flow",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/optical-flow.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Pixel Shifter",
+      "slug": "openmosh-pixel-shifter",
+      "toolId": "openmosh-pixel-shifter",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Pixel_Shifter-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Rows and columns slide by a wave running along the other axis.",
+        "about": "Rows and columns slide by a wave running along the other axis.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "hFrequency",
+          "label": "H Frequency",
+          "behaviour": null
+        },
+        {
+          "key": "hPhase",
+          "label": "H Phase",
+          "behaviour": null
+        },
+        {
+          "key": "hRandom",
+          "label": "H Random",
+          "behaviour": null
+        },
+        {
+          "key": "vFrequency",
+          "label": "V Frequency",
+          "behaviour": null
+        },
+        {
+          "key": "vPhase",
+          "label": "V Phase",
+          "behaviour": null
+        },
+        {
+          "key": "vRandom",
+          "label": "V Random",
+          "behaviour": null
+        },
+        {
+          "key": "sinusoidal",
+          "label": "Sinusoidal",
+          "behaviour": "On / off (0 / 1)"
+        },
+        {
+          "key": "mirror",
+          "label": "Mirror",
+          "behaviour": "On / off (0 / 1)"
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/pixel-shifter.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-pixel-shifter",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/pixel-shifter.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Pixel Sort",
+      "slug": "openmosh-pixel-sort",
+      "toolId": "openmosh-pixel-sort",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Pixel_Sort-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Streaks pixels along rows or columns between two brightness limits.",
+        "about": "Streaks pixels along rows or columns between two brightness limits.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "threshold",
+          "label": "Threshold",
+          "behaviour": null
+        },
+        {
+          "key": "ceiling",
+          "label": "Ceiling",
+          "behaviour": null
+        },
+        {
+          "key": "range",
+          "label": "Range",
+          "behaviour": null
+        },
+        {
+          "key": "direction",
+          "label": "Direction",
+          "behaviour": "Horizontal / Vertical"
+        },
+        {
+          "key": "reverse",
+          "label": "Reverse",
+          "behaviour": "On / off (0 / 1)"
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/pixel-sort.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-pixel-sort",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/pixel-sort.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "RGB Burst",
+      "slug": "openmosh-rgb-burst",
+      "toolId": "openmosh-rgb-burst",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/RGB_Burst-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Noise bursts throw each colour channel a different way.",
+        "about": "Noise bursts throw each colour channel a different way.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amplitude",
+          "label": "Amplitude",
+          "behaviour": null
+        },
+        {
+          "key": "decay",
+          "label": "Decay",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from X-PostProcessing-Library, Copyright (c) 2020 浅墨, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/rgb-burst.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-rgb-burst",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/rgb-burst.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from X-PostProcessing-Library, Copyright (c) 2020 浅墨, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "RGB Strobe",
+      "slug": "openmosh-rgb-strobe",
+      "toolId": "openmosh-rgb-strobe",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/RGB_Strobe-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Each colour channel flips to its negative on its own beat.",
+        "about": "Each colour channel flips to its negative on its own beat.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "speed",
+          "label": "Rate",
+          "behaviour": null
+        },
+        {
+          "key": "stagger",
+          "label": "Stagger",
+          "behaviour": null
+        },
+        {
+          "key": "duty",
+          "label": "Duty",
+          "behaviour": null
+        },
+        {
+          "key": "red",
+          "label": "Red",
+          "behaviour": "On / off (0 / 1)"
+        },
+        {
+          "key": "green",
+          "label": "Green",
+          "behaviour": "On / off (0 / 1)"
+        },
+        {
+          "key": "blue",
+          "label": "Blue",
+          "behaviour": "On / off (0 / 1)"
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/rgb-strobe.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-rgb-strobe",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/rgb-strobe.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Radial Blur",
+      "slug": "openmosh-radial-blur",
+      "toolId": "openmosh-radial-blur",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Radial_Blur-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Streaks the frame out from the centre.",
+        "about": "Streaks the frame out from the centre.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "strength",
+          "label": "Strength",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/radial-blur.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-radial-blur",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/radial-blur.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Relief",
+      "slug": "openmosh-relief",
+      "toolId": "openmosh-relief",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Relief-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Reads brightness as height and lights it like embossed metal.",
+        "about": "Reads brightness as height and lights it like embossed metal.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Depth",
+          "behaviour": null
+        },
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/relief.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-relief",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/relief.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Resize Glitch",
+      "slug": "openmosh-resize-glitch",
+      "toolId": "openmosh-resize-glitch",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Resize_Glitch-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "The frame snaps to a new scale around a point on random ticks.",
+        "about": "The frame snaps to a new scale around a point on random ticks.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "chance",
+          "label": "Chance",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Rate",
+          "behaviour": null
+        },
+        {
+          "key": "levelX",
+          "label": "Level X",
+          "behaviour": null
+        },
+        {
+          "key": "levelY",
+          "label": "Level Y",
+          "behaviour": null
+        },
+        {
+          "key": "randomWidth",
+          "label": "Random Width",
+          "behaviour": "On / off (0 / 1)"
+        },
+        {
+          "key": "randomHeight",
+          "label": "Random Height",
+          "behaviour": "On / off (0 / 1)"
+        },
+        {
+          "key": "randomCenter",
+          "label": "Random Center",
+          "behaviour": "On / off (0 / 1)"
+        },
+        {
+          "key": "centerX",
+          "label": "Center X",
+          "behaviour": null
+        },
+        {
+          "key": "centerY",
+          "label": "Center Y",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/resize-glitch.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-resize-glitch",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/resize-glitch.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Ring Warp",
+      "slug": "openmosh-ring-warp",
+      "toolId": "openmosh-ring-warp",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Ring_Warp-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Concentric rings fold the picture in and out.",
+        "about": "Concentric rings fold the picture in and out.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "rings",
+          "label": "Rings",
+          "behaviour": null
+        },
+        {
+          "key": "offset",
+          "label": "Phase",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        },
+        {
+          "key": "mode",
+          "label": "Mode",
+          "behaviour": "Single / Double"
+        },
+        {
+          "key": "xSmear",
+          "label": "X Smear",
+          "behaviour": null
+        },
+        {
+          "key": "ySmear",
+          "label": "Y Smear",
+          "behaviour": null
+        },
+        {
+          "key": "centerX",
+          "label": "Center X",
+          "behaviour": null
+        },
+        {
+          "key": "centerY",
+          "label": "Center Y",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/ring-warp.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-ring-warp",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/ring-warp.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Ripple",
+      "slug": "openmosh-ripple",
+      "toolId": "openmosh-ripple",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Ripple-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Waves run through the frame like a disturbed pond.",
+        "about": "Waves run through the frame like a disturbed pond.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "frequency",
+          "label": "Frequency",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/ripple.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-ripple",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/ripple.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Scanlines",
+      "slug": "openmosh-scanlines",
+      "toolId": "openmosh-scanlines",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Scanlines-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Rolling CRT lines across the picture.",
+        "about": "Rolling CRT lines across the picture.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "count",
+          "label": "Count",
+          "behaviour": null
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/scanlines.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-scanlines",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/scanlines.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Screen Jump",
+      "slug": "openmosh-screen-jump",
+      "toolId": "openmosh-screen-jump",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Screen_Jump-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "The frame rolls like a TV losing its vertical hold.",
+        "about": "The frame rolls like a TV losing its vertical hold.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "direction",
+          "label": "Direction",
+          "behaviour": "Vertical / Horizontal"
+        },
+        {
+          "key": "intensity",
+          "label": "Intensity",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from X-PostProcessing-Library, Copyright (c) 2020 浅墨, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/screen-jump.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-screen-jump",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/screen-jump.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from X-PostProcessing-Library, Copyright (c) 2020 浅墨, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Shockwave",
+      "slug": "openmosh-shockwave",
+      "toolId": "openmosh-shockwave",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Shockwave-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "A ring of distortion travels out from a point.",
+        "about": "A ring of distortion travels out from a point.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "speed",
+          "label": "Rate",
+          "behaviour": null
+        },
+        {
+          "key": "magnitude",
+          "label": "Magnitude",
+          "behaviour": null
+        },
+        {
+          "key": "distortion",
+          "label": "Distortion",
+          "behaviour": null
+        },
+        {
+          "key": "centerX",
+          "label": "Center X",
+          "behaviour": null
+        },
+        {
+          "key": "centerY",
+          "label": "Center Y",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/shockwave.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-shockwave",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/shockwave.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Slices",
+      "slug": "openmosh-slices",
+      "toolId": "openmosh-slices",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Slices-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Cuts the frame into strips and slides every other one.",
+        "about": "Cuts the frame into strips and slides every other one.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "count",
+          "label": "Count",
+          "behaviour": null
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "behaviour": null
+        },
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/slices.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-slices",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/slices.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Smear",
+      "slug": "openmosh-smear",
+      "toolId": "openmosh-smear",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Smear-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Pushes each pixel along a direction set by its own colour.",
+        "about": "Pushes each pixel along a direction set by its own colour.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        },
+        {
+          "key": "trail",
+          "label": "Trail",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/smear.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-smear",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/smear.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Stylize Glitch",
+      "slug": "openmosh-stylize-glitch",
+      "toolId": "openmosh-stylize-glitch",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Stylize_Glitch-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Random rectangles get inverted, dithered or hue shifted.",
+        "about": "Random rectangles get inverted, dithered or hue shifted.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "level",
+          "label": "Glitch Size",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Glitch Rate",
+          "behaviour": null
+        },
+        {
+          "key": "count",
+          "label": "Count",
+          "behaviour": null
+        },
+        {
+          "key": "mode",
+          "label": "Style",
+          "behaviour": "Random / Invert / Dither / Hue Shift"
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/stylize-glitch.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-stylize-glitch",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/stylize-glitch.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh; ported from Vidvox ISF-Files, Copyright (c) 2018, MIT"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Swirl",
+      "slug": "openmosh-swirl",
+      "toolId": "openmosh-swirl",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Swirl-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Twists the frame around its centre.",
+        "about": "Twists the frame around its centre.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        },
+        {
+          "key": "radius",
+          "label": "Radius",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/swirl.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-swirl",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/swirl.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Thermal",
+      "slug": "openmosh-thermal",
+      "toolId": "openmosh-thermal",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Thermal-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "A heat-camera palette: thermal, infrared or night vision.",
+        "about": "A heat-camera palette: thermal, infrared or night vision.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "intensity",
+          "label": "Intensity",
+          "behaviour": null
+        },
+        {
+          "key": "palette",
+          "label": "Palette",
+          "behaviour": "Thermal / Infrared / Night Vision"
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/thermal.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-thermal",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/thermal.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Tile",
+      "slug": "openmosh-tile",
+      "toolId": "openmosh-tile",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Tile-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Repeats the frame as a grid of copies that can drift along the rows.",
+        "about": "Repeats the frame as a grid of copies that can drift along the rows.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "size",
+          "label": "Size",
+          "behaviour": null
+        },
+        {
+          "key": "offset",
+          "label": "Offset",
+          "behaviour": null
+        },
+        {
+          "key": "angle",
+          "label": "Angle",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/tile.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-tile",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/tile.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Tunnel",
+      "slug": "openmosh-tunnel",
+      "toolId": "openmosh-tunnel",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Tunnel-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx",
+        "history"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Feeds the last frame back in, zoomed and turned, into an endless tunnel.",
+        "about": "Feeds the last frame back in, zoomed and turned, into an endless tunnel.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · per-instance GPU history"
+      },
+      "parameters": [
+        {
+          "key": "zoom",
+          "label": "Zoom",
+          "behaviour": null
+        },
+        {
+          "key": "spin",
+          "label": "Spin",
+          "behaviour": null
+        },
+        {
+          "key": "decay",
+          "label": "Decay",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/tunnel.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-tunnel",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": true,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/tunnel.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "VHS",
+      "slug": "openmosh-vhs",
+      "toolId": "openmosh-vhs",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/VHS-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "Tape noise, colour bleed and a tracking band rolling down the frame.",
+        "about": "Tape noise, colour bleed and a tracking band rolling down the frame.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "static",
+          "label": "Static",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        },
+        {
+          "key": "tracking",
+          "label": "Tracking",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/vhs.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-vhs",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/vhs.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    },
+    {
+      "name": "Wobble",
+      "slug": "openmosh-wobble",
+      "toolId": "openmosh-wobble",
+      "toolType": "effect",
+      "version": "v1.0",
+      "file": "openmosh-fx/Wobble-v1.0.html",
+      "renderer": "WebGL2 FX",
+      "conceptTags": [
+        "fx"
+      ],
+      "provenanceTags": [
+        "openmosh"
+      ],
+      "copy": {
+        "short": "A slow noise warp that makes the frame swim.",
+        "about": "A slow noise warp that makes the frame swim.",
+        "implementation": "OpenMosh fragment-webgl2 effect · provisional API v2 · 1 pass · no history"
+      },
+      "parameters": [
+        {
+          "key": "amount",
+          "label": "Amount",
+          "behaviour": null
+        },
+        {
+          "key": "frequency",
+          "label": "Frequency",
+          "behaviour": null
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "behaviour": null
+        }
+      ],
+      "lineage": [
+        {
+          "relation": "ported-by",
+          "project": "OpenMosh",
+          "author": "OpenMosh",
+          "sourceLicence": "MIT",
+          "publicText": "Copyright (c) 2026 OpenMosh — Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "projectUrl": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/wobble.ts"
+        }
+      ],
+      "development": {
+        "limitations": "Integration preview; individual functional and performance QA pending. Requires a WebGL2 host with provisional FX API v2 and lower-composite input."
+      },
+      "capabilities": {
+        "requires": {
+          "renderer": "fragment-webgl2",
+          "visualInput": "lower-composite",
+          "audioInput": "none"
+        },
+        "supports": {
+          "colorOpacity": false
+        }
+      },
+      "effect": {
+        "moduleId": "openmosh-wobble",
+        "moduleVersion": "v1.0",
+        "apiVersion": 2,
+        "type": "fragment-webgl2",
+        "history": false,
+        "passCount": 1,
+        "provenance": {
+          "author": "OpenMosh",
+          "source": "https://github.com/zivavu/OpenMosh/blob/a229bdcd85f527aa80bd4f4e9cee706469185dc5/src/lib/effects/catalog/wobble.ts",
+          "adaptation": "Exported by OpenMosh's INDEX FX exporter. The shader body is OpenMosh's; a header maps its uniforms, y direction and texture sampling onto the INDEX host's, and Speed scales uTime.",
+          "license": "MIT",
+          "notice": "Copyright (c) 2026 OpenMosh"
+        }
+      },
+      "hero": {
+        "enabled": false
+      }
+    }
+  ]
+}

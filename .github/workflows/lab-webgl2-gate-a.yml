@@ -10,6 +10,7 @@ on:
       - fix/webgl2-imagebitmap-orientation-20261125
       - fix/playground-import-feedback-diagnostics-20261125
       - chore/release-0.22.1-20261125
+      - feat/index-openmosh-integration-20261127
 
 concurrency:
   group: index-webgl2-${{ github.ref }}
@@ -176,6 +177,25 @@ jobs:
           "$browser" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox --use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --virtual-time-budget=18000 --dump-dom "http://127.0.0.1:8766/tests/webgl2-gate-b.html" >gate-b-result.html 2>gate-b-stderr.txt
           sed -n '/<pre id="results"/,/TOTAL .*<\/pre>/p' gate-b-result.html | head -45
           grep -q 'data-result="PASS"' gate-b-result.html
+      - name: OpenMosh integration candidate checks
+        if: github.ref_name == 'feat/index-openmosh-integration-20261127'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in assets/js/index-*.js assets/js/home-page.js assets/js/tool-page.js; do node --check "$f"; done
+          git fetch --no-tags --depth=2 origin 9d4f76e5974728eee17dbcc2040de2e51ec1cb9f
+          node tests/index-fx-catalogue.mjs
+          git fetch --no-tags --depth=1 origin refs/tags/0.22.1
+          mkdir -p .index-baseline
+          git archive FETCH_HEAD | tar -x -C .index-baseline
+          python3 -m http.server 8772 --bind 127.0.0.1 >fx-integration-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          node tests/run-browser-smoke.mjs http://127.0.0.1:8772/tests/index-fx-integration.html fx-integration-result.html "$browser"
+          node tests/run-browser-smoke.mjs http://127.0.0.1:8772/tests/index-generator-library-smoke.html generator-library-result.html "$browser"
+          node tests/run-browser-smoke.mjs http://127.0.0.1:8772/tests/index-home-comparison.html home-comparison-result.html "$browser"
       - name: Capture browser screenshot (diagnostic)
         if: always()
         shell: bash
@@ -213,4 +233,8 @@ jobs:
             gate-b-result.html
             gate-b-stderr.txt
             gate-b-http-server.log
+            fx-integration-result.html
+            generator-library-result.html
+            home-comparison-result.html
+            fx-integration-http.log
           retention-days: 14

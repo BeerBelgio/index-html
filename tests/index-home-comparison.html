@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><base href="../"><title>Homepage comparison</title><style>iframe{width:1200px;height:850px;display:block}</style></head><body><pre id="results" data-result="PENDING">Running</pre><script>
+(async()=>{
+ const out=document.querySelector('#results'),rows=[];let fail=0,pass=0;
+ const measure=async(path,count)=>{
+  const f=document.createElement('iframe');const start=performance.now();f.src=path;document.body.append(f);
+  let cards=null,first=null;
+  try{
+   while(performance.now()-start<10000){
+    try{
+     const d=f.contentDocument;
+     if(cards===null&&d.querySelectorAll('.tool-card').length===count){
+      cards=performance.now()-start;
+      // Both versions deliberately defer previews until the cards approach the viewport.
+      d.querySelector('.tool-card').scrollIntoView({block:'center',behavior:'instant'});
+     }
+     if(cards!==null&&d.querySelector('.tool-card-preview[data-preview-state="ready"],.tool-card-preview.is-rendered'))first=performance.now()-start;
+     if(cards!==null&&first!==null)break;
+    }catch(_){}
+    await new Promise(r=>setTimeout(r,30));
+   }
+   if(cards===null||first===null)throw Error('catalogue or first preview timeout: '+path+' cards='+cards+' first='+first+' actual='+f.contentDocument?.querySelectorAll('.tool-card').length+' error='+f.contentDocument?.querySelector('#home-error')?.textContent);
+   return {catalogueMs:Math.round(cards),firstPreviewMs:Math.round(first),previewAfterCatalogueMs:Math.round(first-cards)};
+  }finally{f.remove();}
+ };
+ try{
+  const baseline=[],candidate=[];
+  for(let i=0;i<2;i++){baseline.push(await measure('.index-baseline/index.html',20));candidate.push(await measure('index.html',58));}
+  rows.push('BASELINE '+JSON.stringify(baseline),'CANDIDATE '+JSON.stringify(candidate));
+  rows.push('PASS both homepages populated and rendered a preview in two comparable iframe loads after scrolling the catalogue into view');pass++;
+  rows.push('NOTE descriptive smoke, not native hardware benchmark or Lighthouse; random catalogue ordering affects results.');
+ }catch(e){rows.push('FAIL '+e.message);fail++;}
+ out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';out.dataset.result=fail?'FAIL':'PASS';
+})();
+</script></body></html>
