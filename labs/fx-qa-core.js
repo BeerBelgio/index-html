@@ -1,7 +1,7 @@
 /* QA-only adapter; never changes the production compositor or exports. */
 (() => {
  'use strict';
- const BASELINE='f38c4372c26530657b2ef92172f8b296b50b8452';
+ const BASELINE='91da05fcf9d27f7f1a62bfef4cb0a38e312bddf8';
  const PILOT=['openmosh-grain','openmosh-feedback','openmosh-blur','openmosh-mirror'];
  const yieldFrame=()=>new Promise(resolve=>setTimeout(resolve,0));
  const sha=async data=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data)),b=>b.toString(16).padStart(2,'0')).join('');

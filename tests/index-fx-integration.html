@@ -24,6 +24,21 @@
   search.value='linking nodes';search.dispatchEvent(new Event('input',{bubbles:true}));check('search still finds a generator',d.querySelectorAll('.tool-card:not([hidden])').length===1);
   searchButton.click();check('close search restores filters and clears query',!filter.hidden&&!d.querySelector('#tool-tag-filters').hidden&&search.value===''&&filter.value==='generator'&&d.querySelectorAll('.tool-card:not([hidden])').length===20);
   searchButton.click();search.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));check('escape restores category and tags',!filter.hidden&&!d.querySelector('#tool-tag-filters').hidden);
+  await d.fonts.ready;
+  const filterRow=d.querySelector('.catalogue-filters'),tagButtons=[...d.querySelectorAll('.tool-tag-filter')];
+  for(const width of [360,768,1024,1440]){
+   page.style.width=width+'px';
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+   filterRow.scrollLeft=0;
+   const items=[d.querySelector('#tool-search-shell'),filter,...tagButtons];
+   const rects=items.map(e=>e.getBoundingClientRect());
+   check('filters never overlap at '+width+'px',rects.every((r,i)=>i===0||r.left>=rects[i-1].right-1));
+   filterRow.scrollLeft=filterRow.scrollWidth;
+   const rowRect=filterRow.getBoundingClientRect();
+   check('last filter reachable at '+width+'px',tagButtons.at(-1).getBoundingClientRect().right<=rowRect.left+filterRow.clientWidth+1);
+   check('filter row stays inside page at '+width+'px',filterRow.clientWidth<=d.documentElement.clientWidth&&d.documentElement.scrollWidth<=d.documentElement.clientWidth+1);
+  }
+  page.style.width='1100px';filterRow.scrollLeft=0;
   change(filter,'effect');const grain=d.querySelector('a[href="tool.html?tool=openmosh-grain"]');grain.scrollIntoView();
   check('homepage renders a static FX image',await until(()=>grain.querySelector('[data-preview-state="ready"] .fx-card-still')?.src.startsWith('data:image/'),12000));
   check('homepage FX card has no iframe',!grain.querySelector('iframe'));

@@ -13,3 +13,6 @@ Select moving asymmetric chart, 640×360, 60 FPS timeline step; click RUN PILOT.
 - Reproduce CI: from repo root start server on 8774 and run `node tests/run-browser-smoke.mjs http://127.0.0.1:8774/tests/fx-qa-pilot.html fx-qa-pilot-result.html chromium` using Node with native WebSocket and installed Chromium. No new dependencies. One targeted Actions run on the lab branch only.
 
 The test screen retains the captured default PNG after each effect releases its renderer. The image is labelled as a captured frame, not an active render. Remaining planned cases after a failure are explicitly NOT_RUN. Preview hash is SHA-256 of the PNG data URL string; raw readback hash is SHA-256 of RGBA bytes in WebGL readback order.
+
+## Local launch troubleshooting
+Use a new port and an explicit extracted repository root: `python3 -m http.server 8767 --bind 127.0.0.1 --directory /path/to/extracted-root` (quote paths containing spaces). Verify the root directly contains `index.html`, `assets/`, `data/`, and `labs/fx-laboratory.html`. Open http://127.0.0.1:8767/labs/fx-laboratory.html. A Python HTTP 404 means the requested file was not found under the served directory, not a WebGL shader failure. The lab branch includes the homepage responsive filter correction from integration commit 91da05fcf9d27f7f1a62bfef4cb0a38e312bddf8.

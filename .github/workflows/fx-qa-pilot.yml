@@ -15,8 +15,8 @@ jobs:
         run: |
           node --check labs/fx-qa-core.js
           node --check labs/fx-qa-ui.js
-          git fetch --no-tags --depth=1 origin f38c4372c26530657b2ef92172f8b296b50b8452
-          test -z "$(git diff --name-only f38c4372c26530657b2ef92172f8b296b50b8452 HEAD -- assets data openmosh-fx index.html tool.html playground.html about.html)"
+          git fetch --no-tags --depth=1 origin 91da05fcf9d27f7f1a62bfef4cb0a38e312bddf8
+          test -z "$(git diff --name-only 91da05fcf9d27f7f1a62bfef4cb0a38e312bddf8 HEAD -- assets data openmosh-fx index.html tool.html playground.html about.html)"
       - name: Software Chromium pilot
         run: |
           set -euo pipefail
