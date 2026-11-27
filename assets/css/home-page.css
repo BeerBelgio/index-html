@@ -823,3 +823,6 @@ code { font: .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 #tool-category-filter{font:inherit;font-size:11px;font-weight:800;border:1px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);padding:7px 10px;max-width:100%}.tool-card-tag.tool-category{font-weight:800}.tool-card-preview .fx-card-still,.tool-card-preview .fx-card-live{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#f6f2e7}.tool-card-preview .fx-card-still[hidden],.tool-card-preview .fx-card-live[hidden]{display:none!important}.tool-card-preview .preview-placeholder:not([hidden]){z-index:2}
 
 .tool-card-preview .preview-placeholder[hidden]{display:none!important}.tool-card-preview .preview-placeholder:not([hidden]){background:rgba(22,20,18,.75);opacity:1}
+
+/* Search is an exclusive visual mode; active category/tag filters remain selected. */
+#tool-category-filter[hidden],#tool-tag-filters[hidden]{display:none!important}.catalogue-filters:has(.tool-search.is-open){justify-content:flex-start}.tool-search.is-open{max-width:100%}

@@ -19,6 +19,11 @@
   let d=page.contentDocument;const filter=d.querySelector('#tool-category-filter');
   change(filter,'effect');check('FX category filter',d.querySelectorAll('.tool-card:not([hidden])').length===38);
   change(filter,'generator');check('generator category filter',d.querySelectorAll('.tool-card:not([hidden])').length===20);
+  const searchButton=d.querySelector('#tool-search-toggle'),search=d.querySelector('#tool-search');
+  searchButton.click();check('search hides category and tag filters',d.defaultView.getComputedStyle(filter).display==='none'&&d.defaultView.getComputedStyle(d.querySelector('#tool-tag-filters')).display==='none');
+  search.value='linking nodes';search.dispatchEvent(new Event('input',{bubbles:true}));check('search still finds a generator',d.querySelectorAll('.tool-card:not([hidden])').length===1);
+  searchButton.click();check('close search restores filters and clears query',!filter.hidden&&!d.querySelector('#tool-tag-filters').hidden&&search.value===''&&filter.value==='generator'&&d.querySelectorAll('.tool-card:not([hidden])').length===20);
+  searchButton.click();search.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));check('escape restores category and tags',!filter.hidden&&!d.querySelector('#tool-tag-filters').hidden);
   change(filter,'effect');const grain=d.querySelector('a[href="tool.html?tool=openmosh-grain"]');grain.scrollIntoView();
   check('homepage renders a static FX image',await until(()=>grain.querySelector('[data-preview-state="ready"] .fx-card-still')?.src.startsWith('data:image/'),12000));
   check('homepage FX card has no iframe',!grain.querySelector('iframe'));
@@ -45,7 +50,11 @@
   page=frame('tool.html?tool=formshift');
   check('legacy generator link resolves',await until(()=>page.contentDocument.querySelector('#tool-frame').contentWindow.INDEX_TOOL&&page.contentDocument.querySelector('#tool-picker-menu button')));
   d=page.contentDocument;check('generator picker 20 entries',d.querySelectorAll('#tool-picker-menu button').length===20);
-  change(d.querySelector('#tool-category'),'effect');check('FX category changes URL and picker',await until(()=>page.contentWindow.location.search.includes('openmosh-')&&d.querySelectorAll('#tool-picker-menu button').length===38));
+  await d.fonts.ready;
+  const category=d.querySelector('#tool-category'),picker=d.querySelector('#tool-picker-button'),categoryWidth=category.getBoundingClientRect().width;
+  check('category and tool dropdown font match',['fontFamily','fontSize','fontWeight'].every(k=>d.defaultView.getComputedStyle(category)[k]===d.defaultView.getComputedStyle(picker)[k]));
+  change(category,'effect');check('FX category changes URL and picker',await until(()=>page.contentWindow.location.search.includes('openmosh-')&&d.querySelectorAll('#tool-picker-menu button').length===38));
+  check('category selector shrinks for FX',category.getBoundingClientRect().width<categoryWidth);
   d.querySelector('[data-tool-slug="openmosh-grain"]').click();
   check('Grain detail preview renders',await until(()=>!d.querySelector('#fx-preview-canvas').hidden&&hasImage(d.querySelector('#fx-preview-canvas'))));
   check('FX search metadata',d.querySelector('meta[property="og:title"]').content==='INDEX HTML - Grain'&&d.querySelector('meta[property="og:url"]').content.endsWith('?tool=openmosh-grain'));
@@ -63,14 +72,16 @@
   page.contentDocument.querySelector('#fx-preview-reset-history').click();
   page=frame('tool.html?tool=openmosh-blur');
   check('multipass detail preview',await until(()=>!page.contentDocument.querySelector('#fx-preview-canvas').hidden&&hasImage(page.contentDocument.querySelector('#fx-preview-canvas'))));
-  page=frame('playground.html');check('Playground grouped catalogue',await until(()=>page.contentDocument.querySelectorAll('#pg-select optgroup option').length===58));
+  page=frame('playground.html');check('Playground default generator catalogue',await until(()=>page.contentDocument.querySelectorAll('#pg-select option').length===21));
   d=page.contentDocument;check('five layers unchanged',d.querySelectorAll('.pg-layer-card').length===5);
   const win=page.contentWindow;let engine;const make=win.IndexWebGL2Lab.create;win.IndexWebGL2Lab.create=args=>(engine=make(args));
-  const select=d.querySelector('#pg-select'),load=d.querySelector('#pg-load');
+  const select=d.querySelector('#pg-select'),load=d.querySelector('#pg-load'),pgCategory=d.querySelector('#pg-category');
   const loadTool=async(id,name)=>{change(select,id);load.click();return until(()=>d.querySelector('#pg-title').textContent===name&&d.querySelector('#pg-status').textContent.includes('ready:'),10000);};
   change(select,'IDX-001');load.click();
   check('Playground catalogue generator first frame committed',await until(()=>d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Linking Nodes')&&d.querySelector('#pg-log').textContent.includes('L1 first frame displayed')&&d.querySelector('#pg-gpu-lab')&&hasImage(d.querySelector('#pg-gpu-lab')),12000),d.querySelector('#pg-status').textContent+' | '+d.querySelector('#pg-log').textContent.slice(-600));
   d.querySelectorAll('.pg-layer-pick')[1].click();
+  change(pgCategory,'effect');check('Playground FX selector offers 38 tools',select.options.length===39&&load.disabled);
+  check('category change does not load or replace a layer',d.querySelectorAll('.pg-layer-card')[1].textContent.includes('EMPTY LAYER'));
   check('Playground catalogue stateless Grain',await loadTool('openmosh-grain','Grain'));
   const pt=d.querySelector('#pg-params input[role=switch]'),pc=d.querySelector('#pg-params select');
   check('Playground native controls',!!pt&&!!pc&&pc.options.length===3);
@@ -80,7 +91,10 @@
   check('Playground history FX',await loadTool('openmosh-feedback','Feedback'));
   check('history reset available',!d.querySelector('#pg-reset-fx-history').hidden);d.querySelector('#pg-reset-fx-history').click();
   check('Playground multipass FX',await loadTool('openmosh-blur','Blur'));
+  d.querySelectorAll('.pg-layer-pick')[0].click();check('return to generator layer restores generator selection',pgCategory.value==='generator'&&select.value==='IDX-001'&&select.options.length===21);
+  d.querySelectorAll('.pg-layer-pick')[1].click();check('return to FX layer restores FX selection',pgCategory.value==='effect'&&select.value==='openmosh-blur'&&select.options.length===39);
   check('no import error and generator retained',!d.querySelector('#pg-status').classList.contains('pg-status-error')&&d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Linking Nodes'));
+  page=frame('about.html');check('About credits zivavu and OpenMosh',await until(()=>page.contentDocument.querySelector('#openmosh a[href="https://github.com/zivavu/OpenMosh"]')&&page.contentDocument.querySelector('#openmosh a[href="https://github.com/zivavu"]')));
   page.remove();
  }catch(e){check('integration infrastructure',false,String(e.stack||e));}
  out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';out.dataset.result=fail?'FAIL':'PASS';

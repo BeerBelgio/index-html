@@ -738,6 +738,7 @@
       els.controls.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
       els.colors.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
       els.category.value=tool.toolType;
+      els.category.parentElement.dataset.label=els.category.selectedOptions[0].textContent;
       populatePicker(runtime.data.tools.filter(t=>t.toolType===tool.toolType),tool.slug);
       renderEditorial(tool);
     } else {

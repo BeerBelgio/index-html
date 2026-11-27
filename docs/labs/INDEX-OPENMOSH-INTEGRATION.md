@@ -20,3 +20,6 @@ Existing regression workflow plus tests/index-fx-catalogue.mjs, tests/index-fx-i
 - Record pass count, render-target allocation, history textures, peak memory estimate, resize/resource lifetime, per-pass GPU cost; serial FX pair combinations chosen from measured light/heavy buckets.
 - Evaluate two consecutive FX in a single layer only after serial-cost evidence, independent instance IDs/history, wet semantics, UI/control limits, bypass and recall decisions.
 - Datamosh and Motion Mask: study persistent private state, access to original FX input per pass, per-pass history and four-pass support. Tracking requires CPU Canvas2D runtime study. None is added now; contract changes require separate review. No claims of Bridge compatibility.
+
+## Maintainer UI feedback — 2026-11-27
+Search mode hides category and tag filters while preserving their values; close or Escape clears the query and restores the filters. Tool category selector matches the existing tool selector typography and fits its selected label. Playground has separate category and tool selectors with per-layer choices; category changes never load anything until LOAD is pressed. About includes explicit zivavu/OpenMosh collaboration credit. FX hover choreography and detailed editorial copy remain deferred.

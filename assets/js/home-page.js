@@ -54,6 +54,14 @@
     searchToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
     searchField.hidden = !open;
     searchShell.classList.toggle('is-open', open);
+    document.getElementById('tool-category-filter').hidden = open;
+    if (tagFilters) tagFilters.hidden = open;
+    searchToggle.setAttribute('aria-label', open ? 'Close search' : 'Search tools');
+    if (!open && searchInput?.value) {
+      searchInput.value = '';
+      catalogue.query = '';
+      applyFilters();
+    }
     if (open) requestAnimationFrame(() => searchInput?.focus());
   }
 
@@ -642,10 +650,6 @@
 
       searchToggle?.addEventListener('click', () => {
         const open = searchToggle.getAttribute('aria-expanded') === 'true';
-        if (open && searchInput?.value) {
-          searchInput.focus();
-          return;
-        }
         setSearchOpen(!open);
       });
 
