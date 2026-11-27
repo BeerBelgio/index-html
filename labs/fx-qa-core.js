@@ -106,7 +106,7 @@
  }
  async function run(tool,config,hooks={}){
   const result={id:tool.toolId,name:tool.name,version:tool.version,status:'NOT_RUN',cases:[],observations:[],referenceComparison:'NOT_RUN',artisticReview:'NOT_RUN',requested:{width:config.width,height:config.height,fps:config.fps,source:config.source}};
-  let engine,gl,src,fx,timer,canvas;
+  let engine,gl,src,fx,timer,canvas,planned=[];
   const stopped=()=>hooks.stop?.()||document.hidden;
   try{
    assert(!stopped(),'STOPPED');
@@ -141,7 +141,7 @@
    const t=performance.now();fx=engine.createFX('qa-primary',m.effect);result.compileAllocateCpuMs=performance.now()-t;layer.fx=fx;
    result.textureBytesEstimate=engine.getStats().textureBytesEstimate;result.fxTextureBytesEstimate=result.textureBytesEstimate-baselineBytes;
    timer=gpuTimer(gl);
-   const planned=plan(m,config.full!==false);result.plannedCases=planned.length;
+   planned=plan(m,config.full!==false);result.plannedCases=planned.length;
    for(const item of planned){
     if(stopped())throw Error('STOPPED');
     const record={name:item.name,state:item.state,status:'NOT_RUN'};
@@ -153,7 +153,7 @@
      if(item.name==='defaults'){
       record.sha256=await sha(image.pixels);
       const thumb=document.createElement('canvas');thumb.width=320;thumb.height=Math.round(320*h/w);thumb.getContext('2d').drawImage(canvas,0,0,thumb.width,thumb.height);result.defaultPreview=thumb.toDataURL('image/png');
-      record.previewSha256=await sha(new TextEncoder().encode(result.defaultPreview));
+      record.previewDataUrlSha256=await sha(new TextEncoder().encode(result.defaultPreview));
      }
      if(image.stats.nonzeroAlpha===0||image.stats.variance<.1)result.observations.push(item.name+': transparent or near-uniform output — visual review required');
      record.status='PASS';
@@ -180,6 +180,7 @@
    result.status='PASS';
   }catch(e){result.status=e.message==='STOPPED'?'NOT_RUN':!result.actual?'BLOCKED':'FAIL';result.error=String(e.message||e);}
   finally{timer?.dispose();fx?.dispose();engine?.dispose();gl?.getExtension('WEBGL_lose_context')?.loseContext();src?.dispose();}
+  for(const item of planned.slice(result.cases.length))result.cases.push({name:item.name,state:item.state,status:'NOT_RUN',error:'Earlier case failed or run stopped'});
   return result;
  }
  function csv(report){

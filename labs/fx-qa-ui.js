@@ -19,9 +19,11 @@
    for(const id of ids){
     const t=catalogue.tools.find(x=>x.toolId===id);
     if(stop||document.hidden){report.results.push({id:t.toolId,name:t.name,version:t.version,status:'NOT_RUN',cases:[],observations:[],error:'Stopped or tab hidden'});continue;}
+    $('qa-still').hidden=true;$('frame-label').textContent='Testing '+t.name+' · live test';
     $('status').textContent='Testing '+t.name+'…';
     const result=await qa.run(t,cfg,{surface:$('screen'),legacy:$('qa-legacy'),end:$('qa-end'),stop:()=>stop,caseDone:(c,r)=>{$('details').textContent=t.name+' · '+r.cases.length+'/'+r.plannedCases+' · '+c.name;}});
     report.results.push(result);$('progress').value=report.results.length;render();
+    if(result.defaultPreview){$('qa-still').src=result.defaultPreview;$('qa-still').hidden=false;$('frame-label').textContent=t.name+' · captured default-state frame';}
     $('environment').textContent=result.environment?.renderer||'GPU not available';
     $('details').textContent=JSON.stringify({...result,defaultPreview:result.defaultPreview?'embedded PNG':undefined},null,2);
     // Abort the pilot after any failure. A full-library run stops on infrastructure block.
