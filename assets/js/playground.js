@@ -180,7 +180,7 @@ ui.file.addEventListener('change',()=>{if(ui.file.files[0])local(ui.file.files[0
 for(const evt of ['dragenter','dragover'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.add('drag')});
 for(const evt of ['dragleave','drop'])ui.drop.addEventListener(evt,e=>{e.preventDefault();ui.drop.classList.remove('drag')});
 ui.drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])local(e.dataTransfer.files[0]);});
-fetch('data/tools.json').then(r=>{if(!r.ok)throw Error('Catalogue HTTP '+r.status);return r.json()}).then(data=>{catalogue=data.tools||[];for(const tool of catalogue){const opt=document.createElement('option');opt.value=tool.toolId;opt.textContent=tool.name+' · '+tool.version;ui.select.append(opt);}}).catch(e=>log('Catalogue unavailable: '+e.message));
+window.IndexCatalogues.load().then(data=>{catalogue=data.tools||[];for(const [role,label] of [['generator','GENERATORS'],['effect','FX']]){const group=document.createElement('optgroup');group.label=label;for(const tool of catalogue.filter(t=>t.toolType===role)){const opt=document.createElement('option');opt.value=tool.toolId;opt.textContent=tool.name+' · '+tool.version;group.append(opt);}ui.select.append(group);}}).catch(e=>log('Catalogue unavailable: '+e.message));
 ui.select.addEventListener('change',()=>ui.load.disabled=!ui.select.value);
 ui.load.addEventListener('click',async()=>{
  const item=catalogue.find(t=>t.toolId===ui.select.value);if(!item)return;
@@ -222,7 +222,7 @@ function commitCandidate(candidate){
 function prepareCandidate(candidate,raw){
  const existing=layers[candidate.id-1];
  const assessment=window.IndexImportPreflight.assess(raw.manifest,{
-  filename:candidate.name,native:raw.native,hasDraw:raw.hasDraw,hasResize:raw.hasResize,forceClassic:gpuDisabled,
+  filename:candidate.name,native:raw.native,nativeControls:true,hasDraw:raw.hasDraw,hasResize:raw.hasResize,forceClassic:gpuDisabled,
   otherGpuFX:layers.some(l=>l!==existing&&l.role==='effect-webgl2'&&l.fx)
  });
  candidate.compat=assessment;
@@ -322,6 +322,7 @@ function renderEditor(){const l=active();
  const build=(target,items,isColor)=>{target.replaceChildren();if(!items.length){const p=document.createElement('p');p.textContent=l.loading?'Loading tool…':'None exposed.';target.append(p);return;}
  for(const item of items){const row=document.createElement('div');row.className='pg-control'+(isColor?' pg-color':'');const head=document.createElement('div');head.className='pg-control-label';const label=document.createElement('span');label.textContent=item.label||item.key;const output=document.createElement('output');output.textContent=l.state[item.key];head.append(label,output);row.append(head);
  if(isColor){const picker=document.createElement('input');picker.type='color';picker.value=l.state[item.key];picker.setAttribute('aria-label',(item.label||item.key)+' color');picker.addEventListener('input',()=>{l.state[item.key]=picker.value;output.textContent=picker.value;dirty=true;if(!running)requestSingle(l);});row.append(picker);}
+ const discrete=!isColor&&window.IndexNumericControls.create(item,l.state[item.key],value=>{l.state[item.key]=value;output.textContent=value;dirty=true;if(!running)requestSingle(l);});if(discrete){row.append(discrete);target.append(row);continue;}
  const range=document.createElement('input');range.type='range';range.min=isColor?0:item.min;range.max=isColor?1:item.max;range.step=isColor?.01:item.step;range.value=isColor?l.alpha[item.key]:l.state[item.key];range.setAttribute('aria-label',(item.label||item.key)+(isColor?' opacity':''));range.addEventListener('input',()=>{if(isColor)l.alpha[item.key]=Number(range.value);else{l.state[item.key]=Number(range.value);output.textContent=range.value;}dirty=true;if(!running)requestSingle(l);});row.append(range);target.append(row);}
  };
  build(ui.params,l.manifest?.params||[],false);build(ui.colors,l.manifest?.colors||[],true);

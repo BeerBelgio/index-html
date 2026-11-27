@@ -53,3 +53,10 @@ expect('unsupported composite input rejected',assess(a,{native:true}),'UNSUPPORT
 a=generator();a.role='compositor';
 expect('unavailable role rejected',assess(a,native),'UNSUPPORTED',/compositor/);
 console.log('PASS all compatibility preflight tests');
+
+let discrete=generator();discrete.params[0]={key:'switch',min:0,max:1,step:1,default:0,type:'toggle'};
+expect('native toggle',assess(discrete,{...native,nativeControls:true}),'SUPPORTED');
+discrete.params[0]={key:'mode',min:0,max:1,step:1,default:0,type:'choice',options:[{value:0,label:'A'},{value:1,label:'B'}]};
+expect('native numeric choice',assess(discrete,{...native,nativeControls:true}),'SUPPORTED');
+expect('legacy numeric choice fallback',assess(discrete,native),'SUPPORTED_WITH_FALLBACK');
+delete discrete.params[0].options;expect('choice missing options rejected',assess(discrete,native),'UNSUPPORTED');

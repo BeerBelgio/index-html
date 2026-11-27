@@ -28,8 +28,8 @@
       if (type === 'toggle' || type === 'checkbox') {
         if (min !== 0 || max !== 1 || step !== 1 || ![0,1].includes(def))
           return reject(p.key + ' declares ' + type + ' but is not a valid numeric 0/1 control.');
-        warnings.push(p.key + ': ' + type + ' displayed as 0/1 slider.');
-      } else if (type === 'select' || p.options !== undefined) {
+        if (!env.nativeControls) warnings.push(p.key + ': ' + type + ' displayed as 0/1 slider.');
+      } else if (['select','choice'].includes(type) || p.options !== undefined) {
         if (!Array.isArray(p.options) || !p.options.length)
           return reject(p.key + ' requires numeric select options but has no valid options array.');
         const options = p.options.map(o => Number(typeof o === 'object' && o !== null ? o.value : o));
@@ -40,7 +40,7 @@
             options.some(n => n < min || n > max || Math.abs((n-min)/step-Math.round((n-min)/step))>1e-5) ||
             !options.includes(def))
           return reject(p.key + ' select options cannot be represented without extra invalid slider values.');
-        warnings.push(p.key + ': numeric select displayed as stepped slider.');
+        if (!env.nativeControls || !['select','choice'].includes(type)) warnings.push(p.key + ': numeric select displayed as stepped slider.');
       } else if (!['slider','range','number'].includes(type)) {
         // Unknown type is descriptive; the numeric bounds remain canonical.
         warnings.push(p.key + ': unknown control type "' + String(p.type) + '" displayed as numeric slider.');
