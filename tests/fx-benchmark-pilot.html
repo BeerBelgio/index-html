@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8"><base href="../"><title>FX QA-02 smoke</title></head><body><pre id="results" data-result="PENDING">Running</pre><div id="screen"><canvas id="legacy"></canvas><span id="end"></span></div>
+<script src="assets/js/playground-import-preflight.js"></script><script src="assets/js/index-numeric-controls.js"></script><script src="assets/js/playground-webgl2-lab.js"></script><script src="assets/js/index-fx-preview.js"></script><script src="labs/fx-qa-core.js"></script><script src="labs/fx-benchmark-core.js"></script><script>
+(async()=>{
+ const q=IndexFXQA,b=IndexFXBench,out=document.querySelector('#results'),rows=[];let pass=0,fail=0;
+ const check=(name,ok)=>{rows.push((ok?'PASS ':'FAIL ')+name);ok?pass++:fail++;};
+ try{
+  const c=await q.catalogue(),ids=c.tools.map(t=>t.toolId),jobs=b.jobs(c,ids,b.RESOLUTIONS);
+  check('matrix 195 benchmark jobs + 38 temporal jobs',jobs.length===233&&jobs.filter(j=>j.kind==='benchmark'&&j.id==='dry').length===5&&jobs.filter(j=>j.kind==='temporal').length===38);
+  check('matrix stable unique keys',new Set(jobs.map(j=>[j.kind,j.id,j.width,j.height].join(':'))).size===233);
+  check('4K explicitly capped',b.actualSize(3840,2160).width===2048&&b.actualSize(3840,2160).height===1152);
+  check('slot and accounting oracle',b.slotAt(0,60)===0&&b.slotAt(16.4,60)===1&&b.slotAt(50,60)===3&&b.cadence(60,40,4,1000,60).missedSlots===20&&b.cadence(60,40,4,1000,60).completedPipelineFps===40);
+  check('pixel difference oracle',b.comparePixels(new Uint8Array([0,0,0,255]),new Uint8Array([100,0,0,255])).meanAbsoluteRGBA===25);
+  const h={surface:document.querySelector('#screen'),legacy:document.querySelector('#legacy'),end:document.querySelector('#end')};
+  const cfg={width:320,height:180,fps:60,source:'moving',durationSeconds:.5,temporalSeconds:.2};
+  const results=[];
+  for(const id of ['dry',...q.PILOT]){
+   const tool=c.tools.find(t=>t.toolId===id)||null,r=await b.benchmark(tool,cfg,h);results.push({...r,kind:'benchmark'});
+   check(id+' wall-clock benchmark '+(r.error||''),r.status==='PASS');
+   check(id+' cadence accounting',r.cadence?.targetSlots===30&&r.cadence.completedInWindow+r.cadence.missedSlots===30&&r.cadence.attempted===r.cadence.completedInWindow+r.cadence.overrun);
+   check(id+' first slot and strictly increasing attempts',r.cadence?.attemptedSlots[0]===0&&r.cadence.attemptedSlots.every((slot,i,a)=>i===0||slot>a[i-1]));
+   check(id+' measured pipeline and explicit GPU status',r.pipelineMs?.count>0&&r.pipelineMs.count===r.sourceMs.count&&['SAMPLED','INCONCLUSIVE','NOT_AVAILABLE'].includes(r.gpuCompositeMs?.status));
+   check(id+' resource disposal',r.cleanup==='PASS'&&!document.querySelector('#pg-gpu-lab'));
+  }
+  for(const id of q.PILOT){
+   const r=await b.temporal(c.tools.find(t=>t.toolId===id),cfg,h);results.push({...r,kind:'temporal'});
+   check(id+' temporal '+(r.error||''),r.status==='PASS');
+   check(id+' temporal dry/wet evidence',r.records?.length>0&&r.records.every(s=>s.samples.length>=4&&s.samples.every(x=>x.drySha256.length===64&&x.wetSha256.length===64&&x.changedPixelFraction>=0&&x.changedPixelFraction<=1)&&s.dryPreview.startsWith('data:image/png')&&s.wetPreview.startsWith('data:image/png')));
+  }
+  const stopped=await b.benchmark(null,cfg,{...h,stop:()=>true});check('cooperative stop',stopped.status==='NOT_RUN'&&!document.querySelector('#pg-gpu-lab'));
+  check('CSV one row per result',b.csv({results}).trim().split('\r\n').length===results.length+1);
+  const f=document.createElement('iframe');f.src='labs/fx-benchmark.html';f.width=1000;f.height=750;document.body.append(f);
+  const deadline=performance.now()+5000;let d;while(performance.now()<deadline){d=f.contentDocument;if(d?.querySelectorAll('#module option').length===38)break;await new Promise(r=>setTimeout(r,50));}
+  check('benchmark UI opens, 38 FX, matrix gated',d?.querySelectorAll('#module option').length===38&&!d.querySelector('#pilot').disabled&&d.querySelector('#matrix').disabled&&d.querySelector('#json').disabled);
+  f.remove();
+ }catch(e){check('infrastructure '+e.message,false);}
+ out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';out.dataset.result=fail?'FAIL':'PASS';
+})();
+</script></body></html>

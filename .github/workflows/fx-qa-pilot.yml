@@ -1,0 +1,40 @@
+name: INDEX FX Laboratory pilot
+on:
+  push:
+    branches:
+      - lab/index-fx-qa01-20261127
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check QA code and frozen integration
+        run: |
+          node --check labs/fx-qa-core.js
+          node --check labs/fx-qa-ui.js
+          node --check labs/fx-benchmark-core.js
+          node --check labs/fx-benchmark-ui.js
+          git fetch --no-tags --depth=1 origin 91da05fcf9d27f7f1a62bfef4cb0a38e312bddf8
+          test -z "$(git diff --name-only 91da05fcf9d27f7f1a62bfef4cb0a38e312bddf8 HEAD -- assets data openmosh-fx index.html tool.html playground.html about.html)"
+      - name: Software Chromium pilot
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8774 --bind 127.0.0.1 >fx-qa-http.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          sleep 1
+          if command -v google-chrome >/dev/null; then browser=google-chrome; else browser=chromium; fi
+          node tests/run-browser-smoke.mjs http://127.0.0.1:8774/tests/fx-qa-pilot.html fx-qa-pilot-result.html "$browser"
+          node tests/run-browser-smoke.mjs http://127.0.0.1:8774/tests/fx-benchmark-pilot.html fx-benchmark-pilot-result.html "$browser"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fx-qa-pilot
+          path: |
+            fx-qa-pilot-result.html
+            fx-benchmark-pilot-result.html
+            fx-qa-http.log
+          retention-days: 7

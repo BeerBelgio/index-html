@@ -73,7 +73,7 @@ async function connect(address){
 }
 async function evaluate(send,expression){
   const r=await send('Runtime.evaluate',{expression,returnByValue:true});
-  if(r.exceptionDetails)throw Error('CDP browser evaluation error');
+  if(r.exceptionDetails)throw Error('CDP browser evaluation error: '+(r.exceptionDetails.exception?.description||r.exceptionDetails.text||'unknown'));
   return r.result?.value;
 }
 let outcome='PENDING';
@@ -81,7 +81,7 @@ try{
   const port=await devtoolsPort(),tab=await pageTab(port),send=await connect(tab.webSocketDebuggerUrl);
   await send('Page.enable');await send('Runtime.enable');
   await send('Page.navigate',{url});
-  const expression="(()=>{const el=document.querySelector('#results');return {status:el?.dataset.result||'PENDING',text:el?.textContent||'',html:document.documentElement.outerHTML};})()";
+  const expression="(()=>{const el=document.querySelector('#results');return {status:el?.dataset.result||'PENDING',text:el?.textContent||'',html:document.documentElement?.outerHTML||''};})()";
   while(Date.now()<until){
     const state=await evaluate(send,expression);
     if(state&&(state.status==='PASS'||state.status==='FAIL')){
