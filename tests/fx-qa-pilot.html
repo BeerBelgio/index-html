@@ -1,0 +1,25 @@
+<!doctype html><html><head><meta charset="utf-8"><base href="../"><title>FX QA pilot</title></head><body><pre id="results" data-result="PENDING">Running</pre><div id="screen"><canvas id="legacy"></canvas><span id="end"></span></div>
+<script src="assets/js/playground-import-preflight.js"></script><script src="assets/js/index-numeric-controls.js"></script><script src="assets/js/playground-webgl2-lab.js"></script><script src="assets/js/index-fx-preview.js"></script><script src="labs/fx-qa-core.js"></script><script>
+(async()=>{
+ const q=IndexFXQA,out=document.querySelector('#results'),rows=[];let pass=0,fail=0;const check=(n,v)=>{rows.push((v?'PASS ':'FAIL ')+n);v?pass++:fail++;};
+ try{
+  const c=await q.catalogue();check('38 FX catalogue',c.tools.length===38);
+  const reports=[];
+  for(const id of q.PILOT){
+   const r=await q.run(c.tools.find(t=>t.toolId===id),{width:320,height:180,fps:60,source:'moving',full:true},{surface:document.querySelector('#screen'),legacy:document.querySelector('#legacy'),end:document.querySelector('#end')});
+   reports.push(r);check(id+' technical pilot '+(r.error||''),r.status==='PASS');
+   check(id+' SHA and evidence',r.exportSha256?.length===64&&r.defaultPreview?.startsWith('data:image/png')&&r.cases[0]?.sha256?.length===64);
+   check(id+' all planned cases',r.cases.length===r.plannedCases&&r.cases.every(c=>c.status==='PASS'));
+   check(id+' actual dimensions and CPU samples',r.actual?.width===320&&r.actual?.height===180&&r.cpuRenderMs?.count===12);
+   check(id+' GPU availability explicit',['NOT_AVAILABLE','INCONCLUSIVE','SAMPLED'].includes(r.gpuCompositeMs?.status));
+   check(id+' disposed',r.cleanup==='PASS'&&!document.querySelector('#pg-gpu-lab'));
+   if(r.history)check(id+' history checks',r.historyChecks==='PASS');
+   if(id==='openmosh-blur')check('Blur three passes',r.passes===3);
+  }
+  const grain=reports[0];check('Grain toggle and all three choices', ['rgb=0','rgb=1','blendMode=0','blendMode=1','blendMode=2'].every(k=>grain.cases.some(c=>c.name===k&&c.status==='PASS')));
+  const csv=q.csv({results:reports});check('CSV four result rows',csv.trim().split('\r\n').length===5);
+  const json=JSON.stringify(reports.map(r=>({...r,defaultPreview:undefined})));const evidence=document.createElement('pre');evidence.id='qa-report';evidence.textContent=json;document.body.append(evidence);
+ }catch(e){check('infrastructure '+e.message,false);}
+ out.textContent=rows.join('\n')+'\nTOTAL '+pass+' PASS / '+fail+' FAIL';out.dataset.result=fail?'FAIL':'PASS';
+})();
+</script></body></html>
