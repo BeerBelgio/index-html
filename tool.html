@@ -24,7 +24,7 @@
   <meta name="twitter:description" content="Explore standalone visual generators and creative coding tools from INDEX HTML." />
   <meta name="twitter:image" content="https://beerbelgio.github.io/index-html/assets/branding/index-html-favicon-og.jpg" />
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="assets/css/tool-page.css?v=0220" />
+  <link rel="stylesheet" href="assets/css/tool-page.css?v=0220-fx-int01" />
 </head>
 <body>
   <div id="standard-page">
@@ -37,6 +37,7 @@
       <div class="tool-switcher" id="tool-switcher">
         <a class="tool-playground-link" href="playground.html">PLAYGROUND</a>
         <span class="tool-switcher-label">CHANGE TOOL</span>
+        <select id="tool-category" aria-label="Tool category"><option value="generator">GENERATORS</option><option value="effect">FX</option></select>
         <button id="tool-picker-button" class="tool-picker-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="tool-picker-menu">
           <span id="tool-picker-current">Loading…</span>
           <span class="tool-picker-chevron" aria-hidden="true"></span>
@@ -70,9 +71,10 @@
 
       <section class="workbench" aria-label="Live tool preview and controls">
         <div class="preview-panel">
-          <div class="panel-head"><span>LIVE PREVIEW</span></div>
+          <div class="panel-head"><span>LIVE PREVIEW</span><button id="fx-preview-reset-history" type="button" class="text-button" hidden>RESET HISTORY</button></div>
           <div class="preview-stage" id="preview-stage">
             <iframe id="tool-frame" title="Visual tool live preview"></iframe>
+            <canvas id="fx-preview-canvas" aria-label="FX live preview on INDEX favicon" hidden></canvas>
           </div>
           <div class="colors-dock">
             <div class="panel-head colors-head"><span>COLORS</span></div>
@@ -153,6 +155,11 @@
   </div>
 
   <div id="fatal-error" class="fatal-error" hidden></div>
-  <script src="assets/js/tool-page.js?v=0210"></script>
+  <script src="assets/js/index-catalogues.js?v=fx-int01"></script>
+  <script src="assets/js/index-numeric-controls.js?v=fx-int01"></script>
+  <script src="assets/js/playground-import-preflight.js?v=fx-int01"></script>
+  <script src="assets/js/playground-webgl2-lab.js?v=fx-webgl2-bitmapflip-01"></script>
+  <script src="assets/js/index-fx-preview.js?v=fx-int01"></script>
+  <script src="assets/js/tool-page.js?v=fx-int01"></script>
 </body>
 </html>

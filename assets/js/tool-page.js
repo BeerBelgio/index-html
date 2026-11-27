@@ -7,6 +7,9 @@
     standaloneStage: document.getElementById('standalone-stage'),
     switcher: document.getElementById('tool-switcher'),
     pickerButton: document.getElementById('tool-picker-button'),
+    category: document.getElementById('tool-category'),
+    fxCanvas: document.getElementById('fx-preview-canvas'),
+    fxHistory: document.getElementById('fx-preview-reset-history'),
     pickerCurrent: document.getElementById('tool-picker-current'),
     pickerMenu: document.getElementById('tool-picker-menu'),
     name: document.getElementById('tool-name'),
@@ -38,6 +41,7 @@
     raf: 0,
     lastTime: 0,
     resizeObserver: null,
+    loadToken: 0, pickerBound:false, fxRenderer:null, fxRendererPromise:null,
     standaloneMode: new URLSearchParams(window.location.search).get('view') === 'standalone'
   };
 
@@ -126,6 +130,8 @@
       els.pickerMenu.appendChild(button);
     }
 
+    if(!runtime.pickerBound){
+    runtime.pickerBound=true;
     els.pickerButton.addEventListener('click', () => {
       const open = els.pickerButton.getAttribute('aria-expanded') === 'true';
       setPickerOpen(!open);
@@ -142,6 +148,7 @@
       els.pickerButton.focus();
     });
 
+    }
     updatePickerSelection(selectedSlug);
   }
 
@@ -192,6 +199,7 @@
     els.implementation.hidden = !implementation;
 
     els.meta.innerHTML = '';
+    els.meta.appendChild(pill(tool.toolType==='effect'?'FX':'GENERATOR'));
     els.meta.appendChild(pill(tool.renderer));
     for (const tag of tool.conceptTags || []) els.meta.appendChild(pill(tag));
 
@@ -199,7 +207,8 @@
     els.download.setAttribute('download', tool.file.split('/').pop());
 
     renderParameters(tool.parameters || []);
-    renderLineage(tool.lineage || []);
+    renderLineage(tool.lineage || [],tool);
+    document.querySelector('.collection-download-link').hidden=tool.toolType==='effect';
     renderDevelopment(tool.development || {}, tool);
     updatePickerSelection(tool.slug);
     updateStandaloneHref();
@@ -283,7 +292,7 @@
     }
   }
 
-  function renderLineage(items) {
+  function renderLineage(items,tool) {
     els.lineage.innerHTML = '';
     if (!items.length) {
       els.lineage.innerHTML = '<p class="muted">No external lineage recorded.</p>';
@@ -328,7 +337,10 @@
 
     const licence = document.createElement('p');
     licence.className = 'lineage-license';
-    licence.innerHTML = 'Reuse: non-commercial only under <a href="https://github.com/BeerBelgio/index-html/blob/main/LICENSE.md" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a> — keep the BeerBelgio copyright notice and any listed third-party credits; commercial use requires a separate agreement.';
+    if(tool.toolType==='effect'){
+      licence.textContent='Reuse: MIT. Retain the OpenMosh copyright and all upstream notices in the downloaded HTML. See ';
+      const a=document.createElement('a');a.href='openmosh-fx/LICENSE.md';a.textContent='OpenMosh FX licence';licence.append(a,document.createTextNode('.'));
+    }else licence.innerHTML = 'Reuse: non-commercial only under <a href="https://github.com/BeerBelgio/index-html/blob/main/LICENSE.md" target="_blank" rel="noopener">PolyForm Noncommercial 1.0.0</a> — keep the BeerBelgio copyright notice and any listed third-party credits; commercial use requires a separate agreement.';
     els.lineage.appendChild(licence);
   }
 
@@ -459,6 +471,8 @@
       row.className = 'control-row';
       row.appendChild(createControlHeader(param, true));
 
+      const discrete=window.IndexNumericControls.create(param,runtime.state[param.key],value=>{runtime.state[param.key]=value;updateStandaloneHref();});
+      if(discrete){row.append(discrete);els.controls.append(row);continue;}
       const wrap = document.createElement('div');
       wrap.className = 'number-control';
 
@@ -572,7 +586,7 @@
     if (!requested) return state;
     for (const param of manifest.params || []) {
       if (!Object.prototype.hasOwnProperty.call(requested, param.key)) continue;
-      state[param.key] = numericValue(requested[param.key], param);
+      state[param.key] = window.IndexNumericControls.coerce(param,requested[param.key]);
     }
     for (const color of manifest.colors || []) {
       const value = requested[color.key];
@@ -586,6 +600,7 @@
   }
 
   function resizeTool() {
+    if(runtime.tool?.toolType==='effect')return;
     if (!runtime.frameWindow || typeof (runtime.frameWindow.indexResize || runtime.frameWindow.sketchResize) !== 'function') return;
     const stage = activeStage();
     if (!stage) return;
@@ -621,13 +636,15 @@
   function startRenderLoop() {
     stopRenderLoop();
     const tick = (now) => {
-      if (!runtime.frameWindow || !runtime.state) return;
+      if ((!runtime.frameWindow && !runtime.fxRenderer) || !runtime.state) return;
       if (!runtime.lastTime) runtime.lastTime = now;
       const dt = Math.min(0.05, Math.max(0, (now - runtime.lastTime) / 1000));
       runtime.lastTime = now;
       runtime.state.time += dt;
       try {
-        (runtime.frameWindow.indexDraw || runtime.frameWindow.sketchDraw)(runtime.state);
+        if(runtime.tool?.toolType==='effect'){
+          window.IndexFXPreview.copyCanvas(runtime.fxRenderer.draw(runtime.state,runtime.state.time,true),els.fxCanvas);
+        }else (runtime.frameWindow.indexDraw || runtime.frameWindow.sketchDraw)(runtime.state);
       } catch (error) {
         stopRenderLoop();
         setFatal(`Tool render failed: ${error.message}`);
@@ -649,9 +666,11 @@
   function mountFrameForMode() {
     const stage = activeStage();
     if (stage && els.frame.parentElement !== stage) stage.appendChild(els.frame);
+    if (stage && els.fxCanvas.parentElement !== stage) stage.appendChild(els.fxCanvas);
   }
 
   function handleFrameLoaded() {
+    if(runtime.tool?.toolType==='effect')return;
     clearFatal();
     try {
       const win = els.frame.contentWindow;
@@ -676,7 +695,31 @@
     }
   }
 
+  function disposeFX(){
+    runtime.fxRenderer?.dispose();runtime.fxRenderer=null;
+    runtime.fxRendererPromise=null;
+  }
+  async function loadFX(tool,token){
+    try{
+      const m=await window.IndexFXPreview.manifest(tool);
+      if(token!==runtime.loadToken)return;
+      if(!runtime.fxRendererPromise){
+        const promise=window.IndexFXPreview.create(960,540);
+        runtime.fxRendererPromise=promise;
+        promise.then(r=>{if(runtime.fxRendererPromise!==promise)r.dispose();}).catch(()=>{});
+      }
+      const renderer=await runtime.fxRendererPromise;
+      if(token!==runtime.loadToken)return;
+      runtime.fxRenderer=renderer;renderer.select(m);
+      runtime.manifest=m;runtime.state=applyRequestedState(stateFromManifest(m),m,runtime.requestedState);
+      if(!runtime.standaloneMode){renderControls(m);els.fxHistory.hidden=!m.effect.history;}
+      window.IndexFXPreview.copyCanvas(renderer.draw(runtime.state,0,false),els.fxCanvas);
+      els.fxCanvas.hidden=false;updateStandaloneHref();startRenderLoop();
+    }catch(error){if(token===runtime.loadToken){disposeFX();setFatal('FX preview failed: '+error.message);}}
+  }
   function loadTool(tool) {
+    const token=++runtime.loadToken;
+    const isFX=tool.toolType==='effect';
     updateSearchMetadata(tool);
     runtime.tool = tool;
     runtime.manifest = null;
@@ -685,11 +728,16 @@
     runtime.requestedState = runtime.standaloneMode ? readRequestedState() : null;
     stopRenderLoop();
     clearFatal();
+    els.fxCanvas.hidden=true;els.fxHistory.hidden=true;
+    if(!isFX)disposeFX();else runtime.fxRenderer?.clear();
+    els.frame.hidden=isFX;
 
     if (!runtime.standaloneMode) {
       els.reset.disabled = true;
       els.controls.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
       els.colors.innerHTML = '<p class="muted">Waiting for tool manifest…</p>';
+      els.category.value=tool.toolType;
+      populatePicker(runtime.data.tools.filter(t=>t.toolType===tool.toolType),tool.slug);
       renderEditorial(tool);
     } else {
       document.title = `INDEX HTML - ${tool.name}`;
@@ -697,7 +745,8 @@
 
     mountFrameForMode();
     els.frame.title = `${tool.name} live preview`;
-    els.frame.src = `${tool.file}?detail=1&build=0210`;
+    if(isFX){if(els.frame.getAttribute('src')!=='about:blank')els.frame.src='about:blank';void loadFX(tool,token);}
+    else els.frame.src = `${tool.file}?detail=1&build=0210`;
   }
 
   const emailFallback = document.getElementById('email-fallback');
@@ -791,9 +840,7 @@
       if (runtime.standaloneMode) document.body.classList.add('is-standalone');
       if (!runtime.standaloneMode) bindEmailFallback();
 
-      const response = await fetch('data/tools.json', { cache: 'no-store' });
-      if (!response.ok) throw new Error(`tools.json returned HTTP ${response.status}.`);
-      runtime.data = await response.json();
+      runtime.data = await window.IndexCatalogues.load();
 
       const tools = Array.isArray(runtime.data.tools) ? runtime.data.tools : [];
       if (!tools.length) throw new Error('No tools are defined in data/tools.json.');
@@ -802,7 +849,8 @@
       const selected = tools.find((tool) => tool.slug === requested) || tools[0];
 
       if (!runtime.standaloneMode) {
-        populatePicker(tools, selected.slug);
+        els.category.addEventListener('change',()=>{const first=tools.find(t=>t.toolType===els.category.value);if(first)setRequestedSlug(first.slug);});
+        els.fxHistory.addEventListener('click',()=>runtime.fxRenderer?.resetHistory());
         if (requested !== selected.slug) {
           const url = new URL(window.location.href);
           url.searchParams.set('tool', selected.slug);
@@ -828,6 +876,6 @@
     }
   }
 
-  window.addEventListener('beforeunload', stopRenderLoop);
+  window.addEventListener('beforeunload',()=>{stopRenderLoop();disposeFX();});
   boot();
 })();

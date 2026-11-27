@@ -56,7 +56,7 @@
     function dispose(){clear();engine.dispose();bitmap.close();canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();}
     return {select,draw,clear,dispose,resetHistory:()=>instance?.resetHistory(),stats:()=>instance?.stats()};
   }
-  function copyCanvas(source,target){target.width=source.width;target.height=source.height;target.getContext('2d').drawImage(source,0,0);}
+  function copyCanvas(source,target){if(target.width!==source.width)target.width=source.width;if(target.height!==source.height)target.height=source.height;target.getContext('2d').drawImage(source,0,0);}
   function demonstration(m,state,time){
     // Use a single deterministic numeric sweep for hover, never edit manifest/defaults.
     const p=m.params.find(p=>!['speed','rate'].includes(p.key.toLowerCase())&&window.IndexNumericControls.kind(p)==='slider'&&Number(p.max)>Number(p.min));
