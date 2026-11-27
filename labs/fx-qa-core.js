@@ -188,5 +188,5 @@
   const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   return [keys.join(','),...report.results.map(r=>[r.id,r.name,r.version,r.status,r.passes,r.history,r.actual?.width,r.actual?.height,r.cases.filter(c=>c.status==='PASS').length,r.plannedCases,r.cpuRenderMs?.p95,r.gpuCompositeMs?.p95,r.gpuCompositeMs?.status,r.textureBytesEstimate,r.exportSha256,r.error,r.observations.join('; ')].map(quote).join(','))].join('\r\n')+'\r\n';
  }
- window.IndexFXQA={BASELINE,PILOT,catalogue,load,plan,run,csv,summary,sha};
+ window.IndexFXQA={BASELINE,PILOT,catalogue,load,plan,run,csv,summary,sha,source,sample,gpuTimer,environment};
 })();
