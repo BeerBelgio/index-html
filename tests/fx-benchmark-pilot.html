@@ -8,7 +8,7 @@
   check('matrix 195 benchmark jobs + 38 temporal jobs',jobs.length===233&&jobs.filter(j=>j.kind==='benchmark'&&j.id==='dry').length===5&&jobs.filter(j=>j.kind==='temporal').length===38);
   check('matrix stable unique keys',new Set(jobs.map(j=>[j.kind,j.id,j.width,j.height].join(':'))).size===233);
   check('4K explicitly capped',b.actualSize(3840,2160).width===2048&&b.actualSize(3840,2160).height===1152);
-  check('slot and accounting oracle',b.slotAt(50,60)===3&&b.cadence(60,40,4,1000,60).missedSlots===20&&b.cadence(60,40,4,1000,60).completedPipelineFps===40);
+  check('slot and accounting oracle',b.slotAt(0,60)===0&&b.slotAt(16.4,60)===1&&b.slotAt(50,60)===3&&b.cadence(60,40,4,1000,60).missedSlots===20&&b.cadence(60,40,4,1000,60).completedPipelineFps===40);
   check('pixel difference oracle',b.comparePixels(new Uint8Array([0,0,0,255]),new Uint8Array([100,0,0,255])).meanAbsoluteRGBA===25);
   const h={surface:document.querySelector('#screen'),legacy:document.querySelector('#legacy'),end:document.querySelector('#end')};
   const cfg={width:320,height:180,fps:60,source:'moving',durationSeconds:.5,temporalSeconds:.2};
@@ -17,6 +17,7 @@
    const tool=c.tools.find(t=>t.toolId===id)||null,r=await b.benchmark(tool,cfg,h);results.push({...r,kind:'benchmark'});
    check(id+' wall-clock benchmark '+(r.error||''),r.status==='PASS');
    check(id+' cadence accounting',r.cadence?.targetSlots===30&&r.cadence.completedInWindow+r.cadence.missedSlots===30&&r.cadence.attempted===r.cadence.completedInWindow+r.cadence.overrun);
+   check(id+' first slot and strictly increasing attempts',r.cadence?.attemptedSlots[0]===0&&r.cadence.attemptedSlots.every((slot,i,a)=>i===0||slot>a[i-1]));
    check(id+' measured pipeline and explicit GPU status',r.pipelineMs?.count>0&&r.pipelineMs.count===r.sourceMs.count&&['SAMPLED','INCONCLUSIVE','NOT_AVAILABLE'].includes(r.gpuCompositeMs?.status));
    check(id+' resource disposal',r.cleanup==='PASS'&&!document.querySelector('#pg-gpu-lab'));
   }

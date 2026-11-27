@@ -13,3 +13,5 @@ Start a loopback Python server from the extracted repository root (or use --dire
 
 ## Reproduce / rollback
 Run existing workflow fx-qa-pilot.yml, which checks both the original smoke and QA-02 shortened four-FX pilot, UI readiness and matrix/accounting oracles. No dependencies added. Return to previous ZIP to roll back. Native pilot on Intel and M5, then matrix; only after those results consider targeted profiling/per-pass timing and serial FX study. No merge or release without explicit approval.
+
+Scheduler starts rendering on the initial rAF, includes 0.5 ms early-slot tolerance to accommodate callback jitter, and records the actual attempted slot sequence (no duplicates or catch-up bursts).

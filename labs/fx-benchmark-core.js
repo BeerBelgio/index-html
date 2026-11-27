@@ -19,7 +19,7 @@
   });
  }
  // Wall-clock schedule: one frame at most per due slot, never catch up by rendering bursts.
- function slotAt(elapsedMs,fps){return Math.max(0,Math.floor(elapsedMs*fps/1000+0.001));}
+ function slotAt(elapsedMs,fps){return Math.max(0,Math.floor((elapsedMs+.5)*fps/1000));}
  function cadence(targetSlots,completedInWindow,late,elapsedMs,fps){
   return {targetFps:fps,targetSlots,completedInWindow,missedSlots:Math.max(0,targetSlots-completedInWindow),
    lateCompletions:late,windowMs:elapsedMs,completedPipelineFps:completedInWindow*1000/elapsedMs};
@@ -90,25 +90,28 @@
    s.fx?.resetHistory();
    const timer=s.startTimer(),source=[],render=[],pipeline=[],intervals=[];let lastSlot=-1,lastRAF=null,completed=0,late=0,attempted=0,overrun=0;
    // Anchor to the first rAF, then schedule by real elapsed time, not loop iterations.
-   await nextRAF(hooks);const start=performance.now();
+   let stamp=await nextRAF(hooks);const start=performance.now(),attemptedSlots=[];
    while(true){
-    const stamp=await nextRAF(hooks),now=performance.now(),elapsed=now-start;
+    const elapsed=performance.now()-start;
     if(lastRAF!==null)intervals.push(stamp-lastRAF);lastRAF=stamp;
     if(elapsed>=windowMs)break;
-    const slot=slotAt(elapsed,cfg.fps);if(slot===lastSlot||slot>=targetSlots)continue;
-    lastSlot=slot;attempted++;
-    const timings=await s.draw(s.defaults,slot,slot/cfg.fps,withFX,true,true);
-    const end=performance.now()-start;
-    source.push(timings.sourceMs);render.push(timings.renderMs);pipeline.push(timings.pipelineMs);
-    if(end<=windowMs)completed++;else overrun++;
-    if(end>(slot+1)*period)late++;
-    if(end>=windowMs)break;
+    const slot=slotAt(elapsed,cfg.fps);
+    if(slot>lastSlot&&slot<targetSlots){
+     lastSlot=slot;attempted++;attemptedSlots.push(slot);
+     const timings=await s.draw(s.defaults,slot,slot/cfg.fps,withFX,true,true);
+     const end=performance.now()-start;
+     source.push(timings.sourceMs);render.push(timings.renderMs);pipeline.push(timings.pipelineMs);
+     if(end<=windowMs)completed++;else overrun++;
+     if(end>(slot+1)*period)late++;
+     if(end>=windowMs)break;
+    }
+    stamp=await nextRAF(hooks);
    }
    const elapsedMs=performance.now()-start,gpu=await timer.finish();
    assert(attempted>0,'No measured pipeline frames');
    // A GPU timing query measures submitted compositor commands (upload/FX/composite), not source production.
    return {status:'PASS',measurement:'wall-clock rAF gated; completed JS pipeline, not monitor presentation',
-    cadence:{...cadence(targetSlots,completed,late,windowMs,cfg.fps),attempted,overrun,observedElapsedMs:elapsedMs,rafIntervalMs:qa.summary(intervals)},
+    cadence:{...cadence(targetSlots,completed,late,windowMs,cfg.fps),attempted,attemptedSlots,overrun,observedElapsedMs:elapsedMs,rafIntervalMs:qa.summary(intervals)},
     sourceMs:qa.summary(source),rendererCpuMs:qa.summary(render),pipelineMs:qa.summary(pipeline),gpuCompositeMs:gpu,
     state:s.defaults,preview:thumbnail(s.canvas)};
   });}catch(e){return {...meta,status:e.message==='STOPPED'?'NOT_RUN':'FAIL',error:String(e.message||e)};}
