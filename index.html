@@ -28,7 +28,7 @@
   <meta name="twitter:image" content="https://beerbelgio.github.io/index-html/assets/branding/index-html-og.png" />
 
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="assets/css/home-page.css?v=0193" />
+  <link rel="stylesheet" href="assets/css/home-page.css?v=fx-int01" />
 </head>
 <body>
   <header class="home-header shell" id="home-header">
@@ -86,6 +86,7 @@
               <input id="tool-search" type="search" autocomplete="off" placeholder="Name or tag" aria-label="Search tools by name or concept tag" />
             </div>
           </div>
+          <select id="tool-category-filter" aria-label="Tool category"><option value="all">ALL TOOLS</option><option value="generator">GENERATORS</option><option value="effect">FX</option></select>
           <div id="tool-tag-filters" class="tool-tag-filters" aria-label="Concept tags"></div>
         </div>
       </div>
@@ -108,6 +109,11 @@
   </footer>
 
   <div id="home-error" class="home-error" hidden></div>
-  <script src="assets/js/home-page.js?v=0210"></script>
+  <script src="assets/js/index-catalogues.js?v=fx-int01"></script>
+  <script src="assets/js/index-numeric-controls.js?v=fx-int01"></script>
+  <script src="assets/js/playground-import-preflight.js?v=fx-int01"></script>
+  <script src="assets/js/playground-webgl2-lab.js?v=fx-webgl2-bitmapflip-01"></script>
+  <script src="assets/js/index-fx-preview.js?v=fx-int01"></script>
+  <script src="assets/js/home-page.js?v=fx-int01"></script>
 </body>
 </html>
