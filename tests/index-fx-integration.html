@@ -48,6 +48,7 @@
   change(d.querySelector('#tool-category'),'effect');check('FX category changes URL and picker',await until(()=>page.contentWindow.location.search.includes('openmosh-')&&d.querySelectorAll('#tool-picker-menu button').length===38));
   d.querySelector('[data-tool-slug="openmosh-grain"]').click();
   check('Grain detail preview renders',await until(()=>!d.querySelector('#fx-preview-canvas').hidden&&hasImage(d.querySelector('#fx-preview-canvas'))));
+  check('FX search metadata',d.querySelector('meta[property="og:title"]').content==='INDEX HTML - Grain'&&d.querySelector('meta[property="og:url"]').content.endsWith('?tool=openmosh-grain'));
   check('FX canonical and download',d.querySelector('link[rel=canonical]').href.endsWith('?tool=openmosh-grain')&&d.querySelector('#download-link').getAttribute('href').endsWith('Grain-v1.0.html'));
   const toggle=d.querySelector('#controls input[role=switch]'),choice=d.querySelector('#controls select');
   check('native detail toggle and choice',!!toggle&&!!choice&&choice.options.length===3);
@@ -67,7 +68,8 @@
   const win=page.contentWindow;let engine;const make=win.IndexWebGL2Lab.create;win.IndexWebGL2Lab.create=args=>(engine=make(args));
   const select=d.querySelector('#pg-select'),load=d.querySelector('#pg-load');
   const loadTool=async(id,name)=>{change(select,id);load.click();return until(()=>d.querySelector('#pg-title').textContent===name&&d.querySelector('#pg-status').textContent.includes('ready:'),10000);};
-  check('Playground catalogue generator',await loadTool('IDX-001','Linking Nodes'));
+  change(select,'IDX-001');load.click();
+  check('Playground catalogue generator first frame committed',await until(()=>d.querySelectorAll('.pg-layer-card')[0].textContent.includes('Linking Nodes')&&d.querySelector('#pg-log').textContent.includes('L1 first frame displayed')&&d.querySelector('#pg-gpu-lab')&&hasImage(d.querySelector('#pg-gpu-lab')),12000),d.querySelector('#pg-status').textContent+' | '+d.querySelector('#pg-log').textContent.slice(-600));
   d.querySelectorAll('.pg-layer-pick')[1].click();
   check('Playground catalogue stateless Grain',await loadTool('openmosh-grain','Grain'));
   const pt=d.querySelector('#pg-params input[role=switch]'),pc=d.querySelector('#pg-params select');

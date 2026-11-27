@@ -181,9 +181,10 @@
     }
     canonical.href = canonicalUrl.href;
 
-    const description = document.head.querySelector('meta[name="description"]');
-    if (description) {
-      description.content = tool.copy?.short || `Explore ${tool.name}, a standalone INDEX HTML creative coding tool.`;
+    const description=tool.copy?.short||`Explore ${tool.name}, a standalone INDEX HTML creative coding tool.`;
+    const title=`INDEX HTML - ${tool.name}`;
+    for(const [selector,value] of [['meta[name="description"]',description],['meta[property="og:url"]',canonicalUrl.href],['meta[property="og:title"]',title],['meta[property="og:description"]',description],['meta[name="twitter:title"]',title],['meta[name="twitter:description"]',description]]){
+      const meta=document.head.querySelector(selector);if(meta)meta.content=value;
     }
   }
 
